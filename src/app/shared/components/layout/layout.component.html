@@ -1,0 +1,16 @@
+<div class="main-layout-container d-flex flex-column" style="min-height: 100vh;">
+  
+  <header class="p-0">
+    <app-header [optionsMenu]="optionsMenu"></app-header>
+  </header>
+  
+  <div class="router-outlet-container flex-grow-1" 
+       style="overflow-y: auto; background-color: #2782d8bb;">
+    <router-outlet></router-outlet>
+  </div>
+  
+  <footer class="p-0">
+    <app-footer></app-footer>
+  </footer>
+  
+</div>

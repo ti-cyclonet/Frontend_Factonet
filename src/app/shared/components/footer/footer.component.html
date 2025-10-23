@@ -1,0 +1,36 @@
+<footer class="footer text-white p-3" style="border-top: 3px solid #4F4F4F;"> 
+    <div class="d-flex justify-content-between align-items-center w-100">
+
+        <!-- CONTENEDOR IZQUIERDO: Hora + Métricas (usando d-flex para alinear) -->
+        <div class="d-flex align-items-center text-left">
+            
+            <!-- 1. Hora Actual -->
+            <span id="current-datetime" class="small-text">{{ currentDateTime }}</span>
+
+            <!-- 2. Contenedor de Métricas -->
+            <div class="invoice-metrics d-flex align-items-center ml-4">
+                
+                <!-- Facturas Pendientes -->
+                <span class="metric-item small-text">
+                    <span class="metric-label">Pendientes:</span>
+                    <strong class="metric-value pending-color">{{ pendingInvoices }}</strong>
+                </span>
+                
+                <!-- Separador Vertical Flotante -->
+                <span class="metric-separator mx-2"></span> 
+                
+                <!-- Facturas Pagadas -->
+                <span class="metric-item small-text">
+                    <span class="metric-label">Pagadas:</span>
+                    <strong class="metric-value paid-color">{{ paidInvoices }}</strong>
+                </span>
+
+            </div>
+        </div>
+
+        <div class="text-right">
+            &copy;<font class="app-name-color"> {{ nombreApp }} </font> 2025 CycloNet S.A.S.
+        </div>
+
+    </div>
+</footer>

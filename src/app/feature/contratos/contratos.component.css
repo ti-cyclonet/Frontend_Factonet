@@ -1,0 +1,199 @@
+/* --- Futuristic Design Tokens --- */
+:host {
+    /* Define the core palette for easy modification */
+    --bg-dark: #0f172a; /* Deep Slate */
+    --surface-dark: #1e293b; /* Darker Slate */
+    --accent-cyan: #22d3ee; /* Electric Cyan */
+    --text-light: #f1f5f9; /* Light Gray */
+    --text-muted: #94a3b8; /* Muted Gray */
+    --glow-shadow: 0 0 10px rgba(34, 211, 238, 0.5); /* Cyan Glow */
+    --danger-red: #f87171;
+}
+
+/* Base container styling: Dark, bordered, and shadowed */
+.card {
+    background-color: var(--surface-dark);
+    border: 1px solid rgba(34, 211, 238, 0.3); /* Thin cyan border */
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); /* Deeper shadow */
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* --- Header and Title --- */
+.management-header {
+    margin-bottom: 20px;
+}
+
+.title-right {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    font-family: 'Inter', sans-serif;
+}
+
+.title-text {
+    /* Apply neon glow to the title */
+    text-shadow: 0 0 5px rgba(34, 211, 238, 0.3);
+}
+
+.title-text .text-muted {
+    color: var(--text-muted) !important;
+    font-weight: 300;
+}
+
+.title-text .text-primary {
+    color: var(--accent-cyan) !important;
+    font-weight: 700;
+}
+
+.orange-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-cyan);
+    border-radius: 50%;
+    box-shadow: var(--glow-shadow);
+    /* Subtle pulse animation for futuristic feel */
+    animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.5; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1.0); }
+}
+
+/* --- Options Panel (Sidebar) --- */
+.options-panel {
+    width: 80px;
+    min-width: 80px;
+    background-color: #0d121c; /* Slightly darker than surface */
+    border-left: 1px solid rgba(34, 211, 238, 0.5);
+    transition: width 0.3s ease;
+}
+
+.icon-only-btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+}
+
+.icon-only-btn:hover:not([disabled]) {
+    background-color: #17223b;
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+    transform: scale(1.05);
+}
+
+.icon-only-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.option-icon {
+    width: 28px;
+    height: 28px;
+    fill: var(--accent-cyan); /* Icons glow cyan */
+}
+
+/* --- Table Styling (Data Matrix) --- */
+
+.table-responsive {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(34, 211, 238, 0.4); /* Neon border around the table */
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Roboto Mono', monospace; /* Techier font for data */
+}
+
+.custom-table thead th {
+    background-color: #1a365d; /* Darker header blue */
+    color: var(--text-light);
+    font-weight: 500;
+    padding: 15px 10px;
+    border-bottom: 2px solid var(--accent-cyan);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.custom-table tbody tr {
+    background-color: var(--surface-dark);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    border-bottom: 1px dashed #1e416a; /* subtle separator */
+    cursor: pointer;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #2a3a5b; /* Lighter shade on hover */
+}
+
+.custom-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.custom-table td {
+    color: var(--text-light);
+    padding: 12px 10px;
+    vertical-align: middle;
+}
+
+/* Selected row highlight (The "focused" row) */
+.selected-row {
+    background-color: #2a3a5b !important;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    box-shadow: inset 3px 0 0 0 var(--accent-cyan); /* Highlight bar on the left */
+}
+
+.item-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    appearance: none;
+    border: 2px solid var(--accent-cyan);
+    border-radius: 3px;
+    background-color: transparent;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.item-checkbox:checked {
+    background-color: var(--accent-cyan);
+    box-shadow: 0 0 5px rgba(34, 211, 238, 0.8);
+}
+
+.item-checkbox:checked::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    color: var(--bg-dark);
+}
+
+/* --- Utility Button (Show/Hide Options) --- */
+.toggle-btn-futuristic {
+    background-color: var(--surface-dark);
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.toggle-btn-futuristic:hover {
+    background-color: var(--accent-cyan);
+    color: var(--bg-dark);
+    box-shadow: var(--glow-shadow);
+}
