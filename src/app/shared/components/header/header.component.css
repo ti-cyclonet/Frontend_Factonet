@@ -1,0 +1,262 @@
+/* ------------------------------------------------ */
+/* 1. Estilo General del Contenedor del Header */
+/* ------------------------------------------------ */
+
+.header-wrapper {
+    background-color: var(--header-background-color, #2782d8bb); 
+    color: rgb(0, 0, 0); 
+    /* La sombra del wrapper es sutil, la principal la lleva el marco */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column; 
+    /* Aseguramos que el wrapper no tenga padding, para que el marco flote correctamente */
+    padding: 0; 
+}
+
+/* ------------------------------------------------ */
+/* 1.1 ESTILO DEL MARCO SUPERIOR (FLOTANTE Y CENTRADO) */
+/* ------------------------------------------------ */
+
+.header-container {
+    /* PROPIEDADES DEL MARCO NEGRO */
+    border: 3px solid rgb(0, 0, 0); 
+    border-radius: 8px; 
+    
+    /* EFECTO FLOTANTE Y CENTRADO */
+    max-width: 1330px; /* Ancho MÁXIMO en pantallas grandes para que no se estire demasiado */
+    width: 85%; /* Ancho que ocupa el marco (deja 5% de espacio horizontal) */
+    margin: 10px auto; /* 10px de margen vertical, y 'auto' para centrarlo */
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.39); /* Sombra más fuerte para efecto flotante */
+    
+    /* MANTENIENDO LA DELGADEZ DEL CONTENIDO */
+    padding: 5px 15px; /* Padding vertical reducido (5px arriba/abajo) */
+}
+
+/* MEDIA QUERY para Pestañas (Tablets) y dispositivos con ancho de hasta 768px */
+@media (max-width: 768px) {
+    .header-container {
+        /* Se mantiene la mayoría del diseño, pero... */
+        
+        /* 1. SE AUMENTA EL ANCHO DISPONIBLE */
+        /* Hace que ocupe más espacio para aprovechar el tamaño de la pantalla de la tablet */
+        width: 95%; 
+        
+        /* 2. SE REDUCE EL MARCO Y SOMBRA LIGERAMENTE */
+        border: 2px solid rgb(0, 0, 0); /* Marco un poco más delgado */
+        box-shadow: 0 1px 5px rgba(255, 255, 255, 0.39); /* Sombra más sutil */
+        
+        /* 3. SE PUEDE MANTENER EL PADDING IGUAL O REDUCIRLO */
+        padding: 5px 10px; /* Reducción ligera del padding horizontal si es necesario */
+    }
+}
+
+/* ------------------------------------------------------------------ */
+
+/* MEDIA QUERY para Teléfonos Móviles con ancho de hasta 480px */
+@media (max-width: 480px) {
+    .header-container {
+        /* 1. SE ELIMINA EL MARGEN HORIZONTAL EXTERNO */
+        /* Hace que ocupe el 100% del espacio para evitar scroll horizontal innecesario */
+        width: 100%; 
+        
+        /* 2. SE ELIMINA EL MARGEN EXTERNO Y SE AÑADE AL PADDING */
+        /* La clave para que 'flote' en móviles es usar padding interno en lugar de margen externo */
+        margin: 0; /* Elimina el margen externo */
+        
+        /* 3. SE REDUCE EL PADDING INTERNO AL MÍNIMO */
+        padding: 5px 5px; 
+        
+        /* 4. SE PUEDEN ELIMINAR LOS BORDES REDONDEADOS EN LOS EXTREMOS */
+        /* Para que se "pegue" a los bordes de la pantalla */
+        border-radius: 0; 
+        
+        /* 5. SE ELIMINA LA SOMBRA */
+        box-shadow: none;
+    }
+}
+
+
+/* ------------------------------------------------ */
+/* 2. Estilos para la Nueva Barra de Navegación (.main-navbar) */
+/* ------------------------------------------------ */
+
+.main-navbar {
+    background-color: var(--navbar-background-color, #2782d8bb); 
+    padding: 0 20px; 
+    height: 25px; 
+    /* Agregamos margin-bottom para separarlo del marco superior si es necesario */
+    margin-bottom: 6px; 
+}
+
+/* ------------------------------------------------ */
+/* 3. ESTILOS INTERNOS (PARA MANTENER LA ALTURA BAJA) */
+/* ------------------------------------------------ */
+
+.logo-img {
+    height: 45px; /* Altura del logo */
+    width: auto;
+    display: block; 
+}
+
+/* El padding de .btn es clave para mantener la altura baja */
+.header-container .btn {
+    padding: 2px 3px !important; 
+    line-height: 1; 
+}
+
+/* ================================================ */
+/* 4. NUEVOS ESTILOS PARA EL ÁREA DE USUARIO Y PERFIL */
+/* ================================================ */
+
+/* Contenedor principal del área de usuario */
+.user-info-frame {
+    /* Nos aseguramos de que todos los elementos (info, imagen, íconos) estén alineados */
+    align-items: center; 
+}
+
+/* Estilos para el nombre de usuario (la línea de arriba) */
+.user-info-frame .user-name {
+    font-weight: 700; /* Más destacado */
+    color: #fff; /* Color claro para contrastar con el fondo azul */
+    line-height: 1.1; /* Reducimos el espaciado entre líneas */
+    text-transform: uppercase; /* Para que coincida con el nombre de usuario de la imagen */
+}
+
+/* Estilos para el detalle (rol | email - la línea de abajo) */
+.user-info-frame .user-detail {
+    font-size: 0.75rem; /* Pequeño para que quepa */
+    color: #000; /* Color oscuro para el detalle */
+    line-height: 1.1; /* Reducimos el espaciado entre líneas */
+}
+
+/* Estilos para el enlace que contiene la imagen de perfil */
+.profile-toggle {
+    display: block;
+    cursor: pointer;
+    /* QUITAMOS el estilo de botón por defecto para la imagen de perfil */
+    padding: 0 !important; 
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Estilos para la imagen de perfil en sí */
+.user-img {
+    /* Tamaño fijo para la imagen */
+    width: 35px; 
+    height: 35px;
+    /* La hacemos un círculo */
+    border-radius: 50%; 
+    /* Añadimos un pequeño borde para destacarla */
+    border: 2px solid #fff; 
+    /* Aseguramos que la imagen no se distorsione */
+    object-fit: cover; 
+    /* Agregamos una transición para un efecto hover suave */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Efecto visual al pasar el ratón sobre la imagen */
+.profile-toggle:hover .user-img {
+    transform: scale(1.05);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+/* Estilos para el menú desplegable del perfil */
+.dropdown-menu-end {
+    /* Asegura que el dropdown se alinee correctamente a la derecha */
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* Ajuste del ícono de la calculadora y configuración para que se vean bien al lado de la imagen */
+.main-navbar {
+    background-color: var(--navbar-background-color, #2782d8bb); 
+    padding: 0 20px; 
+    height: 35px; /* Aumentado a 35px para que quepan los íconos de 24px */
+    margin-bottom: 6px; 
+    /* ¡IMPORTANTE! Bootstrap d-flex justify-content-between en el HTML se encarga de la posición. */
+    /* Aseguramos la alineación de los elementos en el centro vertical. */
+    align-items: center;
+}
+
+/* ------------------------------------------------ */
+/* 4. NUEVOS ESTILOS PARA LOS ÍCONOS DE HERRAMIENTAS EN LA BARRA DE NAVEGACIÓN */
+/* ------------------------------------------------ */
+
+.nav-tools {
+    /* Mantiene los íconos juntos */
+    gap: 10px; 
+}
+
+.nav-tool-btn {
+    /* Estilos base para el ícono de Calculadora y Configuración */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Ancho del botón */
+    height: 40px; /* Altura del botón */
+    border-radius: 5px;
+    cursor: pointer;
+    color: #000; /* Color del ícono */
+    transition: background-color 0.2s, color 0.2s;
+    text-decoration: none; /* Quitamos el subrayado de los enlaces */
+}
+
+.nav-tool-btn:hover {
+    background-color: var(--hover-color, #ffffff);
+    color: var(--primary-color, #000000); /* Nuevo color al pasar el ratón */
+}
+
+.nav-tool-btn svg {
+    /* Aseguramos que el SVG llene el espacio del botón */
+    fill: currentColor;
+    width: 30px; 
+    height: 30px;
+}
+
+/* Ocultar la información de usuario en móviles pequeños para ahorrar espacio */
+@media (max-width: 576px) {
+    .user-info-frame .text-end {
+        /* Oculta el nombre y correo para dejar solo la imagen y los íconos */
+        display: none !important; 
+    }
+    .profile-toggle {
+        /* Eliminamos el margen si ocultamos la información */
+        margin-right: 0; 
+    }
+}
+
+
+/* ------------------------------------------------ */
+/* 4-5. Estilos de Navegación (no modificados) */
+/* ------------------------------------------------ */
+
+.nav-link {
+    color: rgb(0, 0, 0);
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 2px 8px; 
+    margin: 0 5px; 
+    border-radius: 10px; /* Unificado el border-radius */
+    transition: background-color 0.2s, color 0.2s;
+    text-decoration: none; 
+    display: flex; 
+    align-items: center;
+}
+
+.nav-link:hover {
+    background-color: var(--hover-color, #faf8f8); 
+    color: #000000;
+}
+
+.nav-link.active {
+    background-color: var(--primary-color, #000000); 
+    color: white;
+    font-weight: 700;
+    border-bottom: none; 
+    box-shadow: 0 -2px 5px rgba(15, 100, 212, 0.3); 
+}
+
+.nav-link svg {
+    margin-right: 5px;
+    fill: currentColor; 
+}

@@ -1,0 +1,188 @@
+<!-- Contenedor flotante (derecha) - Notificaciones Toast -->
+<div class="notification-container">
+  <ng-container *ngFor="let notification of notifications; let i = index">
+    <app-notifications
+      *ngIf="notification.container === 0 && notification.visible"
+      [title]="notification.title"
+      [type]="notification.type"
+      [alertType]="notification.alertType"
+      (close)="removeNotification(i)"
+    ></app-notifications>
+  </ng-container>
+</div>
+
+<!-- Contenedor superior (todo el ancho) - Notificaciones Banner -->
+<div>
+  <ng-container *ngFor="let notification of notifications; let i = index">
+    <app-notifications
+      *ngIf="notification.container === 1 && notification.visible"
+      [title]="notification.title"
+      [type]="notification.type"
+      [alertType]="notification.alertType"
+      (close)="removeNotification(i)"
+    ></app-notifications>
+  </ng-container>
+</div>
+
+<!-- MAIN CARD - Futuristic Look -->
+<div class="card m-3">
+  <div class="card-body">
+    
+    <!-- HEADER & TOGGLE BUTTON -->
+    <div class="management-header d-flex align-items-center w-100">
+      
+      <!-- Botón para mostrar/ocultar la cinta (OPTIONS PANEL) -->
+      <button
+        class="toggle-btn-futuristic mb-3"
+        (click)="showOptions = !showOptions"
+      >
+        <svg
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          width="16"
+          height="16"
+          style="vertical-align: middle"
+        >
+          <use
+            [attr.xlink:href]="
+              './assets/icons/bootstrap-icons.svg#' +
+              (showOptions ? 'chevron-double-right' : 'chevron-double-left')
+            "
+          ></use>
+        </svg>
+        <span class="ms-1 d-none d-md-inline">{{ showOptions ? "HIDE" : "SHOW" }} TOOLS</span>
+      </button>
+      
+      <!-- TITLE (Contract Matrix) -->
+      <div class="w-100 d-flex justify-content-end pe-4">
+        <h5 class="card-title title-right">
+          <span class="title-text">
+            <span class="text-muted">SYSTEM //</span>
+            <span class="text-primary fw-bold">CONTRACTS MATRIX</span>
+            <span class="orange-dot"></span>
+          </span>
+        </h5>
+      </div>
+    </div>
+    <!-- END HEADER -->
+
+    <div class="d-flex">
+      
+      <!-- MAIN CONTENT: TABLE (Data Grid) -->
+      <div class="flex-grow-1 p-3">
+        <div class="table-responsive mt-3">
+          <table class="table custom-table small">
+            <thead>
+              <tr>
+                <th class="text-center">Select</th>
+                <th class="text-start">ID</th>
+                <th class="text-start d-none d-md-table-cell">Client</th>
+                <th class="text-end d-none d-lg-table-cell">Value</th>
+                <th class="text-center">Status</th>
+                <th class="text-center d-none d-lg-table-cell">Start Date</th>
+                <th class="text-center">End Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Iterar sobre los contratos -->
+              <tr 
+                *ngFor="let contrato of contratos; trackBy: trackById"
+                (click)="setSelectedContrato(contrato)"
+                [ngClass]="{'selected-row': contrato === selectedContrato}"
+              >
+                <!-- Checkbox para seleccionar el contrato (Columna 1) -->
+                <td class="text-center">
+                  <input 
+                    type="checkbox" 
+                    class="item-checkbox" 
+                    [checked]="contrato === selectedContrato" 
+                    (change)="setSelectedContrato(contrato)"
+                    (click)="$event.stopPropagation()"
+                  />
+                </td>
+                <!-- ID (Columna 2) -->
+                <td class="text-start fw-bold">{{ contrato.id }}</td>
+                <!-- Client (Columna 3) -->
+                <td class="text-start d-none d-md-table-cell">{{ contrato.client }}</td>
+                <!-- Value (Columna 4) - Alineado a la derecha para números -->
+                <td class="text-end d-none d-lg-table-cell">{{ contrato.value | currency:'USD':'symbol':'1.2-2' }}</td>
+                <!-- Status (Columna 5) -->
+                <td class="text-center">
+                  <span 
+                    [ngClass]="{
+                      'text-success': contrato.status === 'Active',
+                      'text-danger': contrato.status === 'Expired',
+                      'text-warning': contrato.status === 'Pending'
+                    }"
+                    style="font-weight: 600; text-shadow: 0 0 3px currentColor;"
+                  >
+                    {{ contrato.status | uppercase }}
+                  </span>
+                </td>
+                <!-- Start Date (Columna 6) -->
+                <td class="text-center d-none d-lg-table-cell">{{ contrato.startDate }}</td>
+                <!-- End Date (Columna 7) -->
+                <td class="text-center">{{ contrato.endDate }}</td>
+              </tr>
+              
+              <!-- Mostrar mensaje si no hay contratos -->
+              <tr *ngIf="contratos.length === 0">
+                <td colspan="7" class="text-center text-muted py-4">
+                  <span class="text-warning">DATA STREAM EMPTY:</span> Use the <span class="text-success fw-bold">ADD</span> tool to initialize contract records.
+                </td>
+              </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- OPTIONS PANEL (Sidebar) -->
+      <div
+        class="options-panel p-3 border-start"
+        [ngClass]="{ 'd-none': !showOptions, 'd-flex': showOptions }"
+      >
+        <div class="d-flex flex-column align-items-center gap-4 mt-3">
+          
+          <span class="text-muted small">TOOLS</span>
+          
+          <!-- Botón Agregar -->
+          <button class="icon-only-btn" title="Add Record" (click)="openContratoModal()">
+            <svg fill="currentColor" viewBox="0 0 16 16" class="option-icon">
+              <use
+                xlink:href="./assets/icons/bootstrap-icons.svg#plus-circle-fill"
+              />
+            </svg>
+          </button>
+
+          <!-- Botón Editar -->
+          <button class="icon-only-btn" title="Edit Record" [disabled]="!selectedContrato">
+            <svg fill="currentColor" viewBox="0 0 16 16" class="option-icon">
+              <use
+                xlink:href="./assets/icons/bootstrap-icons.svg#pencil-square"
+              />
+            </svg>
+          </button>
+
+          <!-- Botón Eliminar -->
+          <button class="icon-only-btn" title="Delete Record" (click)="confirmDeleteContrato()" [disabled]="!selectedContrato">
+            <svg fill="currentColor" viewBox="0 0 16 16" class="option-icon">
+              <use xlink:href="./assets/icons/bootstrap-icons.svg#trash-fill" />
+            </svg>
+          </button>
+          
+          <!-- Separator -->
+          <hr class="w-75 my-2" style="border-top: 1px dashed var(--text-muted);" />
+          
+          <!-- Botón Exportar (Nuevo) -->
+          <button class="icon-only-btn" title="Export Data">
+            <svg fill="currentColor" viewBox="0 0 16 16" class="option-icon">
+              <use xlink:href="./assets/icons/bootstrap-icons.svg#upload" />
+            </svg>
+          </button>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

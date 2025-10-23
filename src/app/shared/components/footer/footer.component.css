@@ -1,0 +1,182 @@
+/* Estilo General del Footer */
+.footer {
+    background-color: #f6fa0144; 
+    padding: 2px 10px; /* Mantenemos el padding bajo */
+    color: rgb(0, 0, 0) !important; 
+    line-height: 1.2; /* Reduce el espacio vertical entre líneas de texto */
+}
+
+/* Eliminar márgenes internos que fuerzan la altura */
+.footer div {
+    margin: 0 !important; 
+    padding: 0; 
+}
+
+.footer .small-text {
+    font-size: 0.8rem; 
+}
+
+/* Colores de la aplicación */
+.app-name-color {
+    color: #1303ee !important; 
+    display: inline; 
+}
+
+#current-datetime {
+    font-weight: 500; 
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ========================================================== */
+/* ESTILOS DE MÉTRICAS (Facturas Pendientes/Pagadas) */
+/* ========================================================== */
+
+/* Espacio entre la hora y el contenedor de métricas */
+.invoice-metrics {
+    /* CORRECCIÓN CLAVE: Usamos padding-left para crear el espacio fijo. */
+    margin-left: 0; /* Eliminamos el margen para que no afecte el movimiento del texto anterior */
+    padding-left: 1.5rem; /* Este padding ahora contendrá la línea divisoria */
+    position: relative; /* Necesario para posicionar el separador ::before */
+}
+
+/* NUEVO SEPARADOR: Línea entre la hora y las métricas */
+.invoice-metrics::before {
+    content: "";
+    position: absolute;
+    /* CORRECCIÓN CLAVE: Colocamos el separador en el centro del padding-left */
+    left: 0.75rem; /* 1.5rem de padding / 2 = 0.75rem */
+    height: 1.2rem; 
+    width: 1px;
+    background-color: rgb(0, 0, 0, 0.4); 
+    top: 50%;
+    transform: translateY(-50%); /* Alineación vertical perfecta */
+}
+
+/* Estilo para cada par de etiqueta-valor */
+.metric-item {
+    padding: 0 0 .5rem; /* Espacio alrededor de cada métrica */
+    display: flex;
+    align-items: center;
+}
+
+.metric-label {
+    font-weight: 400;
+    margin-right: 0.2rem;
+}
+
+.metric-value {
+    font-weight: 700;
+}
+
+/* Separador vertical flotante (Entre Pendientes y Pagadas) */
+.metric-separator {
+    display: inline-block;
+    width: 1px;
+    height: 1.2rem; /* Altura de la línea, alineada con el texto */
+    background-color: rgb(0, 0, 0, 0.4); /* Color de la línea */
+    /* mx-2 proporciona el margen horizontal */
+    vertical-align: middle; 
+}
+
+/* Colores de estado para las métricas */
+.pending-color {
+    color: #d84315; /* Naranja/Rojo oscuro para llamar la atención */
+    font-weight: 800;
+}
+
+.paid-color {
+    color: #2e7d32; /* Verde oscuro para indicar éxito */
+    font-weight: 800;
+}
+/* Estilo General del Footer */
+.footer {
+    background-color: #d9db4f; 
+    padding: 2px 10px; /* Mantenemos el padding bajo */
+    color: rgb(0, 0, 0) !important; 
+    line-height: 0.2; /* Reduce el espacio vertical entre líneas de texto */
+}
+
+/* Eliminar márgenes internos que fuerzan la altura */
+.footer div {
+    margin: 0 !important; 
+    padding: 0; 
+}
+
+.footer .small-text {
+    font-size: 0.8rem; 
+}
+
+/* Colores de la aplicación */
+.app-name-color {
+    color: #1303ee !important; 
+    display: inline; 
+}
+
+#current-datetime {
+    font-weight: 500; 
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ========================================================== */
+/* ESTILOS DE MÉTRICAS (Facturas Pendientes/Pagadas) */
+/* ========================================================== */
+
+/* Espacio entre la hora y el contenedor de métricas */
+.invoice-metrics {
+    /* CORRECCIÓN CLAVE: Usamos padding-left para crear el espacio fijo. */
+    margin-left: 0; /* Eliminamos el margen para que no afecte el movimiento del texto anterior */
+    padding-left: 1.5rem; /* Este padding ahora contendrá la línea divisoria */
+   position: relative; /* Necesario para posicionar el separador ::before */
+}
+
+/* NUEVO SEPARADOR: Línea entre la hora y las métricas */
+.invoice-metrics::before {
+    content: "";
+    position: absolute;
+    /* CORRECCIÓN CLAVE: Colocamos el separador en el centro del padding-left */
+    left: 0.75rem; /* 1.5rem de padding / 2 = 0.75rem */
+    height: 1.2rem; 
+    width: 1px;
+    background-color: rgb(0, 0, 0, 0.4); 
+    top: 50%;
+    transform: translateY(-50%); /* Alineación vertical perfecta */
+}
+
+/* Estilo para cada par de etiqueta-valor */
+.metric-item {
+    padding: 0 0.5rem; /* Espacio alrededor de cada métrica */
+    display: flex;
+    align-items: center;
+}
+
+.metric-label {
+    font-weight: 400;
+    margin-right: 0.2rem;
+}
+
+.metric-value {
+    font-weight: 700;
+}
+
+/* Separador vertical flotante (Entre Pendientes y Pagadas) */
+.metric-separator {
+    display: inline-block;
+    width: 1px;
+    height: 1.2rem; /* Altura de la línea, alineada con el texto */
+    background-color: rgb(0, 0, 0, 0.4); /* Color de la línea */
+    /* mx-2 proporciona el margen horizontal */
+    vertical-align: middle; 
+}
+
+/* Colores de estado para las métricas */
+.pending-color {
+    color: #d84315; /* Naranja/Rojo oscuro para llamar la atención */
+    font-weight: 800;
+}
+
+.paid-color {
+    color: #2e7d32; /* Verde oscuro para indicar éxito */
+    font-weight: 800;
+}

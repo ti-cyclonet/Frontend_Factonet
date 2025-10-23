@@ -1,0 +1,164 @@
+/* ---------------------------------------------- */
+/* Estilos Tema Moderno (Azul y Blanco) */
+/* ---------------------------------------------- */
+
+/* Fondo general de la aplicación */
+/* Esto simula el fondo general, aunque el área principal es la tarjeta blanca */
+
+
+/* Título de la sección (Ajustado a la tarjeta de contenido) */
+.matrix-title {
+    font-weight: 500;
+    color: #1f2937; /* Gris oscuro para el texto del título */
+    letter-spacing: 0;
+    text-shadow: none;
+    border-bottom: 2px solid #3b82f6; /* Azul primario para la línea de separación */
+}
+
+/* Contenedor principal de la tabla (Simulando la tarjeta blanca) */
+.matrix-card {
+    background-color: #ffffff; /* Fondo blanco */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    border: 1px solid #e5e7eb; /* Borde gris claro */
+    padding: 2rem;
+}
+
+/* Estilos de la tabla */
+.matrix-table {
+    --dash-color: #d1d5db; /* Color gris claro para las líneas divisorias */
+    color: #374151; /* Texto oscuro general */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Encabezado de la tabla */
+.matrix-header {
+    background-color: #f9fafb; /* Fondo muy claro para el encabezado */
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.matrix-table th {
+    color: #4b5563; /* Gris medio para el texto del encabezado */
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding-bottom: 0.75rem;
+    padding-top: 0.75rem;
+}
+
+/* Filas de la tabla */
+.matrix-row {
+    border-bottom: 1px solid var(--dash-color); /* Línea sólida simple */
+}
+
+.matrix-row:last-child {
+    border-bottom: none; /* Eliminar borde de la última fila */
+}
+
+.matrix-row:hover {
+    background-color: #eff6ff; /* Hover azul muy suave */
+}
+
+/* Fila seleccionada */
+.selected-row {
+    background-color: #dbeafe; /* Fondo azul más claro al seleccionar */
+    border-left: 3px solid #2563eb; /* Indicador de selección lateral azul primario */
+}
+
+/* Checkbox visual para la columna SEL. */
+.matrix-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #9ca3af; /* Borde gris */
+    border-radius: 4px;
+    transition: background-color 0.15s;
+    margin: 0 auto;
+}
+.matrix-checkbox.checked {
+    background-color: #2563eb; /* Azul oscuro al seleccionar */
+    border-color: #2563eb;
+    /* Puedes añadir un SVG de checkmark aquí si usaras el `content` */
+}
+
+
+/* Estilos del Badge (Estado Pago) */
+.matrix-badge {
+    font-weight: 500;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border-radius: 9999px; /* Píldora redondeada */
+    min-width: 90px;
+    letter-spacing: normal;
+}
+
+/* Clases específicas de estado (Ajustadas a colores Tailwind modernos) */
+.text-green-700.bg-green-100 { /* Pagada */
+    color: #065f46 !important; /* Verde oscuro */
+    background-color: #d1fae5 !important;
+}
+.text-yellow-700.bg-yellow-100 { /* Pendiente */
+    color: #92400e !important; /* Naranja/marrón oscuro */
+    background-color: #fef3c7 !important;
+}
+.text-red-700.bg-red-100 { /* Vencida */
+    color: #991b1b !important; /* Rojo oscuro */
+    background-color: #fee2e2 !important;
+}
+
+/* ---------------------------------------------- */
+/* Estilos de Botones de Acción */
+/* ---------------------------------------------- */
+
+.matrix-btn {
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 0.875rem;
+}
+
+/* Botón ADD (Verde) */
+.add-btn {
+    background-color: #10b981; /* Emerald 500 */
+    color: #ffffff;
+    border: none;
+}
+.add-btn:hover:not(:disabled) {
+    background-color: #059669; /* Emerald 600 */
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Botón EDITAR (Naranja/Marrón de la imagen) */
+.edit-btn {
+    background-color: #f97316; /* Orange 500 */
+    color: #ffffff;
+    border: none;
+}
+.edit-btn:hover:not(:disabled) {
+    background-color: #ea580c; /* Orange 600 */
+    box-shadow: 0 4px 8px rgba(249, 115, 22, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Botón DELETE (Rojo) */
+.delete-btn {
+    background-color: #ef4444; /* Red 500 */
+    color: #ffffff;
+    border: none;
+}
+.delete-btn:hover:not(:disabled) {
+    background-color: #dc2626; /* Red 600 */
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Estado deshabilitado para botones */
+.matrix-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}

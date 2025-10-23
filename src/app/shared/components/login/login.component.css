@@ -1,0 +1,81 @@
+/* .card {
+    max-width: 600px;
+    width: 90%;
+  }
+   */
+   .forgot-password-link {
+    color: rgb(39, 28, 28); /* Cambia el color a blanco */
+    text-decoration: none; /* Elimina el subrayado predeterminado */
+  }
+  
+  .forgot-password-link:hover {
+    text-decoration: underline; /* Si deseas un subrayado al pasar el ratón */
+    color: rgb(255, 255, 255); /* Mantiene el color blanco también al pasar el ratón */
+  }
+  .login-container .custom-btn {
+    background-color:  rgb(201, 201, 201);
+    color: rgb(0, 0, 0);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .login-container .custom-btn:hover {
+  background-color: rgb(0, 10, 102); /* Un gris claro para el efecto hover */
+  color: rgb(255, 254, 254); /* Mantiene el color del texto negro */
+}
+  
+  /* Redondear los campos de entrada */
+input.form-control {
+  border-radius: 30px; /* Cambiar este valor para ajustar el nivel de redondez */
+}
+
+.text-danger {
+  width: 200px;
+}
+
+/* Redondear el botón de "Sign in" */
+.custom-btn {
+  border-radius: 30px; /* Asegúrate de que el botón también sea redondeado */
+}
+.custom-card {
+  background-color: #346aff; 
+  color: rgb(0, 0, 0); /* Color del texto */
+  border-radius: 10px; /* Bordes redondeados */
+  border: 2px solid #000000; /* Borde verde oscuro */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave */
+}
+/* Cuadro de texto debajo de los errores */
+.custom-error-box {
+  display: block; /* Asegura que ocupe todo el ancho */
+  width: 275px; /* Hace que tenga el mismo ancho del input */
+  background-color: rgba(255, 0, 0, 0.1); /* Fondo rojo claro */
+  color: #680e0e; /* Texto rojo */
+  padding: 5px; /* Espaciado interno */
+  border-radius: 5px; /* Bordes redondeados */
+  font-size: 14px;
+  text-align: left;
+  font-weight: bold;
+  margin-top: 4px;
+  margin-left: 15px; /* Espaciado entre el input y el error */
+}
+
+.custom-welcome {
+  color: rgb(54, 39, 39); /* Cambia "red" por el color que desees */
+}
+
+.notification-container {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: auto; 
+  background-color: transparent;
+  border-radius: 5px;
+  z-index: 1000;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; 
+}
