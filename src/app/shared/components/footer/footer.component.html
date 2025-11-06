@@ -1,4 +1,4 @@
-<footer class="footer text-white p-3" style="border-top: 3px solid #4F4F4F;"> 
+<footer class="footer text-white p-3" style="border-top: 3px solid #4F4F4F;background-color: #FFF2CC !important;"> 
     <div class="d-flex justify-content-between align-items-center w-100">
 
         <!-- CONTENEDOR IZQUIERDO: Hora + Métricas (usando d-flex para alinear) -->
@@ -12,8 +12,8 @@
                 
                 <!-- Facturas Pendientes -->
                 <span class="metric-item small-text">
-                    <span class="metric-label">Pendientes:</span>
                     <strong class="metric-value pending-color">{{ pendingInvoices }}</strong>
+                    <span class="metric-label">Facturas con estado PENDING</span>
                 </span>
                 
                 <!-- Separador Vertical Flotante -->
@@ -21,8 +21,8 @@
                 
                 <!-- Facturas Pagadas -->
                 <span class="metric-item small-text">
-                    <span class="metric-label">Pagadas:</span>
                     <strong class="metric-value paid-color">{{ paidInvoices }}</strong>
+                    <span class="metric-label">Facturas pagadas</span>
                 </span>
 
             </div>

@@ -3,7 +3,6 @@ import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router'; 
 import { OptionMenu } from '../../model/option_menu'; 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
-// import { NotificationsComponent } from '../notifications/notifications.component'; // Se asume que esta línea ya se ha limpiado o eliminado por el error anterior
 
 @Component({
   selector: 'app-header',
@@ -33,6 +32,9 @@ export class HeaderComponent implements OnInit {
   userName: string = 'AJMAMBY'; 
   userRole: string = 'Administrador'; 
 
+  // Controla la visibilidad de la caja de herramientas deslizable
+  showToolbox: boolean = false; 
+
   constructor(private router: Router) { 
     }
 
@@ -56,6 +58,16 @@ export class HeaderComponent implements OnInit {
     this.notifications.splice(index, 1);
   }
 
+  // MÉTODO MODIFICADO: Previene la navegación del enlace y cambia el estado.
+  toggleToolbox(event: Event) {
+    // Es crucial prevenir el comportamiento por defecto para que el enlace no navegue
+    // a '#' y anule el evento de clic.
+    event.preventDefault(); 
+    
+    // Cambiar el estado
+    this.showToolbox = !this.showToolbox;
+  }
+
   // Métodos de herramientas del desplegable
 
   openCalculator() {
@@ -63,8 +75,6 @@ export class HeaderComponent implements OnInit {
     console.log('Abriendo calculadora desde el menú de herramientas...');
   }
   
-  // ¡ELIMINADO!: Se ha quitado el método openCalendar().
-
   openSettings() {
     // Lógica para la opción 'Configuración Avanzada' dentro del menú.
     console.log('Abriendo configuración avanzada...');

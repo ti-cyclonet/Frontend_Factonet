@@ -5,6 +5,7 @@
     >
         <div class="d-flex align-items-center w-100">
             <a href="#" class="logo-container">
+                <!-- Se asume que la imagen del logo está disponible en la ruta especificada -->
                 <img src="./assets/img/logo_factonet_v3.png" alt="Logo" class="logo-img" />
             </a>
             <div class="navbar-brand mx-auto">{{ nombreApp | uppercase }}</div>
@@ -64,6 +65,7 @@
                 routerLinkActive="active" 
                 class="nav-link mx-2"
             >
+                <!-- Se asume que el ícono está disponible en la ruta especificada -->
                 <svg class="me-1" width="16" height="16" fill="currentColor">
                     <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + option.icon" />
                 </svg>
@@ -73,36 +75,32 @@
         
         <div class="nav-tools d-flex align-items-center">
             
-            <div class="btn-group tool-dropdown">
-                <a 
-                    class="nav-tool-btn" 
-                    data-bs-toggle="dropdown" 
-                    aria-expanded="false" 
-                    href="#"
-                >
+            <div class="tool-dropdown position-relative">
+               <a class="nav-tool-btn" href="#" (click)="toggleToolbox($event)">
                     <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                         <use xlink:href="./assets/icons/bootstrap-icons.svg#gear-fill" />
                     </svg>
                 </a>
-
-                <ul class="dropdown-menu p-2 tool-menu">
-                    
-                    <li>
-                        <a class="dropdown-item tool-option" href="#" (click)="openCalculator()">
-                            <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <use xlink:href="./assets/icons/bootstrap-icons.svg#calculator-fill" />
-                            </svg>
-                            Calculadora
-                        </a>
-                    </li>
-                    
-                    </ul>
+                
+                <!-- NUEVO GRUPO DE BOTONES DESLIZABLES -->
+                <div 
+                    class="floating-toolbox"
+                    [class.show]="showToolbox"
+                >
+                    <button class="toolbox-btn" (click)="openCalculator()">
+                        <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <use xlink:href="./assets/icons/bootstrap-icons.svg#calculator-fill" />
+                        </svg>
+                    </button>
+                    <!-- Agrega más botones de herramienta aquí si es necesario -->
+                </div>
             </div>
         </div>
         
     </nav>
 </div>
 
+<!-- Modal de Cambio de Contraseña (sin cambios) -->
 <div
     class="modal fade"
     id="changePasswordModal"
@@ -110,4 +108,5 @@
     aria-labelledby="changePasswordModalLabel"
     aria-hidden="true"
 >
-    </div>
+    <!-- Contenido del Modal -->
+</div>
