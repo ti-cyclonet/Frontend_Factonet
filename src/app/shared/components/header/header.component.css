@@ -19,14 +19,14 @@
 
 .header-container {
     /* PROPIEDADES DEL MARCO NEGRO */
-    border: 3px solid rgb(0, 0, 0); 
+    border: 2px solid rgb(0, 0, 0); 
     border-radius: 8px; 
     
     /* EFECTO FLOTANTE Y CENTRADO */
     max-width: 1330px; /* Ancho MÁXIMO en pantallas grandes para que no se estire demasiado */
     width: 85%; /* Ancho que ocupa el marco (deja 5% de espacio horizontal) */
     margin: 10px auto; /* 10px de margen vertical, y 'auto' para centrarlo */
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.39); /* Sombra más fuerte para efecto flotante */
+    /*box-shadow: 0 2px 10px rgba(255, 255, 255, 0.39); /* Sombra más fuerte para efecto flotante */
     
     /* MANTENIENDO LA DELGADEZ DEL CONTENIDO */
     padding: 5px 15px; /* Padding vertical reducido (5px arriba/abajo) */
@@ -43,7 +43,7 @@
         
         /* 2. SE REDUCE EL MARCO Y SOMBRA LIGERAMENTE */
         border: 2px solid rgb(0, 0, 0); /* Marco un poco más delgado */
-        box-shadow: 0 1px 5px rgba(255, 255, 255, 0.39); /* Sombra más sutil */
+        /*box-shadow: 0 1px 5px rgba(255, 255, 255, 0.39); /* Sombra más sutil */
         
         /* 3. SE PUEDE MANTENER EL PADDING IGUAL O REDUCIRLO */
         padding: 5px 10px; /* Reducción ligera del padding horizontal si es necesario */
@@ -83,9 +83,10 @@
 .main-navbar {
     background-color: var(--navbar-background-color, #2782d8bb); 
     padding: 0 20px; 
-    height: 25px; 
+    height: 35px; /* Altura aumentada */
     /* Agregamos margin-bottom para separarlo del marco superior si es necesario */
     margin-bottom: 6px; 
+    align-items: center;
 }
 
 /* ------------------------------------------------ */
@@ -93,7 +94,7 @@
 /* ------------------------------------------------ */
 
 .logo-img {
-    height: 45px; /* Altura del logo */
+    height: 65px; /* Altura del logo */
     width: auto;
     display: block; 
 }
@@ -105,7 +106,7 @@
 }
 
 /* ================================================ */
-/* 4. NUEVOS ESTILOS PARA EL ÁREA DE USUARIO Y PERFIL */
+/* 4. ESTILOS PARA EL ÁREA DE USUARIO Y PERFIL */
 /* ================================================ */
 
 /* Contenedor principal del área de usuario */
@@ -116,7 +117,7 @@
 
 /* Estilos para el nombre de usuario (la línea de arriba) */
 .user-info-frame .user-name {
-    font-weight: 700; /* Más destacado */
+    font-weight: 500; /* Más destacado */
     color: #fff; /* Color claro para contrastar con el fondo azul */
     line-height: 1.1; /* Reducimos el espaciado entre líneas */
     text-transform: uppercase; /* Para que coincida con el nombre de usuario de la imagen */
@@ -142,10 +143,10 @@
 /* Estilos para la imagen de perfil en sí */
 .user-img {
     /* Tamaño fijo para la imagen */
-    width: 35px; 
-    height: 35px;
+    width: 40px; 
+    height: 40px;
     /* La hacemos un círculo */
-    border-radius: 50%; 
+    border-radius: 55%; 
     /* Añadimos un pequeño borde para destacarla */
     border: 2px solid #fff; 
     /* Aseguramos que la imagen no se distorsione */
@@ -167,19 +168,8 @@
     left: auto !important;
 }
 
-/* Ajuste del ícono de la calculadora y configuración para que se vean bien al lado de la imagen */
-.main-navbar {
-    background-color: var(--navbar-background-color, #2782d8bb); 
-    padding: 0 20px; 
-    height: 35px; /* Aumentado a 35px para que quepan los íconos de 24px */
-    margin-bottom: 6px; 
-    /* ¡IMPORTANTE! Bootstrap d-flex justify-content-between en el HTML se encarga de la posición. */
-    /* Aseguramos la alineación de los elementos en el centro vertical. */
-    align-items: center;
-}
-
 /* ------------------------------------------------ */
-/* 4. NUEVOS ESTILOS PARA LOS ÍCONOS DE HERRAMIENTAS EN LA BARRA DE NAVEGACIÓN */
+/* 4. ESTILOS PARA LOS ÍCONOS DE HERRAMIENTAS EN LA BARRA DE NAVEGACIÓN */
 /* ------------------------------------------------ */
 
 .nav-tools {
@@ -226,8 +216,76 @@
 }
 
 
+/* ================================================ */
+/* 5. NUEVOS ESTILOS PARA EL TOOLBOX DESLIZABLE */
+/* ================================================ */
+
+/* Contenedor principal de la caja de herramientas flotante */
+.floating-toolbox {
+    /* Lo posicionamos absolutamente con respecto a .tool-dropdown (position-relative) */
+    position: absolute;
+    top: 50%; /* Alineado verticalmente con el centro del botón del engranaje */
+    right: 45px; /* Empieza 45px a la izquierda del botón del engranaje */
+    transform: translateY(-50%) translateX(100%); /* Lo saca completamente a la derecha (oculto) y centra verticalmente */
+    
+    /* Efecto de grupo de botones */
+    display: flex;
+    flex-direction: row; /* Botones en línea */
+    gap: 8px; /* Espacio entre botones */
+
+    /* Fondo transparente, borde sutil */
+    background-color: rgba(255, 255, 255, 0.1); 
+    border-radius: 8px;
+    padding: 5px;
+    
+    /* TRUCO DE TRANSICIÓN: Aquí controlamos el deslizamiento */
+    opacity: 0; /* Inicialmente invisible */
+    transition: transform 0.3s ease-out, opacity 0.2s ease-out;
+    pointer-events: none; /* Deshabilitado para clics cuando está oculto */
+    
+    /* Asegura que esté por encima de la barra de navegación pero por debajo del dropdown del perfil */
+    z-index: 99; 
+    
+    /* Para móviles, asegúrate de que no se superponga o cause scroll */
+    @media (max-width: 480px) {
+        /* Podrías necesitar ajustar el right para evitar desbordamiento */
+        right: 40px; 
+        /* Mantén el resto igual */
+    }
+}
+
+/* Estado VISIBLE: Aplicamos la transición de deslizamiento */
+.floating-toolbox.show {
+    /* Lo desliza a su posición final (0% de desplazamiento horizontal) */
+    transform: translateY(-50%) translateX(0); 
+    opacity: 1; /* Visible */
+    pointer-events: auto; /* Habilitado para clics cuando está visible */
+}
+
+/* Estilo de los botones individuales dentro del toolbox */
+.toolbox-btn {
+    /* Estilos base */
+    background-color: rgba(0, 0, 0, 0); 
+    color: #000000;
+    border: 1px solid rgba(255, 255, 255, 0);
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap; /* Evita que el texto se rompa */
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.toolbox-btn:hover {
+    background-color: var(--primary-color, #ffffff);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
 /* ------------------------------------------------ */
-/* 4-5. Estilos de Navegación (no modificados) */
+/* 6. Estilos de Navegación (no modificados) */
 /* ------------------------------------------------ */
 
 .nav-link {

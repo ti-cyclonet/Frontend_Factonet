@@ -2,9 +2,9 @@
 :host {
     /* Define the core palette for easy modification */
     --bg-dark: #0f172a; /* Deep Slate */
-    --surface-dark: #1e293b; /* Darker Slate */
-    --accent-cyan: #22d3ee; /* Electric Cyan */
-    --text-light: #f1f5f9; /* Light Gray */
+    --surface-dark: #E6E6E6; /* Darker Slate */
+    --accent-cyan: #000000; /* Electric Cyan */
+    --text-light: #000000; /* Light Gray */
     --text-muted: #94a3b8; /* Muted Gray */
     --glow-shadow: 0 0 10px rgba(34, 211, 238, 0.5); /* Cyan Glow */
     --danger-red: #f87171;

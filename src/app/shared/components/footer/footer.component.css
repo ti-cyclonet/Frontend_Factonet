@@ -1,68 +1,94 @@
-/* Estilo General del Footer */
+/* ----------------------------------------------------------------- */
+/* 1. ESTILO GENERAL Y REDUCCIÓN DE ALTURA */
+/* ----------------------------------------------------------------- */
+
 .footer {
-    background-color: #f6fa0144; 
-    padding: 2px 10px; /* Mantenemos el padding bajo */
-    color: rgb(0, 0, 0) !important; 
-    line-height: 1.2; /* Reduce el espacio vertical entre líneas de texto */
+    /* Altura controlada por un padding vertical mínimo y line-height normal para legibilidad */
+    background-color: #d9db4f;
+    /* CAMBIO CLAVE: Ajuste de padding para mover el contenido izquierdo más a la izquierda */
+    /* Sintaxis: padding: top right bottom left; */
+    padding: 0.3rem 1rem 0.3rem 0.5rem; /* Izquierda ajustada a 0.5rem */
+    color: rgb(0, 0, 0) !important;
+    line-height: 1.2; /* Altura de línea legible (se quita el 0.2 que puede causar solapamiento) */
+
+    /* Configuración de Flexbox para la vista de escritorio */
+    display: flex;
+    justify-content: space-between; /* Espacio entre el contenido de la izquierda y la derecha */
+    align-items: center; /* Alineación vertical central */
+    width: 100%;
 }
 
-/* Eliminar márgenes internos que fuerzan la altura */
-.footer div {
+/* Eliminar márgenes internos que puedan forzar la altura, manteniendo la especificidad */
+.footer div, .footer span {
     margin: 0 !important; 
-    padding: 0; 
+    /* El padding se mantiene solo donde es necesario para la separación de métricas */
 }
 
+/* --- NUEVO ---: Contenedor para el texto del lado izquierdo (Empresa + Hora) */
+/* Agregué un nuevo selector (asumiendo que hay un div o elemento envolviendo el lado izquierdo)
+   para aplicar el 'no-wrap' si tu HTML tiene ese contenedor. Si no tienes un contenedor,
+   usa esta clase en el elemento que envuelve "Factonet 2025..." */
+.footer-left-content {
+    white-space: nowrap; /* Fuerza a que el texto NO salte de línea, manteniendo el footer delgado */
+    display: flex; /* Mantiene la alineación de sus elementos internos (hora y nombre) */
+    align-items: center;
+}
+/* Fin de NUEVO */
+
+/* Texto pequeño y colores */
 .footer .small-text {
-    font-size: 0.8rem; 
+    font-size: 0.75rem; /* Ligeramente más pequeño para ahorrar espacio vertical */
 }
 
-/* Colores de la aplicación */
 .app-name-color {
-    color: #1303ee !important; 
-    display: inline; 
+    color: #1303ee !important;
+    font-weight: 600; /* REDUCIDO para un footer más delgado */
 }
 
 #current-datetime {
-    font-weight: 500; 
+    font-weight: 500;
     display: inline-block;
     vertical-align: middle;
+    margin-left: 1rem; /* Espacio entre el nombre de la app y la hora */
 }
 
-/* ========================================================== */
-/* ESTILOS DE MÉTRICAS (Facturas Pendientes/Pagadas) */
-/* ========================================================== */
+/* ----------------------------------------------------------------- */
+/* 2. ESTILOS DE MÉTRICAS (LADO DERECHO) */
+/* ----------------------------------------------------------------- */
 
-/* Espacio entre la hora y el contenedor de métricas */
+/* Contenedor de las métricas (lado derecho) */
 .invoice-metrics {
-    /* CORRECCIÓN CLAVE: Usamos padding-left para crear el espacio fijo. */
-    margin-left: 0; /* Eliminamos el margen para que no afecte el movimiento del texto anterior */
-    padding-left: 1.5rem; /* Este padding ahora contendrá la línea divisoria */
-    position: relative; /* Necesario para posicionar el separador ::before */
+    padding-left: 1.5rem; 
+    position: relative;
+    display: flex; /* Asegura que los ítems se alineen horizontalmente */
+    align-items: center;
 }
 
-/* NUEVO SEPARADOR: Línea entre la hora y las métricas */
+/* Separador vertical entre la hora y las métricas */
 .invoice-metrics::before {
     content: "";
     position: absolute;
-    /* CORRECCIÓN CLAVE: Colocamos el separador en el centro del padding-left */
-    left: 0.75rem; /* 1.5rem de padding / 2 = 0.75rem */
+    left: 0.75rem;
     height: 1.2rem; 
     width: 1px;
     background-color: rgb(0, 0, 0, 0.4); 
     top: 50%;
-    transform: translateY(-50%); /* Alineación vertical perfecta */
+    transform: translateY(-50%);
 }
 
 /* Estilo para cada par de etiqueta-valor */
 .metric-item {
-    padding: 0 0 .5rem; /* Espacio alrededor de cada métrica */
+    /* Quitamos el padding-bottom para reducir la altura */
+    padding: 0 0.5rem; 
     display: flex;
     align-items: center;
+    /* El line-height: 1.2 del footer es suficiente para evitar amontonamiento */
 }
 
 .metric-label {
-    font-weight: 400;
+    font-weight: 300; /* REDUCIDO para un footer más delgado */
     margin-right: 0.2rem;
+    margin-left: 4px; /* NUEVO: ESPACIO A LA IZQUIERDA para separarse del número (badge) */
 }
 
 .metric-value {
@@ -73,110 +99,70 @@
 .metric-separator {
     display: inline-block;
     width: 1px;
-    height: 1.2rem; /* Altura de la línea, alineada con el texto */
-    background-color: rgb(0, 0, 0, 0.4); /* Color de la línea */
-    /* mx-2 proporciona el margen horizontal */
+    height: 1.2rem;
+    background-color: rgb(0, 0, 0, 0.4);
     vertical-align: middle; 
 }
 
-/* Colores de estado para las métricas */
-.pending-color {
-    color: #d84315; /* Naranja/Rojo oscuro para llamar la atención */
+/* Colores de estado para las métricas (AHORA SON CUADROS/BADGES) */
+.pending-color,
+.paid-color {
     font-weight: 800;
+    /* Convertimos el número en un "cuadro" o badge */
+    color: #ffffff !important; /* Texto blanco para contraste */
+    padding: 2px 6px; /* Relleno para que se vea como un cuadro pequeño */
+    border-radius: 4px; /* Esquinas redondeadas */
+    line-height: 1; /* Para que la caja sea lo más compacta posible verticalmente */
+    display: inline-block; /* Necesario para aplicar padding y background */
+    /* Separación entre el texto de la etiqueta y el badge del número: ESTO YA NO ES NECESARIO AQUÍ
+       porque añadimos el margen a la etiqueta (.metric-label) */
+    /* margin-left: 4px; */ 
+}
+
+.pending-color {
+    background-color: #d84315; /* Fondo rojo/naranja */
 }
 
 .paid-color {
-    color: #2e7d32; /* Verde oscuro para indicar éxito */
-    font-weight: 800;
-}
-/* Estilo General del Footer */
-.footer {
-    background-color: #d9db4f; 
-    padding: 2px 10px; /* Mantenemos el padding bajo */
-    color: rgb(0, 0, 0) !important; 
-    line-height: 0.2; /* Reduce el espacio vertical entre líneas de texto */
+    background-color: #2e7d32; /* Fondo verde */
 }
 
-/* Eliminar márgenes internos que fuerzan la altura */
-.footer div {
-    margin: 0 !important; 
-    padding: 0; 
-}
+/* ----------------------------------------------------------------- */
+/* 3. MEDIA QUERY PARA PANTALLAS PEQUEÑAS (MÓVIL) */
+/* ----------------------------------------------------------------- */
 
-.footer .small-text {
-    font-size: 0.8rem; 
-}
+@media (max-width: 640px) {
+    /* A. Ocultar todo el contenido de la derecha (métricas) */
+    .invoice-metrics {
+        display: none !important;
+    }
 
-/* Colores de la aplicación */
-.app-name-color {
-    color: #1303ee !important; 
-    display: inline; 
-}
+    /* B. Centrar el contenido restante (el nombre de la empresa) */
+    .footer {
+        /* Usamos justify-content: center para centrar el único elemento restante */
+        justify-content: center;
+        /* El padding se mantiene, pero solo un elemento visible. */
+        padding: 0.5rem 1rem; 
+    }
+    
+    /* Ocultar la fecha/hora en pantallas pequeñas */
+    #current-datetime {
+        display: none !important;
+    }
 
-#current-datetime {
-    font-weight: 500; 
-    display: inline-block;
-    vertical-align: middle;
-}
+    /* Asegurar que el nombre de la empresa se muestre y se centre */
+    .app-name-color {
+        /* Eliminamos width: 100% y text-align: center en esta clase
+           y dejamos que el justify-content: center del .footer haga el centrado
+           del elemento restante (.footer-left-content) */
+        width: auto;
+        text-align: inherit;
+    }
 
-/* ========================================================== */
-/* ESTILOS DE MÉTRICAS (Facturas Pendientes/Pagadas) */
-/* ========================================================== */
-
-/* Espacio entre la hora y el contenedor de métricas */
-.invoice-metrics {
-    /* CORRECCIÓN CLAVE: Usamos padding-left para crear el espacio fijo. */
-    margin-left: 0; /* Eliminamos el margen para que no afecte el movimiento del texto anterior */
-    padding-left: 1.5rem; /* Este padding ahora contendrá la línea divisoria */
-   position: relative; /* Necesario para posicionar el separador ::before */
-}
-
-/* NUEVO SEPARADOR: Línea entre la hora y las métricas */
-.invoice-metrics::before {
-    content: "";
-    position: absolute;
-    /* CORRECCIÓN CLAVE: Colocamos el separador en el centro del padding-left */
-    left: 0.75rem; /* 1.5rem de padding / 2 = 0.75rem */
-    height: 1.2rem; 
-    width: 1px;
-    background-color: rgb(0, 0, 0, 0.4); 
-    top: 50%;
-    transform: translateY(-50%); /* Alineación vertical perfecta */
-}
-
-/* Estilo para cada par de etiqueta-valor */
-.metric-item {
-    padding: 0 0.5rem; /* Espacio alrededor de cada métrica */
-    display: flex;
-    align-items: center;
-}
-
-.metric-label {
-    font-weight: 400;
-    margin-right: 0.2rem;
-}
-
-.metric-value {
-    font-weight: 700;
-}
-
-/* Separador vertical flotante (Entre Pendientes y Pagadas) */
-.metric-separator {
-    display: inline-block;
-    width: 1px;
-    height: 1.2rem; /* Altura de la línea, alineada con el texto */
-    background-color: rgb(0, 0, 0, 0.4); /* Color de la línea */
-    /* mx-2 proporciona el margen horizontal */
-    vertical-align: middle; 
-}
-
-/* Colores de estado para las métricas */
-.pending-color {
-    color: #d84315; /* Naranja/Rojo oscuro para llamar la atención */
-    font-weight: 800;
-}
-
-.paid-color {
-    color: #2e7d32; /* Verde oscuro para indicar éxito */
-    font-weight: 800;
+    /* Centrar todo el contenido restante (la palabra FACTONET) */
+    .footer-left-content {
+        justify-content: center; /* Asegura el centrado en el modo flex */
+        white-space: nowrap; /* Mantiene la prevención de salto */
+        width: 100%; /* Ocupa el espacio completo para centrar su contenido */
+    }
 }
