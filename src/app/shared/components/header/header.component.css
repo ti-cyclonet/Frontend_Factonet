@@ -9,73 +9,57 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column; 
-    /* Aseguramos que el wrapper no tenga padding, para que el marco flote correctamente */
+    /* Aseguramos que el wrapper no tenga padding horizontal, solo vertical si es necesario */
     padding: 0; 
+    padding-left: 0; /* Aseguramos que no haya padding horizontal */
+    padding-right: 0;
 }
 
 /* ------------------------------------------------ */
 /* 1.1 ESTILO DEL MARCO SUPERIOR (FLOTANTE Y CENTRADO) */
 /* ------------------------------------------------ */
 
+/* --- 1. ESTILOS BASE (APLICAN A PANTALLAS GRANDES Y POR DEFECTO) --- */
 .header-container {
-    /* PROPIEDADES DEL MARCO NEGRO */
     border: 2px solid rgb(0, 0, 0); 
     border-radius: 8px; 
     
-    /* EFECTO FLOTANTE Y CENTRADO */
-    max-width: 1330px; /* Ancho MÁXIMO en pantallas grandes para que no se estire demasiado */
-    width: 85%; /* Ancho que ocupa el marco (deja 5% de espacio horizontal) */
-    margin: 10px auto; /* 10px de margen vertical, y 'auto' para centrarlo */
-    /*box-shadow: 0 2px 10px rgba(255, 255, 255, 0.39); /* Sombra más fuerte para efecto flotante */
+    /* MÁRGENES Y ANCHO CONSTANTES CODIGO RESPONSIVE*/
+    /* El ancho es el 100% menos 30px (15px a la izquierda + 15px a la derecha) */
+    width: calc(100% - 30px) !important; 
+    margin: 10px auto !important; /* Mantiene el centrado vertical y horizontal */
     
-    /* MANTENIENDO LA DELGADEZ DEL CONTENIDO */
-    padding: 5px 15px; /* Padding vertical reducido (5px arriba/abajo) */
+    /* MÁXIMO ANCHO: Si el margen fijo causa un scroll horizontal en pantallas gigantes, 
+       ajusta este valor para que el margen fijo se respete. */
+    max-width: 1500px !important; 
+    
+    /* Padding interno */
+    padding: 15px 20px; 
+    box-sizing: border-box; /* CLAVE: Incluye el padding y border dentro del ancho */
 }
 
-/* MEDIA QUERY para Pestañas (Tablets) y dispositivos con ancho de hasta 768px */
-@media (max-width: 768px) {
+/* --- 2. REGLA CLAVE PARA PANTALLAS PEQUEÑAS (Mobile: 600px o menos) --- */
+/* Esta regla sobrescribe el width: 85% de la regla base SÓLO en móviles */
+@media (max-width: 600px) {
     .header-container {
-        /* Se mantiene la mayoría del diseño, pero... */
+        /* Fuerza el margen de 15px a cada lado en móviles (100% - 30px) */
+        width: calc(100% - 30px); 
         
-        /* 1. SE AUMENTA EL ANCHO DISPONIBLE */
-        /* Hace que ocupe más espacio para aprovechar el tamaño de la pantalla de la tablet */
-        width: 95%; 
+        /* Mantenemos el centrado (margin: auto) */
+        margin: 10px auto; 
         
-        /* 2. SE REDUCE EL MARCO Y SOMBRA LIGERAMENTE */
-        border: 2px solid rgb(0, 0, 0); /* Marco un poco más delgado */
-        /*box-shadow: 0 1px 5px rgba(255, 255, 255, 0.39); /* Sombra más sutil */
+        /* Aseguramos que el contenido y borde se cuenten dentro del calc() */
+        box-sizing: border-box; 
         
-        /* 3. SE PUEDE MANTENER EL PADDING IGUAL O REDUCIRLO */
-        padding: 5px 10px; /* Reducción ligera del padding horizontal si es necesario */
+        padding: 10px 10px; /* Reducimos el padding interno */
+    }
+    
+    /* Aseguramos que el main-navbar también respete el margen de la ventana */
+    .main-navbar {
+        padding-left: 15px; /* Damos un pequeño margen a la barra de navegación */
+        padding-right: 15px;
     }
 }
-
-/* ------------------------------------------------------------------ */
-
-/* MEDIA QUERY para Teléfonos Móviles con ancho de hasta 480px */
-@media (max-width: 480px) {
-    .header-container {
-        /* 1. SE ELIMINA EL MARGEN HORIZONTAL EXTERNO */
-        /* Hace que ocupe el 100% del espacio para evitar scroll horizontal innecesario */
-        width: 100%; 
-        
-        /* 2. SE ELIMINA EL MARGEN EXTERNO Y SE AÑADE AL PADDING */
-        /* La clave para que 'flote' en móviles es usar padding interno en lugar de margen externo */
-        margin: 0; /* Elimina el margen externo */
-        
-        /* 3. SE REDUCE EL PADDING INTERNO AL MÍNIMO */
-        padding: 5px 5px; 
-        
-        /* 4. SE PUEDEN ELIMINAR LOS BORDES REDONDEADOS EN LOS EXTREMOS */
-        /* Para que se "pegue" a los bordes de la pantalla */
-        border-radius: 0; 
-        
-        /* 5. SE ELIMINA LA SOMBRA */
-        box-shadow: none;
-    }
-}
-
-
 /* ------------------------------------------------ */
 /* 2. Estilos para la Nueva Barra de Navegación (.main-navbar) */
 /* ------------------------------------------------ */
