@@ -5,13 +5,11 @@
 .header-wrapper {
     background-color: var(--header-background-color, #2782d8bb); 
     color: rgb(0, 0, 0); 
-    /* La sombra del wrapper es sutil, la principal la lleva el marco */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column; 
-    /* Aseguramos que el wrapper no tenga padding horizontal, solo vertical si es necesario */
     padding: 0; 
-    padding-left: 0; /* Aseguramos que no haya padding horizontal */
+    padding-left: 0;
     padding-right: 0;
 }
 
@@ -24,39 +22,37 @@
     border: 2px solid rgb(0, 0, 0); 
     border-radius: 8px; 
     
-    /* MÁRGENES Y ANCHO CONSTANTES CODIGO RESPONSIVE*/
-    /* El ancho es el 100% menos 30px (15px a la izquierda + 15px a la derecha) */
+    /* MÁRGENES Y ANCHO CONSTANTES */
     width: calc(100% - 30px) !important; 
-    margin: 10px auto !important; /* Mantiene el centrado vertical y horizontal */
-    
-    /* MÁXIMO ANCHO: Si el margen fijo causa un scroll horizontal en pantallas gigantes, 
-       ajusta este valor para que el margen fijo se respete. */
+    margin: 10px auto !important; 
     max-width: 1500px !important; 
     
     /* Padding interno */
     padding: 15px 20px; 
-    box-sizing: border-box; /* CLAVE: Incluye el padding y border dentro del ancho */
+    box-sizing: border-box; 
+}
+.app-title {
+    font-size: 2rem;    
+    font-family: 'Roboto Condensed', sans-serif;      /* fuentes: 'Montserrat' 'Poppins' 'Oswald''Bebas Neue' */
+    font-weight: 500;         /* Negrita */
+    letter-spacing: 0px;      /* Espaciado entre letras */
+    color: #000000;           /* Cambia color si quieres */
+    text-align: center;       
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Sombra opcional */
 }
 
+
 /* --- 2. REGLA CLAVE PARA PANTALLAS PEQUEÑAS (Mobile: 600px o menos) --- */
-/* Esta regla sobrescribe el width: 85% de la regla base SÓLO en móviles */
 @media (max-width: 600px) {
     .header-container {
-        /* Fuerza el margen de 15px a cada lado en móviles (100% - 30px) */
         width: calc(100% - 30px); 
-        
-        /* Mantenemos el centrado (margin: auto) */
         margin: 10px auto; 
-        
-        /* Aseguramos que el contenido y borde se cuenten dentro del calc() */
         box-sizing: border-box; 
-        
-        padding: 10px 10px; /* Reducimos el padding interno */
+        padding: 10px 10px; 
     }
     
-    /* Aseguramos que el main-navbar también respete el margen de la ventana */
     .main-navbar {
-        padding-left: 15px; /* Damos un pequeño margen a la barra de navegación */
+        padding-left: 15px; 
         padding-right: 15px;
     }
 }
@@ -67,8 +63,7 @@
 .main-navbar {
     background-color: var(--navbar-background-color, #2782d8bb); 
     padding: 0 20px; 
-    height: 35px; /* Altura aumentada */
-    /* Agregamos margin-bottom para separarlo del marco superior si es necesario */
+    height: 35px; 
     margin-bottom: 6px; 
     align-items: center;
 }
@@ -78,12 +73,11 @@
 /* ------------------------------------------------ */
 
 .logo-img {
-    height: 65px; /* Altura del logo */
+    height: 65px; 
     width: auto;
     display: block; 
 }
 
-/* El padding de .btn es clave para mantener la altura baja */
 .header-container .btn {
     padding: 2px 3px !important; 
     line-height: 1; 
@@ -95,30 +89,28 @@
 
 /* Contenedor principal del área de usuario */
 .user-info-frame {
-    /* Nos aseguramos de que todos los elementos (info, imagen, íconos) estén alineados */
     align-items: center; 
 }
 
 /* Estilos para el nombre de usuario (la línea de arriba) */
 .user-info-frame .user-name {
-    font-weight: 500; /* Más destacado */
-    color: #fff; /* Color claro para contrastar con el fondo azul */
-    line-height: 1.1; /* Reducimos el espaciado entre líneas */
-    text-transform: uppercase; /* Para que coincida con el nombre de usuario de la imagen */
+    font-weight: 500; 
+    color: #fff; 
+    line-height: 1.1; 
+    text-transform: uppercase; 
 }
 
 /* Estilos para el detalle (rol | email - la línea de abajo) */
 .user-info-frame .user-detail {
-    font-size: 0.75rem; /* Pequeño para que quepa */
-    color: #000; /* Color oscuro para el detalle */
-    line-height: 1.1; /* Reducimos el espaciado entre líneas */
+    font-size: 0.75rem; 
+    color: #000; 
+    line-height: 1.1; 
 }
 
 /* Estilos para el enlace que contiene la imagen de perfil */
 .profile-toggle {
     display: block;
     cursor: pointer;
-    /* QUITAMOS el estilo de botón por defecto para la imagen de perfil */
     padding: 0 !important; 
     border: none !important;
     background: transparent !important;
@@ -126,16 +118,11 @@
 
 /* Estilos para la imagen de perfil en sí */
 .user-img {
-    /* Tamaño fijo para la imagen */
     width: 40px; 
     height: 40px;
-    /* La hacemos un círculo */
     border-radius: 55%; 
-    /* Añadimos un pequeño borde para destacarla */
     border: 2px solid #fff; 
-    /* Aseguramos que la imagen no se distorsione */
     object-fit: cover; 
-    /* Agregamos una transición para un efecto hover suave */
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -147,7 +134,6 @@
 
 /* Estilos para el menú desplegable del perfil */
 .dropdown-menu-end {
-    /* Asegura que el dropdown se alinee correctamente a la derecha */
     right: 0 !important;
     left: auto !important;
 }
@@ -157,31 +143,37 @@
 /* ------------------------------------------------ */
 
 .nav-tools {
-    /* Mantiene los íconos juntos */
     gap: 10px; 
 }
 
 .nav-tool-btn {
-    /* Estilos base para el ícono de Calculadora y Configuración */
+    /* Estilos base para el ícono de Configuración */
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px; /* Ancho del botón */
-    height: 40px; /* Altura del botón */
+    width: 40px; 
+    height: 40px; 
     border-radius: 5px;
     cursor: pointer;
-    color: #000; /* Color del ícono */
-    transition: background-color 0.2s, color 0.2s;
-    text-decoration: none; /* Quitamos el subrayado de los enlaces */
+    color: #000; 
+    /* AJUSTE CLAVE: Eliminamos la transición de color aquí. Ahora la controla el padre. */
+    transition: none; 
+    text-decoration: none; 
 }
 
-.nav-tool-btn:hover {
-    background-color: var(--hover-color, #ffffff);
-    color: var(--primary-color, #000000); /* Nuevo color al pasar el ratón */
+/* NUEVA REGLA (REEMPLAZA nav-tool-btn:hover): Sincroniza el color con la aparición del toolbox */
+.tool-dropdown {
+    position: relative;
 }
 
+.tool-dropdown:hover .nav-tool-btn {
+    background-color:none;
+    color: var(--primary-color, #000000);
+    /* Transición corta para el color, si lo deseas */
+    transition: background-color 0.1s, color 0.1s; 
+    
+}
 .nav-tool-btn svg {
-    /* Aseguramos que el SVG llene el espacio del botón */
     fill: currentColor;
     width: 30px; 
     height: 30px;
@@ -190,11 +182,9 @@
 /* Ocultar la información de usuario en móviles pequeños para ahorrar espacio */
 @media (max-width: 576px) {
     .user-info-frame .text-end {
-        /* Oculta el nombre y correo para dejar solo la imagen y los íconos */
         display: none !important; 
     }
     .profile-toggle {
-        /* Eliminamos el margen si ocultamos la información */
         margin-right: 0; 
     }
 }
@@ -204,81 +194,80 @@
 /* 5. NUEVOS ESTILOS PARA EL TOOLBOX DESLIZABLE */
 /* ================================================ */
 
-/* Contenedor principal de la caja de herramientas flotante */
-.floating-toolbox {
-    /* Lo posicionamos absolutamente con respecto a .tool-dropdown (position-relative) */
-    position: absolute;
-    top: 50%; /* Alineado verticalmente con el centro del botón del engranaje */
-    right: 45px; /* Empieza 45px a la izquierda del botón del engranaje */
-    transform: translateY(-50%) translateX(100%); /* Lo saca completamente a la derecha (oculto) y centra verticalmente */
-    
-    /* Efecto de grupo de botones */
-    display: flex;
-    flex-direction: row; /* Botones en línea */
-    gap: 8px; /* Espacio entre botones */
-
-    /* Fondo transparente, borde sutil */
-    background-color: rgba(255, 255, 255, 0.1); 
-    border-radius: 8px;
-    padding: 5px;
-    
-    /* TRUCO DE TRANSICIÓN: Aquí controlamos el deslizamiento */
-    opacity: 0; /* Inicialmente invisible */
-    transition: transform 0.3s ease-out, opacity 0.2s ease-out;
-    pointer-events: none; /* Deshabilitado para clics cuando está oculto */
-    
-    /* Asegura que esté por encima de la barra de navegación pero por debajo del dropdown del perfil */
-    z-index: 99; 
-    
-    /* Para móviles, asegúrate de que no se superponga o cause scroll */
-    @media (max-width: 480px) {
-        /* Podrías necesitar ajustar el right para evitar desbordamiento */
-        right: 40px; 
-        /* Mantén el resto igual */
-    }
+/* Contenedor principal de la caja de herramientas flotante (ESTADO OCULTO) */
+.floating-toolbox{
+    position:absolute;
+    top:50%;
+    right:40px;
+    transform:translateY(-50%) translateX(100%);
+    opacity:0;
+    pointer-events:none;
+    transition:transform 0.5s ease-out, opacity 0.5s ease-out;
+    display:flex;
+    flex-direction:row;
+    gap:0;
+    /*background-color:rgba(255,255,255,0.1);
+    border-radius:20px;
+    padding:3px;*/
+    z-index:99;
 }
+    
+    @media (max-width: 480px){.floating-toolbox{right:40px;}}
 
-/* Estado VISIBLE: Aplicamos la transición de deslizamiento */
-.floating-toolbox.show {
-    /* Lo desliza a su posición final (0% de desplazamiento horizontal) */
-    transform: translateY(-50%) translateX(0); 
-    opacity: 1; /* Visible */
-    pointer-events: auto; /* Habilitado para clics cuando está visible */
+/* REGLA CLAVE CORREGIDA: ESTADO VISIBLE AL PASAR EL CURSOR SOBRE EL PADRE */
+.tool-dropdown:hover 
+
+.floating-toolbox{
+    transform:translateY(-50%) translateX(0) !important;
+    opacity:1 !important;pointer-events:auto !important;
+    transition:transform 0.3s ease-out, opacity 0.3s ease-out;
+    width: auto !important;     /* Hace el contenedor más pequeño */
+    justify-content: center !important; 
+    padding: 2px !important; 
+    align-items: center !important;
+
 }
-
+/*AQUILAU/
 /* Estilo de los botones individuales dentro del toolbox */
 .toolbox-btn {
-    /* Estilos base */
-    background-color: rgba(0, 0, 0, 0); 
-    color: #000000;
-    border: 1px solid rgba(255, 255, 255, 0);
-    border-radius: 5px;
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap; /* Evita que el texto se rompa */
-    transition: background-color 0.2s, transform 0.1s;
+    background-color:rgba(0,0,0,0);
+    color:#000000;
+    border: 2px solid rgb(255, 255, 255);
+    border-radius:10px;
+    padding:6px 10px;
+    font-size:0.85rem;
+    font-weight:500;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background-color 0.2s, transform 0.5s;
+    width: 40px !important;     /* Ajusta el tamaño del botón */
+    height:40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+
 }
 
-.toolbox-btn:hover {
-    background-color: var(--primary-color, #ffffff);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
+.toolbox-btn:hover{
+    /*background-color:var(--primary-color, #ffffff8f);*/
+    transform:translateY(-1px);
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);}
 
-
+.toolbox-btn svg {
+    margin: 0 !important;   /* Evita que el icono se corra a un lado */
+}    
 /* ------------------------------------------------ */
 /* 6. Estilos de Navegación (no modificados) */
 /* ------------------------------------------------ */
 
-.nav-link {
+.nav-link { /*tetxo de contaro y facturas*/
     color: rgb(0, 0, 0);
     font-weight: 500;
-    text-transform: uppercase;
+    text-transform: none;
     padding: 2px 8px; 
     margin: 0 5px; 
-    border-radius: 10px; /* Unificado el border-radius */
+    border-radius: 10px; 
     transition: background-color 0.2s, color 0.2s;
     text-decoration: none; 
     display: flex; 
@@ -286,14 +275,15 @@
 }
 
 .nav-link:hover {
-    background-color: var(--hover-color, #faf8f8); 
-    color: #000000;
+    background-color: var(--hover-color, #000000);
+    font-weight: 400; 
+    color: #ffffff;
 }
 
 .nav-link.active {
-    background-color: var(--primary-color, #000000); 
-    color: white;
-    font-weight: 700;
+    background-color: var(--primary-color, #ffffff); 
+    color: rgb(0, 0, 0);
+    font-weight: 650;
     border-bottom: none; 
     box-shadow: 0 -2px 5px rgba(15, 100, 212, 0.3); 
 }

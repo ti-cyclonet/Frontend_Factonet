@@ -24,16 +24,17 @@ export const routes: Routes = [
         component: LayoutComponent,
         //canActivate: [AuthGuard],
         children: [
-            // RUTAS DE FUNCIONALIDAD PRINCIPAL
-            { path: ROOT_INVOICES, component: FacturasComponent, canActivate: [AuthGuard] },
-            { path: ROOT_CONTRACTS, component: ContratosComponent, canActivate: [AuthGuard] },
-            
-            // RUTA DE CONFIGURACIÓN
-            { path: ROOT_CONFIGURATION, component: SetupComponent, canActivate: [AuthGuard] },
-            
-            // REDIRECCIÓN POR DEFECTO: Apunta a Facturas (ya no hay Home)
-            { path: '', redirectTo: ROOT_INVOICES, pathMatch: 'full' }
-        ]
+    // RUTAS DE FUNCIONALIDAD PRINCIPAL
+    { path: ROOT_CONTRACTS, component: ContratosComponent, canActivate: [AuthGuard] },
+    { path: ROOT_INVOICES, component: FacturasComponent, canActivate: [AuthGuard] },
+    
+    // RUTA DE CONFIGURACIÓN
+    { path: ROOT_CONFIGURATION, component: SetupComponent, canActivate: [AuthGuard] },
+    
+    // REDIRECCIÓN POR DEFECTO: Apunta a Facturas
+    { path: '', redirectTo: ROOT_INVOICES, pathMatch: 'full' }
+]
+
     },
     {
         path: '**',
