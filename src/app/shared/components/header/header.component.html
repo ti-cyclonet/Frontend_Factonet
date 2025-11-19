@@ -1,63 +1,92 @@
 <div class="header-wrapper">
     
-    <div
-        class="header-container w-100 d-flex justify-content-between align-items-center"
-    >
-        <div class="d-flex align-items-center w-100">
+    <div class="header-container d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center flex-fill"> 
             <a href="#" class="logo-container">
-                <!-- Se asume que la imagen del logo está disponible en la ruta especificada -->
                 <img src="./assets/img/logo_factonet_v3.png" alt="Logo" class="logo-img" />
             </a>
-            <div class="navbar-brand mx-auto">{{ nombreApp | uppercase }}</div>
         </div>
 
-        <div class="btn-group header-frame user-info-frame ms-auto">
-            
-            <div class="text-end me-3 d-none d-sm-block">
-                <div class="user-name">{{ userName }}</div> 
-                <div class="user-detail">{{ userRolDescription }}</div>
-            </div>
+        <!-- BOTONES USUARIO + CAMPANITA -->
+<div class="d-flex align-items-center ms-auto">
 
-            <div class="btn-group">
-                <a
-                    class="profile-toggle"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                    href="#"
-                >
-                    <img 
-                        [src]="userImage ? userImage : './assets/img/foto_perfil.png'" 
-                        alt="Profile Picture" 
-                        class="user-img" 
-                        [class.rounded-circle]="true" 
-                        width="40" 
-                        height="40" 
-                        onerror="this.onerror=null; this.src='./assets/img/foto_perfil.png';"
-                    />
-                </a>
-                
-                <ul class="dropdown-menu p-3 mt-2 dropdown-menu-end">
-                    <li class="dropdown-header text-center">
-                        <div class="fw-bold">{{ userName }}</div>
-                        <div class="text-muted small">{{ userEmail }}</div>
-                    </li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Cambiar Contraseña</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li>
-                        <a class="dropdown-item logout-btn" href="#" (click)="logout()">
-                            Cerrar Sesión
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            
-        </div>
+    <!-- CAMPANITA DE NOTIFICACIONES SOLO MOBILE -->
+    <div *ngIf="isMobile && mobileNotifications.length > 0" class="position-relative me-3 notification-container">
+        <a href="#" 
+        class="nav-tool-btn notification-bell" 
+        (click)="toggleDropdown(); $event.preventDefault()">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#bell-fill" />
+            </svg>
+            <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle">
+                {{ mobileNotifications.length }}
+            </span>
+        </a>
+
+        <!-- LISTADO DE NOTIFICACIONES -->
+        <ul *ngIf="dropdownOpen"
+    class="dropdown-menu show p-2 mt-2 dropdown-menu-end notifications-menu"
+    (click)="$event.stopPropagation()"
+    style="right:0; z-index:1050; width:260px;">
+    
+    <li *ngFor="let note of mobileNotifications" class="notification-item">
+        <span [ngClass]="{
+            'text-success': note.type === 'success',
+            'text-danger': note.type === 'error',
+            'text-warning': note.type === 'warning'
+        }">
+            {{ note.title }}
+        </span>
+    </li>
+</ul>
+
+
+    </div>
+
+    <!-- AVATAR Y DROPDOWN DE USUARIO -->
+    <div class="btn-group">
+        <a
+            class="profile-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            href="#"
+        >
+            <img 
+                [src]="userImage ? userImage : './assets/img/foto_perfil.png'" 
+                alt="Profile Picture" 
+                class="user-img rounded-circle" 
+                width="40" 
+                height="40" 
+                onerror="this.onerror=null; this.src='./assets/img/foto_perfil.png';"
+            />
+        </a>
+
+        <ul class="dropdown-menu p-3 mt-2 dropdown-menu-end">
+            <li class="dropdown-header text-center">
+                <div class="fw-bold">{{ userName }}</div>
+                <div class="text-muted small">{{ userEmail }}</div>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Cambiar Contraseña</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <a class="dropdown-item logout-btn" href="#" (click)="logout()">Cerrar Sesión</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- NOMBRE Y ROL DEL USUARIO (SOLO EN DESKTOP) -->
+    <div class="text-end ms-3 d-none d-sm-block user-info-frame">
+        <div class="user-name">{{ userName }}</div> 
+        <div class="user-detail">{{ userRolDescription }}</div>
+    </div>
+
+</div>
+
         
     </div>
     
     <nav class="main-navbar d-flex justify-content-between align-items-center p-2">
-        
         <div class="d-flex">
             <a 
                 *ngFor="let option of optionsMenu" 
@@ -65,7 +94,6 @@
                 routerLinkActive="active" 
                 class="nav-link mx-2"
             >
-                <!-- Se asume que el ícono está disponible en la ruta especificada -->
                 <svg class="me-1" width="16" height="16" fill="currentColor">
                     <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + option.icon" />
                 </svg>
@@ -74,33 +102,26 @@
         </div>
         
         <div class="nav-tools d-flex align-items-center">
-            
             <div class="tool-dropdown position-relative">
-               <a class="nav-tool-btn" href="#" (click)="toggleToolbox($event)">
+                <a class="nav-tool-btn" href="#" (click)="toggleToolbox($event)">
                     <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                         <use xlink:href="./assets/icons/bootstrap-icons.svg#gear-fill" />
                     </svg>
                 </a>
                 
-                <!-- NUEVO GRUPO DE BOTONES DESLIZABLES -->
-                <div 
-                    class="floating-toolbox"
-                    [class.show]="showToolbox"
-                >
+                <div class="floating-toolbox" [class.show]="showToolbox" >
                     <button class="toolbox-btn" (click)="openCalculator()">
                         <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <use xlink:href="./assets/icons/bootstrap-icons.svg#calculator-fill" />
                         </svg>
                     </button>
-                    <!-- Agrega más botones de herramienta aquí si es necesario -->
                 </div>
             </div>
         </div>
-        
     </nav>
 </div>
 
-<!-- Modal de Cambio de Contraseña (sin cambios) -->
+<!-- Modal de Cambio de Contraseña -->
 <div
     class="modal fade"
     id="changePasswordModal"

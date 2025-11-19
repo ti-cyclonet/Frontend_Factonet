@@ -15,7 +15,7 @@
     background-color: var(--surface-dark);
     border: 1px solid rgba(34, 211, 238, 0.3); /* Thin cyan border */
     border-radius: 0.75rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); /* Deeper shadow */
+    box-shadow: 0 4px 20px rgba(249, 241, 241, 0.6); /* Deeper shadow */
     color: var(--text-light);
     transition: all 0.3s ease;
 }

@@ -19,10 +19,42 @@
 }
 
 /* Eliminar márgenes internos que puedan forzar la altura, manteniendo la especificidad */
-.footer div, .footer span {
-    margin: 0 !important; 
-    /* El padding se mantiene solo donde es necesario para la separación de métricas */
+.footer {
+  padding: 4px 8px; /* Ajusta el alto interior */
+  font-size: 12px;   /* Opcional: texto más pequeño */
+  height: 25px;
+  display: flex;
+  justify-content: space-between; /* como lo tengas ahora */
+  align-items: center;
+  width: 100%;
 }
+@media (max-width: 600px) {
+  .footer {
+    justify-content: center;  /* centra el contenido */
+    text-align: center;
+  }
+}
+@media (max-width: 640px) {
+
+  /* Ocultamos la hora y métricas */
+  #current-datetime,
+  .invoice-metrics {
+    display: none !important;
+  }
+
+  /* Este es el contenedor que debes centrar: */
+  .footer .d-flex {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* Asegura que el texto de copyright ocupe todo el ancho y se centre */
+  .footer .text-right {
+    width: 100%;
+    text-align: center !important;
+  }
+}
+
 
 /* --- NUEVO ---: Contenedor para el texto del lado izquierdo (Empresa + Hora) */
 /* Agregué un nuevo selector (asumiendo que hay un div o elemento envolviendo el lado izquierdo)
@@ -166,3 +198,4 @@
         width: 100%; /* Ocupa el espacio completo para centrar su contenido */
     }
 }
+

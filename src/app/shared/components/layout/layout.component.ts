@@ -97,19 +97,19 @@ export default class LayoutComponent implements OnInit {
         //id: '1', description: '', idMPather: null, order: '1', idApplication: ''
       //},
       { 
-        name: 'Facturas', 
-        url: '/invoices', 
-        icon: 'file-earmark-text', // Icono de Bootstrap
-        type: 'main_menu', 
-        id: '2', description: '', idMPather: null, order: '2', idApplication: ''
-      },
-      { 
-        name: 'Contratos', 
-        url: '/contracts', 
-        icon: 'journal-richtext', // Icono de Bootstrap
-        type: 'main_menu', 
-        id: '3', description: '', idMPather: null, order: '3', idApplication: ''
-      },
+      name: 'Contratos', 
+      url: '/contracts', 
+      icon: 'journal-richtext',
+      type: 'main_menu',
+      id: '3', description: '', idMPather: null, order: '1', idApplication: ''
+    },
+    { 
+      name: 'Facturas', 
+      url: '/invoices', 
+      icon: 'file-earmark-text',
+      type: 'main_menu',
+      id: '2', description: '', idMPather: null, order: '2', idApplication: ''
+    },
       //{ 
         //name: 'Clientes', 
         //url: '/customers', 
