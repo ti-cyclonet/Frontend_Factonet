@@ -269,7 +269,7 @@
 
 .nav-link { /*tetxo de contaro y facturas*/
     color: rgb(0, 0, 0);
-    font-weight: 500;
+    font-weight: 400;
     text-transform: none;
     padding: 2px 8px; 
     margin: 0 5px; 
@@ -281,7 +281,7 @@
 }
 
 .nav-link:hover {
-    background-color: var(--hover-color, #000000);
+    /*background-color: var(--hover-color, #000000);¨*/
     font-weight: 400; 
     color: #ffffff;
 }

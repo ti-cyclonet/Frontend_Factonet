@@ -104,11 +104,20 @@ input.form-control {
     margin: auto;
 }
 
-/* Solo responsive cuando la pantalla es menor al ancho fijo */
-@media (max-width: 420px) {
+/* Responsive cuando la pantalla es menor a 412px */
+@media (max-width: 412px) {
     .custom-card {
-        width: 95%;
-        padding: 25px 20px !important;
+        width: 98%;
+        padding: 25px 15px !important;
+    }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 200px) {
+    .custom-card {
+        width: 99%;
+        padding: 20px 10px !important;
+        min-width: 180px;
     }
 }
 /* Logo responsive */
