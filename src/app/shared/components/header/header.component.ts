@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule, UpperCasePipe } from '@angular/common'; 
+import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common'; 
 import { Router, RouterModule } from '@angular/router'; 
 import { OptionMenu } from '../../model/option_menu'; 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
@@ -16,8 +16,11 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
-export class HeaderComponent implements OnInit {
-  
+export class HeaderComponent implements OnInit, OnDestroy {
+  isMobile: boolean = false;
+  dropdownOpen: boolean = false;
+  private resizeListener: any;
+
   @Input() optionsMenu: OptionMenu[] = []; 
   
   // PROPIEDADES 
@@ -35,14 +38,53 @@ export class HeaderComponent implements OnInit {
   // Controla la visibilidad de la caja de herramientas deslizable
   showToolbox: boolean = false; 
 
-  constructor(private router: Router) { 
-    }
+  constructor(private router: Router) { }
 
   ngOnInit(): void {
-    // Inicialización si es necesario
+    this.checkScreenSize();
+    console.log('isMobile inicial:', this.isMobile); // <-- prueba 1
+    // Crea notificaciones de prueba
+  this.notifications = [
+    { container: 0, title: 'Prueba 1', visible: true },
+    { container: 0, title: 'Prueba 2', visible: true }
+  ];
+  console.log('mobileNotifications:', this.mobileNotifications); // <-- prueba 2
+
+    this.resizeListener = this.checkScreenSize.bind(this);
+    window.addEventListener('resize', this.resizeListener);
   }
-  
-  // MÉTODOS
+
+  ngOnDestroy(): void {
+    window.removeEventListener('resize', this.resizeListener);
+  }
+
+  checkScreenSize() {
+    this.isMobile = window.innerWidth < 768; // o el breakpoint que prefieras
+    if (!this.isMobile) {
+      this.dropdownOpen = false; // cerrar dropdown si no es móvil
+    }  
+  }
+
+  get mobileNotifications() {
+    return this.notifications.filter(n => n.container === 0);
+  }
+
+  toggleDropdown() {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+  // <-- PÉGALO AQUÍ
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: Event) {
+    const target = event.target as HTMLElement;
+
+    if (
+      !target.closest('.notification-bell') &&
+      !target.closest('.notifications-menu')
+    ) {
+      this.dropdownOpen = false;
+    }
+  }
+
   
   logout() { 
     sessionStorage.removeItem('token');
@@ -58,25 +100,24 @@ export class HeaderComponent implements OnInit {
     this.notifications.splice(index, 1);
   }
 
-  // MÉTODO MODIFICADO: Previene la navegación del enlace y cambia el estado.
   toggleToolbox(event: Event) {
-    // Es crucial prevenir el comportamiento por defecto para que el enlace no navegue
-    // a '#' y anule el evento de clic.
-    event.preventDefault(); 
-    
-    // Cambiar el estado
+  event.preventDefault();
+
+  // Solo en mobile controlamos con click
+  if (this.isMobile) {
     this.showToolbox = !this.showToolbox;
   }
 
-  // Métodos de herramientas del desplegable
+  // En desktop NO hacemos nada porque funciona con hover
+}
 
+  // Métodos de herramientas del desplegable
   openCalculator() {
-    // Lógica para abrir la CALCULADORA
     console.log('Abriendo calculadora desde el menú de herramientas...');
   }
   
   openSettings() {
-    // Lógica para la opción 'Configuración Avanzada' dentro del menú.
     console.log('Abriendo configuración avanzada...');
-  }
+ 
+ }
 }

@@ -40,6 +40,12 @@
     text-align: center;       
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Sombra opcional */
 }
+.dropdown-menu .dropdown-header .text-wrap {
+  display: block;
+  white-space: normal;
+  padding: 2px 0;
+}
+
 
 
 /* --- 2. REGLA CLAVE PARA PANTALLAS PEQUEÑAS (Mobile: 600px o menos) --- */
@@ -208,7 +214,7 @@
     gap:0;
     /*background-color:rgba(255,255,255,0.1);
     border-radius:20px;
-    padding:3px;*/
+    padding:3px; esto es el efecto de opacity debajo del boton*/
     z-index:99;
 }
     
@@ -263,7 +269,7 @@
 
 .nav-link { /*tetxo de contaro y facturas*/
     color: rgb(0, 0, 0);
-    font-weight: 500;
+    font-weight: 400;
     text-transform: none;
     padding: 2px 8px; 
     margin: 0 5px; 
@@ -275,7 +281,7 @@
 }
 
 .nav-link:hover {
-    background-color: var(--hover-color, #000000);
+    /*background-color: var(--hover-color, #000000);¨*/
     font-weight: 400; 
     color: #ffffff;
 }
@@ -292,3 +298,25 @@
     margin-right: 5px;
     fill: currentColor; 
 }
+/* ESTILO GENERAL DEL DROPDOWN DE NOTIFICACIONES */
+.notifications-menu {
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+/* ITEMS */
+.notifications-menu .notification-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #333;
+    list-style: none;
+    transition: background-color .2s;
+}
+
+/* HOVER */
+.notifications-menu .notification-item:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
