@@ -1,177 +1,288 @@
-/* =============================================== */
-/* 🎬 TEMA MATRIX OSCURO - GESTIÓN DE FACTURAS      */
-/* =============================================== */
-
-/* Fondo general del componente */
-:host {
-  display: block;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  background-attachment: fixed;
-  padding: 2rem;
-  color: #e5e7eb;
-  font-family: 'Poppins', sans-serif;
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL - NUEVO DISEÑO */
+/* ============================================ */
+body {
+  margin: 0;
+  background-color: #eff6ff;
+  font-family: 'Inter', sans-serif;
+  height: 100vh;
 }
 
-/* =============================================== */
-/* 🔠 TÍTULO PRINCIPAL                              */
-/* =============================================== */
-.matrix-title-custom {
-  color: #4ade80;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
-  text-transform: uppercase;
-  animation: flicker 2s infinite alternate;
+.floating-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 10px;
 }
 
-@keyframes flicker {
-  0% {
-    opacity: 0.9;
-    text-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
-  }
-  100% {
-    opacity: 1;
-    text-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
-  }
+.outer-container {
+  background-color: #E6E6E6;
+  max-width: 1600px;
+  width: calc(100% - 20px);
+  min-width: 400px;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-/* =============================================== */
-/* 🧮 TABLA DE FACTURAS                             */
-/* =============================================== */
-.matrix-table {
+.inner-container {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  color: #e5e7eb;
 }
 
-.matrix-header {
-  background-color: #0f172a;
-  border-bottom: 2px solid #1f2937;
-  backdrop-filter: blur(6px);
+#cuadro1 {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
 }
 
-.matrix-table th {
-  color: #34d399;
-  font-size: 0.75rem;
+#cuadro2 {
+  padding: 0;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.card-title {
+  font-size: 1.6rem;
   font-weight: 700;
-  text-transform: uppercase;
-  padding: 0.75rem 1rem;
-  letter-spacing: 0.05em;
+  color: #374151;
+  margin: 0;
 }
 
-.matrix-row {
-  border-bottom: 1px dashed #1f2937;
-  transition: all 0.2s ease-in-out;
+.table-container {
+  overflow-x: auto;
+  height: 100%;
+  padding: 1rem;
 }
 
-.matrix-row:last-child {
-  border-bottom: none;
+/* ============================================ */
+/* TABLA */
+/* ============================================ */
+.invoices-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
 }
 
-.matrix-row:hover {
-  background-color: rgba(16, 185, 129, 0.05);
-  transform: scale(1.002);
+.invoices-table thead {
+  background-color: #f8fafc;
 }
 
-/* =============================================== */
-/* 💬 ESTADOS (BADGES)                              */
-/* =============================================== */
-.matrix-badge {
+.invoices-table th {
+  padding: 0.5rem 0.25rem;
+  text-align: left;
   font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  min-width: 100px;
-  display: inline-block;
-  text-align: center;
-  transition: 0.3s ease all;
-}
-
-.text-green-700.bg-green-100 {
-  color: #10b981 !important;
-  background-color: #064e3b !important;
-}
-
-.text-yellow-700.bg-yellow-100 {
-  color: #fbbf24 !important;
-  background-color: #78350f !important;
-}
-
-.text-red-700.bg-red-100 {
-  color: #f87171 !important;
-  background-color: #7f1d1d !important;
-}
-
-/* =============================================== */
-/* 🟩 BOTONES                                       */
-/* =============================================== */
-.matrix-btn {
-  font-weight: 600;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  transition: all 0.2s ease-in-out;
+  color: #374151;
   text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
-  font-size: 0.875rem;
+  font-size: 0.65rem;
   letter-spacing: 0.05em;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.add-btn {
-  background-color: #10b981;
+.invoices-table td {
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid #f1f5f9;
   color: #1f2937;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invoices-table tbody tr {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.invoices-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.invoices-table tbody tr.selected {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+}
+
+/* ============================================ */
+/* COLUMNAS ESPECÍFICAS */
+/* ============================================ */
+.col-id {
+  width: 10%;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.col-number {
+  width: 12%;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+}
+
+.col-client {
+  width: 20%;
+  font-weight: 500;
+}
+
+.col-amount {
+  width: 12%;
+  text-align: right;
+  font-weight: 600;
+  color: #059669;
+}
+
+.col-dates {
+  width: 12%;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.col-status {
+  width: 10%;
+  text-align: center;
+}
+
+.col-actions {
+  width: 12%;
+  text-align: center;
+}
+
+/* ============================================ */
+/* BADGES DE ESTADO */
+/* ============================================ */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-paid {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-overdue {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN */
+/* ============================================ */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem;
   border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.add-btn:hover:not(:disabled) {
-  background-color: #059669;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-  transform: translateY(-2px);
+.action-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
-/* Botones Inline (editar/eliminar) */
-button[title="Editar"]:hover {
-  background-color: rgba(249, 115, 22, 0.2);
+.view-btn,
+.edit-btn,
+.delete-btn {
+  background-color: #e9d5ff;
+  color: #7c3aed;
 }
 
-button[title="Eliminar"]:hover {
-  background-color: rgba(239, 68, 68, 0.2);
+.view-btn:hover,
+.edit-btn:hover,
+.delete-btn:hover {
+  background-color: #ddd6fe;
+  transform: scale(1.05);
 }
 
-/* =============================================== */
-/* 🌐 BUSCADOR / INPUT                              */
-/* =============================================== */
-input[type="text"] {
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  color: #a7f3d0;
-  transition: all 0.2s;
+/* ============================================ */
+/* ESTADO VACÍO */
+/* ============================================ */
+.no-data {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 3rem 1rem;
 }
 
-input[type="text"]:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+@media (max-width: 768px) {
+  .floating-container {
+    padding: 10px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+  
+  .outer-container {
+    width: 98vw;
+    min-width: 320px;
+    padding: 0.75rem;
+  }
+  
+  .invoices-table th,
+  .invoices-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .col-id {
+    font-size: 0.7rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
 
-/* =============================================== */
-/* ⚡ TRANSICIONES Y DETALLES                       */
-/* =============================================== */
-.shadow-inner {
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+@media (max-width: 480px) {
+  .floating-container {
+    padding: 5px;
+  }
+  
+  .outer-container {
+    width: 98vw;
+    min-width: 300px;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+  }
+  
+  .invoices-table {
+    font-size: 0.75rem;
+  }
+  
+  .invoices-table th,
+  .invoices-table td {
+    padding: 0.5rem 0.25rem;
+  }
 }
-
-.selected-row {
-  background-color: rgba(16, 185, 129, 0.15);
-  border-left: 3px solid #10b981;
-}
-
-.bg-gray-800 {
-  background-color: #1f2937 !important;
-}
-
-.bg-gray-900\/50 {
-  background-color: rgba(17, 24, 39, 0.6) !important;
-  backdrop-filter: blur(8px);
-}
-
- 

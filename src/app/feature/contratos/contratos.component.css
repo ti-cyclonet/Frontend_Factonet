@@ -1,199 +1,292 @@
-/* --- Futuristic Design Tokens --- */
-:host {
-    /* Define the core palette for easy modification */
-    --bg-dark: #0f172a; /* Deep Slate */
-    --surface-dark: #E6E6E6; /* Darker Slate */
-    --accent-cyan: #000000; /* Electric Cyan */
-    --text-light: #000000; /* Light Gray */
-    --text-muted: #94a3b8; /* Muted Gray */
-    --glow-shadow: 0 0 10px rgba(34, 211, 238, 0.5); /* Cyan Glow */
-    --danger-red: #f87171;
+/* ============================================ */
+/* CONTENEDOR PRINCIPAL - NUEVO DISEÑO */
+/* ============================================ */
+body {
+  margin: 0;
+  background-color: #eff6ff;
+  font-family: 'Inter', sans-serif;
+  height: 100vh;
 }
 
-/* Base container styling: Dark, bordered, and shadowed */
-.card {
-    background-color: var(--surface-dark);
-    border: 1px solid rgba(34, 211, 238, 0.3); /* Thin cyan border */
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 20px rgba(249, 241, 241, 0.6); /* Deeper shadow */
-    color: var(--text-light);
-    transition: all 0.3s ease;
+.floating-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 10px;
 }
 
-.card-body {
-    padding: 2rem;
+.outer-container {
+  background-color: #E6E6E6;
+  max-width: 1600px;
+  width: calc(100% - 20px);
+  min-width: 400px;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-/* --- Header and Title --- */
-.management-header {
-    margin-bottom: 20px;
+.inner-container {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  width: 100%;
 }
 
-.title-right {
-    font-size: 1.5rem;
-    letter-spacing: 1px;
-    font-family: 'Inter', sans-serif;
+#cuadro1 {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
 }
 
-.title-text {
-    /* Apply neon glow to the title */
-    text-shadow: 0 0 5px rgba(34, 211, 238, 0.3);
+#cuadro2 {
+  padding: 0;
+  overflow: hidden;
+  min-height: 400px;
 }
 
-.title-text .text-muted {
-    color: var(--text-muted) !important;
-    font-weight: 300;
+.card-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
 }
 
-.title-text .text-primary {
-    color: var(--accent-cyan) !important;
-    font-weight: 700;
+.table-container {
+  overflow-x: auto;
+  height: 100%;
+  padding: 1rem;
 }
 
-.orange-dot {
-    width: 10px;
-    height: 10px;
-    background-color: var(--accent-cyan);
-    border-radius: 50%;
-    box-shadow: var(--glow-shadow);
-    /* Subtle pulse animation for futuristic feel */
-    animation: pulse 1.5s infinite alternate;
+/* ============================================ */
+/* TABLA */
+/* ============================================ */
+.contracts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
 }
 
-@keyframes pulse {
-    from { opacity: 0.5; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1.0); }
+.contracts-table thead {
+  background-color: #f8fafc;
 }
 
-/* --- Options Panel (Sidebar) --- */
-.options-panel {
-    width: 80px;
-    min-width: 80px;
-    background-color: #0d121c; /* Slightly darker than surface */
-    border-left: 1px solid rgba(34, 211, 238, 0.5);
-    transition: width 0.3s ease;
+.contracts-table th {
+  padding: 0.5rem 0.25rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.icon-only-btn {
-    background: transparent;
-    border: none;
+.contracts-table td {
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1f2937;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contracts-table tbody tr {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.contracts-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.contracts-table tbody tr.selected {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+}
+
+/* ============================================ */
+/* COLUMNAS ESPECÍFICAS */
+/* ============================================ */
+.col-id {
+  width: 12%;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.col-user {
+  width: 15%;
+  font-weight: 500;
+}
+
+.col-package {
+  width: 25%;
+  font-weight: 500;
+  max-width: 200px;
+}
+
+.col-value {
+  width: 10%;
+  text-align: right;
+  font-weight: 600;
+  color: #059669;
+}
+
+.col-payday {
+  width: 8%;
+  text-align: center;
+}
+
+.col-dates {
+  width: 10%;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.col-status {
+  width: 8%;
+  text-align: center;
+}
+
+.col-actions {
+  width: 12%;
+  text-align: center;
+}
+
+/* ============================================ */
+/* BADGES DE ESTADO */
+/* ============================================ */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-expired {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* ============================================ */
+/* BOTONES DE ACCIÓN */
+/* ============================================ */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.view-btn,
+.edit-btn,
+.delete-btn {
+  background-color: #e9d5ff;
+  color: #7c3aed;
+}
+
+.view-btn:hover,
+.edit-btn:hover,
+.delete-btn:hover {
+  background-color: #ddd6fe;
+  transform: scale(1.05);
+}
+
+/* ============================================ */
+/* ESTADO VACÍO */
+/* ============================================ */
+.no-data {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 3rem 1rem;
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+@media (max-width: 768px) {
+  .floating-container {
+    padding: 10px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+  
+  .outer-container {
+    width: 98vw;
+    min-width: 320px;
+    padding: 0.75rem;
+  }
+  
+  .contracts-table th,
+  .contracts-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .col-id {
+    font-size: 0.7rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-container {
+    padding: 5px;
+  }
+  
+  .outer-container {
+    width: 98vw;
+    min-width: 300px;
     padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
     border-radius: 0.5rem;
-}
-
-.icon-only-btn:hover:not([disabled]) {
-    background-color: #17223b;
-    box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
-    transform: scale(1.05);
-}
-
-.icon-only-btn[disabled] {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.option-icon {
-    width: 28px;
-    height: 28px;
-    fill: var(--accent-cyan); /* Icons glow cyan */
-}
-
-/* --- Table Styling (Data Matrix) --- */
-
-.table-responsive {
-    border-radius: 0.5rem;
-    overflow: hidden;
-    border: 1px solid rgba(34, 211, 238, 0.4); /* Neon border around the table */
-}
-
-.custom-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'Roboto Mono', monospace; /* Techier font for data */
-}
-
-.custom-table thead th {
-    background-color: #1a365d; /* Darker header blue */
-    color: var(--text-light);
-    font-weight: 500;
-    padding: 15px 10px;
-    border-bottom: 2px solid var(--accent-cyan);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.custom-table tbody tr {
-    background-color: var(--surface-dark);
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    border-bottom: 1px dashed #1e416a; /* subtle separator */
-    cursor: pointer;
-}
-
-.custom-table tbody tr:hover {
-    background-color: #2a3a5b; /* Lighter shade on hover */
-}
-
-.custom-table tbody tr:last-child {
-    border-bottom: none;
-}
-
-.custom-table td {
-    color: var(--text-light);
-    padding: 12px 10px;
-    vertical-align: middle;
-}
-
-/* Selected row highlight (The "focused" row) */
-.selected-row {
-    background-color: #2a3a5b !important;
-    font-weight: 600;
-    color: var(--accent-cyan);
-    box-shadow: inset 3px 0 0 0 var(--accent-cyan); /* Highlight bar on the left */
-}
-
-.item-checkbox {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    appearance: none;
-    border: 2px solid var(--accent-cyan);
-    border-radius: 3px;
-    background-color: transparent;
-    position: relative;
-    transition: all 0.2s ease;
-}
-
-.item-checkbox:checked {
-    background-color: var(--accent-cyan);
-    box-shadow: 0 0 5px rgba(34, 211, 238, 0.8);
-}
-
-.item-checkbox:checked::after {
-    content: "✓";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 12px;
-    color: var(--bg-dark);
-}
-
-/* --- Utility Button (Show/Hide Options) --- */
-.toggle-btn-futuristic {
-    background-color: var(--surface-dark);
-    color: var(--accent-cyan);
-    border: 1px solid var(--accent-cyan);
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.toggle-btn-futuristic:hover {
-    background-color: var(--accent-cyan);
-    color: var(--bg-dark);
-    box-shadow: var(--glow-shadow);
+  }
+  
+  .contracts-table {
+    font-size: 0.75rem;
+  }
+  
+  .contracts-table th,
+  .contracts-table td {
+    padding: 0.5rem 0.25rem;
+  }
 }
