@@ -1,15 +1,13 @@
 <div class="header-wrapper">
     
-    <div
-        class="header-container w-100 d-flex justify-content-between align-items-center"
-    >
-        <div class="d-flex align-items-center w-100">
-            <a href="#" class="logo-container">
-                <!-- Se asume que la imagen del logo está disponible en la ruta especificada -->
-                <img src="./assets/img/logo_factonet_v3.png" alt="Logo" class="logo-img" />
-            </a>
-            <div class="navbar-brand mx-auto">{{ nombreApp | uppercase }}</div>
-        </div>
+    <div class="header-container d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center flex-fill"> 
+        <a href="#" class="logo-container">
+            <img src="./assets/img/logo_factonet_v3.png" alt="Logo" class="logo-img" />
+        </a>
+        
+        <div class="navbar-brand mx-auto app-title">{{ nombreApp | uppercase }}</div> 
+    </div>
 
         <div class="btn-group header-frame user-info-frame ms-auto">
             
@@ -85,7 +83,7 @@
                 <!-- NUEVO GRUPO DE BOTONES DESLIZABLES -->
                 <div 
                     class="floating-toolbox"
-                    [class.show]="showToolbox"
+                    
                 >
                     <button class="toolbox-btn" (click)="openCalculator()">
                         <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">

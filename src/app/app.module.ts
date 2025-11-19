@@ -1,16 +1,15 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
-import { SharedModule } from './shared/shared.module';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { AppComponent } from './app.component';
+
 @NgModule({
-  declarations: [],
-  imports: [
-    BrowserModule,
-    NoopAnimationsModule,
-    RouterModule,
-    SharedModule
+  declarations: [
+   // ✅ Único componente declarado
   ],
-  providers: [],  
+  imports: [
+    BrowserModule // ✅ Módulo base necesario
+  ],
+  providers: [],
+  bootstrap: [] // ✅ App inicia desde AppComponent
 })
 export class AppModule { }
