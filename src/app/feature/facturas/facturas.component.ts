@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
-import { NotificationsComponent } from "../../shared/components/notifications/notifications.component";
 
 interface Factura {
   id: string;
@@ -45,30 +44,30 @@ export class FacturasComponent implements OnInit {
 
   loadMockFacturas(): void {
     this.facturas = [
-      { id: 'F-1001', numero: 'INV-2024-001', cliente: 'Solaris Energy Group', fechaEmision: '2024-10-15', fechaVencimiento: '2024-11-15', total: 15300.75, estado: 'Pendiente' },
-      { id: 'F-1002', numero: 'INV-2024-002', cliente: 'Quantum Robotics', fechaEmision: '2024-09-01', fechaVencimiento: '2024-10-01', total: 450.00, estado: 'Vencida' },
-      { id: 'F-1003', numero: 'INV-2024-003', cliente: 'Alpha Logistics Inc.', fechaEmision: '2024-08-20', fechaVencimiento: '2024-09-20', total: 820.75, estado: 'Pagada' },
-      { id: 'F-1004', numero: 'INV-2024-004', cliente: 'Digital Forge Studio', fechaEmision: '2024-11-05', fechaVencimiento: '2024-12-05', total: 980.00, estado: 'Pendiente' },
+      { id: 'INV-2024-001', numero: 'FAC-001-2024', cliente: 'TechCorp Solutions', fechaEmision: '2024-01-15', fechaVencimiento: '2024-02-15', total: 25750.00, estado: 'Pagada' },
+      { id: 'INV-2024-002', numero: 'FAC-002-2024', cliente: 'Global Industries Ltd', fechaEmision: '2024-01-20', fechaVencimiento: '2024-02-20', total: 18900.50, estado: 'Pendiente' },
+      { id: 'INV-2024-003', numero: 'FAC-003-2024', cliente: 'Innovation Hub Inc', fechaEmision: '2024-01-10', fechaVencimiento: '2024-02-10', total: 12300.75, estado: 'Vencida' },
+      { id: 'INV-2024-004', numero: 'FAC-004-2024', cliente: 'Digital Dynamics Corp', fechaEmision: '2024-01-25', fechaVencimiento: '2024-02-25', total: 8750.00, estado: 'Pendiente' }
     ];
   }
 
-  getStatusClass(estado: Factura['estado']): string {
-    switch (estado) {
-      case 'Pagada': return 'text-green-700 bg-green-100';
-      case 'Pendiente': return 'text-yellow-700 bg-yellow-100';
-      case 'Vencida': return 'text-red-700 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+  setSelectedFactura(factura: Factura) {
+    if (this.selectedFactura === factura) {
+      this.selectedFactura = null;
+    } else {
+      this.selectedFactura = factura;
+      this.showToast(`Factura ${factura.numero} seleccionada`, 'success', 'A', 0);
     }
   }
 
-  openFacturaModal() {
-    this.isModalOpen = true;
-    this.showToast('Abriendo interfaz de Creación de Factura...', 'primary', 'A', 0);
+  editFactura(factura: Factura) {
+    this.showToast(`Editando factura ${factura.numero}`, 'warning', 'A', 0);
   }
 
   confirmDeleteFactura(factura: Factura) {
     this.facturas = this.facturas.filter(f => f.id !== factura.id);
     this.showToast(`Factura ${factura.numero} eliminada correctamente.`, 'danger', 'A', 0);
+    this.selectedFactura = null;
     this.cdr.detectChanges();
   }
 

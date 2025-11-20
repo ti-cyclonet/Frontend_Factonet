@@ -1,124 +1,161 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
-import { NotificationsComponent } from "../../shared/components/notifications/notifications.component";
+import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-// Interface for strong typing and better code quality
+// Interface para un tipado estricto
 interface Contrato {
     id: string;
-    client: string;
+    user: string;
+    package: string;
+    value: number;
+    payday: number;
     startDate: string;
     endDate: string;
-    value: number;
     status: 'Active' | 'Expired' | 'Pending'; 
 }
 
 @Component({
   selector: 'app-contratos', 
   standalone: true,
-  // Added CurrencyPipe and UpperCasePipe to imports for standalone consistency
-  imports: [CommonModule, NotificationsComponent, CurrencyPipe, UpperCasePipe],
+  imports: [CommonModule],
   templateUrl: './contratos.component.html', 
   styleUrls: ['./contratos.component.css'] 
 })
 export class ContratosComponent implements OnInit { 
   
-  @ViewChild('notification') notification!: NotificationsComponent;
+  // Utilizamos signals para el estado reactivo
+  contratos = signal<Contrato[]>([]);
+  selectedContrato = signal<Contrato | null>(null); 
   
-  // Strongly typed contracts array
-  contratos: Contrato[] = [];
-  selectedContrato: Contrato | null = null; 
-  isModalOpen = false;
+  // Bandera para el modal de creación/edición
+  isModalOpen = signal(false);
+  // Bandera para el modal de confirmación de eliminación (reemplazo de confirm())
+  isDeleteConfirmationModalOpen = signal(false);
 
-  // Configuration for notifications
-  notifications: Array<{
+  // Configuración de notificaciones usando signals
+  notifications = signal<Array<{
     title: string;
     type: 'success' | 'warning' | 'danger' | 'primary';
-    alertType: 'A' | 'B';
-    container: 0 | 1;
+    alertType: 'A' | 'B'; // A: temporal, B: persistente
+    container: 0 | 1; // 0: top-right, 1: bottom-left
     visible: boolean;
-  }> = [];
+  }>>([]);
   
-  showOptions = true; // Controls the visibility of the options panel
+  showOptions = true; // Controla la visibilidad del panel de opciones
 
   constructor(private cdr: ChangeDetectorRef) { 
-    this.notifications = [];
+    // Las signals reemplazan la necesidad de inicializar arrays vacíos aquí
   }
 
   ngOnInit(): void {
-    // Load simulation data on component initialization
+    // Carga de datos simulados
     this.loadMockContratos();
   }
 
   /**
-   * Loads simulated contract data for frontend development.
-   */
+    * Carga datos simulados de contratos.
+    */
   loadMockContratos(): void {
-    // Futuristic/Mock Data examples
-    this.contratos = [
-      { id: 'CX-1001', client: 'AetherSys Corp', startDate: '2024-07-20', endDate: '2025-07-20', value: 350000.00, status: 'Active' },
-      { id: 'CX-1002', client: 'Nexus Global', startDate: '2023-01-10', endDate: '2024-01-10', value: 80500.00, status: 'Expired' },
-      { id: 'CX-1003', client: 'Orion Tech', startDate: '2025-01-01', endDate: '2026-01-01', value: 12000.50, status: 'Pending' },
-      { id: 'CX-1004', client: 'Vortex Dynamics', startDate: '2024-09-01', endDate: '2025-09-01', value: 98000.00, status: 'Active' },
-      { id: 'CX-1005', client: 'Zenith Labs', startDate: '2023-11-15', endDate: '2024-11-15', value: 4500.00, status: 'Expired' },
-    ];
+    this.contratos.set([
+      { id: '1272747-a4a7-4b74-9142-6eeebf7765368', user: 'jimmykon-inout.com', package: 'Inout Basic Package for Jimmykon, Development', value: 900000.00, payday: 5, startDate: '2025-08-20', endDate: '2026-08-20', status: 'Pending' },
+      { id: 'eba5ea0b-059c-42d1-99f1-68e29a0aee48', user: 'jimmykon-inout.com', package: 'Inout Basic Package for Jimmykon Development', value: 739200.00, payday: 5, startDate: '2025-08-20', endDate: '2026-08-20', status: 'Active' }
+    ]);
   }
 
   /**
-   * Opens the modal for adding a new contract.
-   */
+    * Abre el modal para añadir un nuevo contrato.
+    */
   openContratoModal() { 
-    this.isModalOpen = true;
+    this.isModalOpen.set(true);
     this.showToast('SYSTEM: Opening Contract Creation Interface...', 'primary', 'A', 0);
   }
 
   /**
-   * Sets the selected contract, deselecting if it is clicked again.
-   */
-  setSelectedContrato(contrato: Contrato) { 
-    if (this.selectedContrato === contrato) {
-        this.selectedContrato = null;
-    } else {
-        this.selectedContrato = contrato;
+    * Simula la acción de edición.
+    */
+  onEditContrato() {
+    const contrato = this.selectedContrato();
+    if (contrato) {
+        this.showToast(`ACCESSING RECORD: ${contrato.id}. (Edit Simulation)`, 'primary', 'A', 0);
     }
-    this.cdr.detectChanges(); 
+  }
+
+
+  /**
+    * Establece el contrato seleccionado o lo deselecciona.
+    */
+  setSelectedContrato(contrato: Contrato) { 
+    if (this.selectedContrato() === contrato) {
+        this.selectedContrato.set(null);
+    } else {
+      this.selectedContrato.set(contrato);
+      this.showToast(`RECORD SELECTED: ${contrato.id}`, 'success', 'A', 0);
+    }
   }
 
   /**
-   * Confirms and simulates the deletion of the selected contract.
-   */
-  confirmDeleteContrato() { 
-    if (this.selectedContrato) {
-      const idToDelete = this.selectedContrato.id;
-      
-      // Simulation of deletion: filter the local contracts array
-      this.contratos = this.contratos.filter(c => c.id !== idToDelete);
-      
-      this.showToast(`RECORD ${idToDelete} DELETED successfully (Local Simulation).`, 'danger', 'A', 0);
-      this.selectedContrato = null;
+    * Abre el modal de confirmación de eliminación (reemplazo de confirm()).
+    * Esta función debe ser llamada por el botón "Eliminar".
+    */
+  openDeleteConfirmationModal() {
+    if (this.selectedContrato()) {
+        this.isDeleteConfirmationModalOpen.set(true);
+    } else {
+        this.showToast('ERROR: No record selected for deletion.', 'warning', 'A', 0);
+    }
+  }
+
+  /**
+    * Cierra el modal de confirmación.
+    */
+  cancelDelete() {
+    this.isDeleteConfirmationModalOpen.set(false);
+  }
+
+  /**
+    * Ejecuta la eliminación del contrato seleccionado.
+    * Esta función debe ser llamada por el botón "Confirmar" dentro del modal.
+    */
+  deleteContrato() { 
+    const contrato = this.selectedContrato();
+    if (contrato) {
+        const idToDelete = contrato.id;
+        
+        // Actualiza el signal 'contratos' filtrando el elemento
+        this.contratos.update(currentContratos => 
+          currentContratos.filter(c => c.id !== idToDelete)
+        );
+        
+        this.showToast(`RECORD ${idToDelete} DELETED successfully (Local Simulation).`, 'danger', 'A', 0);
+        this.selectedContrato.set(null);
+        this.isDeleteConfirmationModalOpen.set(false); // Cierra el modal
     } else {
       this.showToast('ERROR: No record selected for deletion.', 'warning', 'A', 0);
     }
   }
 
   /**
-   * Function trackBy for optimized *ngFor performance.
-   */
+    * Función trackBy para optimización.
+    */
   trackById(index: number, contrato: Contrato): string { 
     return contrato.id;
   }
 
-  // --- NOTIFICATION UTILITY FUNCTIONS ---
+  // --- Funciones de Notificación ---
 
   /**
-   * Removes a notification by index.
-   */
+    * Elimina una notificación por índice.
+    */
   removeNotification(index: number) {
-    this.notifications.splice(index, 1);
+    // Actualiza el signal 'notifications' eliminando el elemento por índice
+    this.notifications.update(currentNotifications => {
+        currentNotifications.splice(index, 1);
+        return [...currentNotifications];
+    });
   }
 
   /**
-   * Displays a transient (Type A) or persistent (Type B) notification.
-   */
+    * Muestra una notificación temporal (A) o persistente (B).
+    */
   showToast(message: string, type: 'success' | 'warning' | 'danger' | 'primary', alertType: 'A' | 'B', container: 0 | 1) {
     const notification = {
       title: message,
@@ -127,13 +164,16 @@ export class ContratosComponent implements OnInit {
       container,
       visible: true
     };
-    this.notifications.push(notification);
-    this.cdr.detectChanges();
+    
+    // Agrega la notificación al array de signals
+    this.notifications.update(currentNotifications => [...currentNotifications, notification]);
 
     if (alertType === 'A') {
+      // Configura la eliminación automática después de 5 segundos
       setTimeout(() => {
-        notification.visible = false;
-        this.cdr.detectChanges();
+        this.notifications.update(currentNotifications => 
+            currentNotifications.filter(n => n !== notification)
+        );
       }, 5000);
     }
   }
