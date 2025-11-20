@@ -205,10 +205,10 @@
     position:absolute;
     top:50%;
     right:40px;
-    transform:translateY(-50%) translateX(100%);
+    transform:translateY(-50%) scale(0);
     opacity:0;
     pointer-events:none;
-    transition:transform 0.5s ease-out, opacity 0.5s ease-out;
+    transition:transform 0.3s ease-out, opacity 0.3s ease-out;
     display:flex;
     flex-direction:row;
     gap:0;
@@ -216,6 +216,7 @@
     border-radius:20px;
     padding:3px; esto es el efecto de opacity debajo del boton*/
     z-index:99;
+    transform-origin: right center;
 }
     
     @media (max-width: 480px){.floating-toolbox{right:40px;}}
@@ -224,7 +225,7 @@
 .tool-dropdown:hover 
 
 .floating-toolbox{
-    transform:translateY(-50%) translateX(0) !important;
+    transform:translateY(-50%) scale(1) !important;
     opacity:1 !important;pointer-events:auto !important;
     transition:transform 0.3s ease-out, opacity 0.3s ease-out;
     width: auto !important;     /* Hace el contenedor más pequeño */

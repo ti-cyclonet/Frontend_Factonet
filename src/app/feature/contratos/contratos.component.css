@@ -11,9 +11,10 @@ body {
 .floating-container {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   height: 100vh;
   padding: 10px;
+  padding-top: 10px;
 }
 
 .outer-container {
@@ -45,7 +46,7 @@ body {
 }
 
 #cuadro2 {
-  padding: 0;
+  padding: 0.75rem;
   overflow: hidden;
   min-height: 400px;
 }
@@ -60,7 +61,8 @@ body {
 .table-container {
   overflow-x: auto;
   height: 100%;
-  padding: 1rem;
+  padding: 0;
+  width: 100%;
 }
 
 /* ============================================ */
@@ -68,33 +70,46 @@ body {
 /* ============================================ */
 .contracts-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.75rem;
+  border: 1px solid #9ca3af;
 }
 
 .contracts-table thead {
-  background-color: #f8fafc;
+  background-color: #f3f4f6;
 }
 
 .contracts-table th {
-  padding: 0.5rem 0.25rem;
-  text-align: left;
-  font-weight: 600;
+  padding: 0.15rem 0.2rem;
+  text-align: center;
+  font-weight: 700;
   color: #374151;
   text-transform: uppercase;
   font-size: 0.65rem;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid #d1d5db;
+  border-right: 1px solid #9ca3af;
+  background-color: #f3f4f6;
+}
+
+.contracts-table th:last-child {
+  border-right: none;
 }
 
 .contracts-table td {
-  padding: 0.5rem 0.25rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 0.15rem 0.2rem;
+  border-bottom: 1px solid #d1d5db;
+  border-right: 1px solid #9ca3af;
   color: #1f2937;
   vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.contracts-table td:last-child {
+  border-right: none;
 }
 
 .contracts-table tbody tr {
@@ -115,26 +130,27 @@ body {
 /* COLUMNAS ESPECÍFICAS */
 /* ============================================ */
 .col-id {
-  width: 12%;
-  font-family: 'Courier New', monospace;
+  width: 10%;
   font-size: 0.7rem;
   color: #6b7280;
+  text-align: center;
 }
 
 .col-user {
   width: 15%;
   font-weight: 500;
+  text-align: center;
 }
 
 .col-package {
-  width: 25%;
+  width: 20%;
   font-weight: 500;
-  max-width: 200px;
+  text-align: center;
 }
 
 .col-value {
   width: 10%;
-  text-align: right;
+  text-align: center;
   font-weight: 600;
   color: #059669;
 }
@@ -145,19 +161,19 @@ body {
 }
 
 .col-dates {
-  width: 10%;
+  width: 12%;
   text-align: center;
   font-size: 0.7rem;
   color: #6b7280;
 }
 
 .col-status {
-  width: 8%;
+  width: 10%;
   text-align: center;
 }
 
 .col-actions {
-  width: 12%;
+  width: 15%;
   text-align: center;
 }
 
@@ -217,14 +233,14 @@ body {
 .view-btn,
 .edit-btn,
 .delete-btn {
-  background-color: #e9d5ff;
-  color: #7c3aed;
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 
 .view-btn:hover,
 .edit-btn:hover,
 .delete-btn:hover {
-  background-color: #ddd6fe;
+  background-color: #bfdbfe;
   transform: scale(1.05);
 }
 
@@ -254,13 +270,20 @@ body {
     padding: 0.75rem;
   }
   
+  .contracts-table {
+    table-layout: auto;
+    font-size: 0.65rem;
+  }
+  
   .contracts-table th,
   .contracts-table td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.4rem 0.2rem;
+    font-size: 0.65rem;
+    white-space: nowrap;
   }
   
   .col-id {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
   }
   
   .action-buttons {
