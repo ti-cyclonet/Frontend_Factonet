@@ -29,7 +29,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userRolDescription: string = 'Administrador'; 
   userEmail: string = 'ajmamby@factonet.com'; 
   form: any; 
-  notifications: any[] = []; 
+  notifications: Array<{
+    title: string;
+    type: 'success' | 'warning' | 'danger' | 'primary';
+    container: 0 | 1;
+    visible: boolean;
+  }> = []; 
     
   // Propiedades originales
   userName: string = 'AJMAMBY'; 
@@ -42,13 +47,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkScreenSize();
-    console.log('isMobile inicial:', this.isMobile); // <-- prueba 1
-    // Crea notificaciones de prueba
+    console.log('isMobile inicial:', this.isMobile);
+    // Crea notificaciones del sistema basadas en las métricas del footer
   this.notifications = [
-    { container: 0, title: 'Prueba 1', visible: true },
-    { container: 0, title: 'Prueba 2', visible: true }
+    { container: 0, title: '7 Facturas pendientes', type: 'warning', visible: true },
+    { container: 0, title: '42 Facturas pagadas', type: 'success', visible: true }
   ];
-  console.log('mobileNotifications:', this.mobileNotifications); // <-- prueba 2
+  console.log('mobileNotifications:', this.mobileNotifications);
 
     this.resizeListener = this.checkScreenSize.bind(this);
     window.addEventListener('resize', this.resizeListener);
