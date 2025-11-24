@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FactonetService } from '../../shared/services/factonet/factonet.service';
 
 // Interface para un tipado estricto
 interface Contrato {
@@ -42,23 +43,36 @@ export class ContratosComponent implements OnInit {
   
   showOptions = true; // Controla la visibilidad del panel de opciones
 
-  constructor(private cdr: ChangeDetectorRef) { 
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private factonetService: FactonetService
+  ) { 
     // Las signals reemplazan la necesidad de inicializar arrays vacíos aquí
   }
 
   ngOnInit(): void {
-    // Carga de datos simulados
-    this.loadMockContratos();
+    this.loadContratos();
   }
 
   /**
-    * Carga datos simulados de contratos.
+    * Carga contratos desde el backend.
     */
-  loadMockContratos(): void {
-    this.contratos.set([
-      { id: '1272747-a4a7-4b74-9142-6eeebf7765368', user: 'jimmykon-inout.com', package: 'Inout Basic Package for Jimmykon, Development', value: 900000.00, payday: 5, startDate: '2025-08-20', endDate: '2026-08-20', status: 'Pending' },
-      { id: 'eba5ea0b-059c-42d1-99f1-68e29a0aee48', user: 'jimmykon-inout.com', package: 'Inout Basic Package for Jimmykon Development', value: 739200.00, payday: 5, startDate: '2025-08-20', endDate: '2026-08-20', status: 'Active' }
-    ]);
+  loadContratos(): void {
+    this.factonetService.getContracts().subscribe({
+      next: (contratos) => {
+        this.contratos.set(contratos || []);
+        if (contratos && contratos.length > 0) {
+          this.showToast('Contratos cargados correctamente', 'success', 'A', 0);
+        } else {
+          this.showToast('No hay contratos disponibles', 'primary', 'A', 0);
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando contratos:', error);
+        this.contratos.set([]);
+        this.showToast('Error conectando con el servidor de contratos', 'danger', 'A', 0);
+      }
+    });
   }
 
   /**

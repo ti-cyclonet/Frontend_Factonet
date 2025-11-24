@@ -9,14 +9,14 @@ export const AuthGuard: CanActivateFn = (route, state): boolean | UrlTree => {
     return router.createUrlTree(['/login']);
   }
 
-  const token = sessionStorage.getItem('token');
+  const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
   
   if (!token) {
     return router.createUrlTree(['/login']);
   }
 
   if (state.url === '**') {
-    router.navigate(['/home']);
+    router.navigate(['/contracts']);
     return false;
   }
   

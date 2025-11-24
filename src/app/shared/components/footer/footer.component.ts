@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core'; 
 import { NAME_APP_SHORT } from '../../../config/config';
 import { CommonModule } from '@angular/common';
+import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service';
 
 @Component({
   selector: 'app-footer',
@@ -13,14 +14,15 @@ export class FooterComponent implements OnInit, OnDestroy {
 
   nombreApp = NAME_APP_SHORT;
   currentDateTime: string = ''; 
-  private intervalId: any; 
+  private intervalId: any;
 
-  // ==========================================================
-  // NUEVAS PROPIEDADES PARA LAS MÉTRICAS DE FACTURACIÓN (MOCK)
-  // Estas serán reemplazadas por llamadas a un servicio real.
-  // ==========================================================
-  pendingInvoices: number = 7; 
-  paidInvoices: number = 42; 
+  constructor(private dashboardService: DashboardService) {} 
+
+  // Métricas del dashboard
+  pendingInvoices: number = 0; 
+  paidInvoices: number = 0;
+  totalContracts: number = 0;
+  activeContracts: number = 0; 
 
   ngOnInit(): void {
     this.updateLiveDateTime(); 
@@ -28,14 +30,35 @@ export class FooterComponent implements OnInit, OnDestroy {
       this.updateLiveDateTime();
     }, 1000);
     
-    // Aquí se iniciaría la lógica para cargar las métricas reales
-    // this.loadInvoiceMetrics(); 
+    this.loadDashboardMetrics();
   }
 
   ngOnDestroy(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
+  }
+
+  /**
+   * Carga las métricas del dashboard desde el backend.
+   */
+  loadDashboardMetrics(): void {
+    this.dashboardService.getDashboardMetrics().subscribe({
+      next: (metrics: DashboardMetrics) => {
+        this.pendingInvoices = metrics.pendingInvoices || 0;
+        this.paidInvoices = metrics.paidInvoices || 0;
+        this.totalContracts = metrics.totalContracts || 0;
+        this.activeContracts = metrics.activeContracts || 0;
+      },
+      error: (error) => {
+        console.error('Error cargando métricas:', error);
+        // Mostrar ceros si no hay conexión
+        this.pendingInvoices = 0;
+        this.paidInvoices = 0;
+        this.totalContracts = 0;
+        this.activeContracts = 0;
+      }
+    });
   }
 
   /**

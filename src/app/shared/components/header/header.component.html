@@ -72,16 +72,60 @@
         </a>
 
         <ul class="dropdown-menu p-3 mt-2 dropdown-menu-end">
-            <li class="dropdown-header text-center">
-                <div class="fw-bold">{{ userName }}</div>
-                <div class="text-muted small">{{ userEmail }}</div>
-            </li>
-            <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Cambiar Contraseña</a></li>
-            <li><hr class="dropdown-divider" /></li>
-            <li>
-                <a class="dropdown-item logout-btn" href="#" (click)="logout()">Cerrar Sesión</a>
-            </li>
+          <li class="d-flex align-items-center">
+            <img
+              *ngIf="userImage"
+              [src]="userImage"
+              alt="Foto de usuario"
+              class="user-img me-2"
+            />
+            <div>
+              <strong>{{ userName }}</strong>
+              <p class="text-muted small mb-0">{{ userRolDescription }}</p>
+            </div>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a class="dropdown-item" href="mailto:{{ userEmail }}">
+              <svg
+                class="dropdown-icon"
+                width="16"
+                height="16"
+                fill="currentColor"
+              >
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#envelope" />
+              </svg>
+              {{ userEmail }}
+            </a>
+          </li>
+          <li>
+            <a
+              class="dropdown-item"
+              href="#"
+              (click)="openChangePasswordModal(); $event.preventDefault()"
+            >
+              <svg
+                class="dropdown-icon"
+                width="16"
+                height="16"
+                fill="currentColor"
+              >
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#key" />
+              </svg>
+              Change password
+            </a>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a class="dropdown-item logout-btn" href="#" (click)="logout()">
+              <svg width="20" height="20" fill="currentColor">
+                <use
+                  xlink:href="./assets/icons/bootstrap-icons.svg#box-arrow-right"
+                />
+              </svg>
+              Logout
+            </a>
+          </li>
         </ul>
     </div>
 
@@ -127,11 +171,25 @@
 
 <!-- Modal de Cambio de Contraseña -->
 <div
-    class="modal fade"
-    id="changePasswordModal"
-    tabindex="-1"
-    aria-labelledby="changePasswordModalLabel"
-    aria-hidden="true"
+  class="modal fade"
+  id="changePasswordModal"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  tabindex="-1"
+  aria-labelledby="staticBackdropLabel"
+  aria-hidden="true"
 >
-    <!-- Contenido del Modal -->
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header justify-content-between modal-header-custom">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">
+          Password Change Form
+        </h1>
+      </div>
+      <div class="modal-body">
+        <!-- Aquí iría el componente de cambio de contraseña -->
+        <p>Funcionalidad de cambio de contraseña</p>
+      </div>
+    </div>
+  </div>
 </div>
