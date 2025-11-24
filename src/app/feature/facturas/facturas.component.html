@@ -15,7 +15,7 @@
               <th class="col-number">Número</th>
               <th class="col-client">Cliente</th>
               <th class="col-amount">Monto</th>
-              <th class="col-dates">Fecha Emisión</th>
+              <th class="col-dates hide-mobile">Fecha Emisión</th>
               <th class="col-dates">Fecha Vencimiento</th>
               <th class="col-status">Estado</th>
               <th class="col-actions">Acciones</th>
@@ -29,7 +29,7 @@
               <td class="col-number">{{ factura.numero }}</td>
               <td class="col-client">{{ factura.cliente }}</td>
               <td class="col-amount">${{ factura.total | number:'1.2-2' }}</td>
-              <td class="col-dates">{{ factura.fechaEmision }}</td>
+              <td class="col-dates hide-mobile">{{ factura.fechaEmision }}</td>
               <td class="col-dates">{{ factura.fechaVencimiento }}</td>
               <td class="col-status">
                 <span class="status-badge" [ngClass]="{

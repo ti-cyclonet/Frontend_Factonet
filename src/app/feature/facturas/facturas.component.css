@@ -85,7 +85,6 @@ body {
   text-align: center;
   font-weight: 700;
   color: #374151;
-  text-transform: uppercase;
   font-size: 0.65rem;
   letter-spacing: 0.05em;
   border-bottom: 2px solid #d1d5db;
@@ -98,7 +97,7 @@ body {
 }
 
 .invoices-table td {
-  padding: 0.15rem 0.2rem;
+  padding: 0.1rem 0.2rem;
   border-bottom: 1px solid #d1d5db;
   border-right: 1px solid #9ca3af;
   color: #1f2937;
@@ -138,21 +137,18 @@ body {
 
 .col-number {
   width: 12%;
-  font-weight: 500;
   font-size: 0.7rem;
   text-align: center;
 }
 
 .col-client {
   width: 20%;
-  font-weight: 500;
   text-align: center;
 }
 
 .col-amount {
   width: 12%;
   text-align: center;
-  font-weight: 600;
   color: #059669;
 }
 
@@ -178,11 +174,9 @@ body {
 /* ============================================ */
 .status-badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-size: 0.65rem;
   letter-spacing: 0.025em;
 }
 
@@ -211,7 +205,7 @@ body {
 }
 
 .action-btn {
-  padding: 0.5rem;
+  padding: 0.4rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -222,8 +216,8 @@ body {
 }
 
 .action-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.8rem;
+  height: 0.8rem;
 }
 
 .view-btn,
@@ -253,6 +247,10 @@ body {
 /* ============================================ */
 /* RESPONSIVE */
 /* ============================================ */
+.hide-mobile {
+  display: table-cell;
+}
+
 @media (max-width: 768px) {
   .floating-container {
     padding: 10px;
@@ -282,9 +280,22 @@ body {
     font-size: 0.6rem;
   }
   
+  .hide-mobile {
+    display: none;
+  }
+  
+  .col-actions {
+    width: 20%;
+  }
+  
   .action-buttons {
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.25rem;
+    justify-content: center;
+  }
+  
+  .action-btn {
+    padding: 0.4rem;
   }
 }
 
@@ -301,11 +312,15 @@ body {
   }
   
   .invoices-table {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
   
   .invoices-table th,
   .invoices-table td {
-    padding: 0.5rem 0.25rem;
+    padding: 0.4rem 0.2rem;
+  }
+  
+  .col-actions {
+    width: 25%;
   }
 }

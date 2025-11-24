@@ -1,15 +1,24 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AppComponent } from './app.component';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
-   // ✅ Único componente declarado
+    AppComponent // ✅ Componente principal declarado
   ],
   imports: [
-    BrowserModule // ✅ Módulo base necesario
+    BrowserModule, // ✅ Módulo base necesario
+    HttpClientModule // ✅ Para comunicación HTTP con el backend
   ],
-  providers: [],
-  bootstrap: [] // ✅ App inicia desde AppComponent
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent] // ✅ App inicia desde AppComponent
 })
 export class AppModule { }

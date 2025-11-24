@@ -15,8 +15,8 @@
               <th class="col-user">User</th>
               <th class="col-package">Package</th>
               <th class="col-value">Value</th>
-              <th class="col-payday">Payday</th>
-              <th class="col-dates">Start Date</th>
+              <th class="col-payday hide-mobile">Pay Day</th>
+              <th class="col-dates hide-mobile">Start Date</th>
               <th class="col-dates">End Date</th>
               <th class="col-status">Status</th>
               <th class="col-actions">Actions</th>
@@ -30,8 +30,8 @@
               <td class="col-user">{{ contrato.user }}</td>
               <td class="col-package">{{ contrato.package }}</td>
               <td class="col-value">{{ contrato.value | number:'1.2-2' }}</td>
-              <td class="col-payday">{{ contrato.payday }}</td>
-              <td class="col-dates">{{ contrato.startDate }}</td>
+              <td class="col-payday hide-mobile">{{ contrato.payday }}</td>
+              <td class="col-dates hide-mobile">{{ contrato.startDate }}</td>
               <td class="col-dates">{{ contrato.endDate }}</td>
               <td class="col-status">
                 <span class="status-badge" [ngClass]="{
@@ -62,7 +62,7 @@
               </td>
             </tr>
             <tr *ngIf="contratos().length === 0">
-              <td colspan="7" class="no-data">No hay contratos disponibles...</td>
+              <td colspan="9" class="no-data">No hay contratos disponibles...</td>
             </tr>
           </tbody>
         </table>
