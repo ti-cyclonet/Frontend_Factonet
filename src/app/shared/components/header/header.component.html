@@ -30,17 +30,27 @@
     style="right:0; z-index:1050; width:260px;">
     
     <li *ngFor="let note of mobileNotifications" class="notification-item">
-        <span [ngClass]="{
-            'text-success': note.type === 'success',
-            'text-danger': note.type === 'error',
-            'text-warning': note.type === 'warning'
-        }">
-            {{ note.title }}
+        <span class="text-dark">
+            <span class="badge me-2" [ngClass]="{
+                'bg-success': note.type === 'success',
+                'bg-danger': note.type === 'danger',
+                'bg-warning': note.type === 'warning',
+                'bg-primary': note.type === 'primary'
+            }" [style.background-color]="note.type === 'warning' ? '#d84315' : null">
+                {{ note.title.split(' ')[0] }}
+            </span>
+            {{ note.title.substring(note.title.indexOf(' ') + 1) }}
         </span>
     </li>
 </ul>
 
 
+    </div>
+
+    <!-- NOMBRE Y ROL DEL USUARIO (SOLO EN DESKTOP) -->
+    <div class="text-end me-3 d-none d-sm-block user-info-frame">
+        <div class="user-name">{{ userName }}</div> 
+        <div class="user-detail">{{ userRolDescription }}</div>
     </div>
 
     <!-- AVATAR Y DROPDOWN DE USUARIO -->
@@ -73,12 +83,6 @@
                 <a class="dropdown-item logout-btn" href="#" (click)="logout()">Cerrar Sesión</a>
             </li>
         </ul>
-    </div>
-
-    <!-- NOMBRE Y ROL DEL USUARIO (SOLO EN DESKTOP) -->
-    <div class="text-end ms-3 d-none d-sm-block user-info-frame">
-        <div class="user-name">{{ userName }}</div> 
-        <div class="user-detail">{{ userRolDescription }}</div>
     </div>
 
 </div>
