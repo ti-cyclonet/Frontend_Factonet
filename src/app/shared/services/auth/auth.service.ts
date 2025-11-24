@@ -62,10 +62,22 @@ export class AuthService {
       console.log('user_email guardado:', sessionStorage.getItem('user_email'));
       console.log('user_rol guardado:', sessionStorage.getItem('user_rol'));
       
-      // Actualizar el servicio de datos del usuario
+      // Construir el nombre correctamente antes de actualizar el servicio
+      const firstName = userData.user?.firstName;
+      const secondName = userData.user?.secondName;
+      const businessName = userData.user?.businessName;
+      const userName = userData.user?.name;
+      const userEmail = userData.user?.email;
+      
+      const fallbackName = (userName && !userName.includes('@') && userName !== userEmail) ? userName : 'Usuario';
+      const finalName = businessName
+        ? businessName
+        : `${firstName ?? ''} ${secondName ?? ''}`.trim() || fallbackName;
+      
+      // Actualizar el servicio de datos del usuario con el nombre correcto
       this.userDataService.updateUserData({
         id: userData.user?.id || '',
-        name: userData.user?.name || '',
+        name: finalName,
         email: userData.user?.email || '',
         rol: userData.user?.rol || '',
         rolDescription: userData.user?.rolDescription || userData.user?.rol || '',
