@@ -43,6 +43,22 @@ export class AuthService {
 
   setCurrentUser(user: any): void {
     localStorage.setItem('user', JSON.stringify(user));
+    
+    // Guardar en sessionStorage igual que Authoriza
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('user_id', user.id || '');
+      sessionStorage.setItem('user_email', user.email || '');
+      sessionStorage.setItem('user_name', user.name || '');
+      sessionStorage.setItem('user_rol', user.rol || '');
+      sessionStorage.setItem('user_rolDescription', user.rolDescription || '');
+      sessionStorage.setItem('user_image', user.image || '');
+      
+      // Campos adicionales igual que Authoriza
+      if (user.firstName) sessionStorage.setItem('user_firstName', user.firstName);
+      if (user.secondName) sessionStorage.setItem('user_secondName', user.secondName);
+      if (user.businessName) sessionStorage.setItem('user_businessName', user.businessName);
+    }
+    
     this.currentUserSubject.next(user);
   }
 

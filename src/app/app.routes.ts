@@ -22,23 +22,23 @@ export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
-        //canActivate: [AuthGuard],
+        canActivate: [AuthGuard],
         children: [
     // RUTAS DE FUNCIONALIDAD PRINCIPAL
-    { path: ROOT_CONTRACTS, component: ContratosComponent, canActivate: [AuthGuard] },
-    { path: ROOT_INVOICES, component: FacturasComponent, canActivate: [AuthGuard] },
+    { path: ROOT_CONTRACTS, component: ContratosComponent },
+    { path: ROOT_INVOICES, component: FacturasComponent },
     
     // RUTA DE CONFIGURACIÓN
-    { path: ROOT_CONFIGURATION, component: SetupComponent, canActivate: [AuthGuard] },
+    { path: ROOT_CONFIGURATION, component: SetupComponent },
     
-    // REDIRECCIÓN POR DEFECTO: Apunta a Facturas
-    { path: '', redirectTo: ROOT_INVOICES, pathMatch: 'full' }
+    // REDIRECCIÓN POR DEFECTO: Apunta a Contratos
+    { path: '', redirectTo: ROOT_CONTRACTS, pathMatch: 'full' }
 ]
 
     },
     {
         path: '**',
-        redirectTo: ROOT_INVOICES // Redirige cualquier cosa desconocida a Facturas
+        redirectTo: ROOT_CONTRACTS // Redirige cualquier cosa desconocida a Contratos
     }
 ];
 

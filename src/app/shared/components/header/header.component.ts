@@ -2,7 +2,10 @@ import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core
 import { CommonModule } from '@angular/common'; 
 import { Router, RouterModule } from '@angular/router'; 
 import { OptionMenu } from '../../model/option_menu'; 
-import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth/auth.service';
+import { UserDataService, UserData } from '../../services/user/user-data.service';
+import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service'; 
 
 @Component({
   selector: 'app-header',
@@ -26,8 +29,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // PROPIEDADES 
   nombreApp: string = 'FactoNET'; 
   userImage: string | undefined = undefined; 
-  userRolDescription: string = 'Administrador'; 
-  userEmail: string = 'ajmamby@factonet.com'; 
+  userRolDescription: string = ''; 
+  userEmail: string = ''; 
   form: any; 
   notifications: Array<{
     title: string;
@@ -37,23 +40,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }> = []; 
     
   // Propiedades originales
-  userName: string = 'AJMAMBY'; 
-  userRole: string = 'Administrador'; 
+  userName: string = ''; 
+  userRole: string = ''; 
 
   // Controla la visibilidad de la caja de herramientas deslizable
   showToolbox: boolean = false; 
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private userDataService: UserDataService,
+    private dashboardService: DashboardService
+  ) { }
 
   ngOnInit(): void {
     this.checkScreenSize();
-    console.log('isMobile inicial:', this.isMobile);
-    // Crea notificaciones del sistema basadas en las métricas del footer
-  this.notifications = [
-    { container: 0, title: '7 Facturas pendientes', type: 'warning', visible: true },
-    { container: 0, title: '42 Facturas pagadas', type: 'success', visible: true }
-  ];
-  console.log('mobileNotifications:', this.mobileNotifications);
+    this.loadUserData();
+    this.loadNotifications();
 
     this.resizeListener = this.checkScreenSize.bind(this);
     window.addEventListener('resize', this.resizeListener);
@@ -92,9 +95,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   
   logout() { 
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user_rol');
-    this.router.navigate(['/login']); 
+    this.authService.logout();
   }
 
   onSubmit() {
@@ -105,16 +106,84 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.notifications.splice(index, 1);
   }
 
-  toggleToolbox(event: Event) {
-  event.preventDefault();
-
-  // Solo en mobile controlamos con click
-  if (this.isMobile) {
-    this.showToolbox = !this.showToolbox;
+  loadUserData(): void {
+    // Cargar datos inmediatamente desde sessionStorage
+    this.loadUserFromSession();
+    
+    // Suscribirse a cambios futuros
+    this.userDataService.userData$.subscribe((userData: UserData | null) => {
+      if (userData) {
+        this.userName = userData.name;
+        this.userEmail = userData.email;
+        this.userRolDescription = userData.rolDescription;
+        this.userRole = userData.rol;
+        this.userImage = userData.image;
+      } else {
+        this.loadUserFromSession();
+      }
+    });
   }
 
-  // En desktop NO hacemos nada porque funciona con hover
-}
+  private loadUserFromSession(): void {
+    if (typeof window !== 'undefined') {
+      console.log('=== DEBUG HEADER FACTONET ===');
+      console.log('user_firstName:', sessionStorage.getItem('user_firstName'));
+      console.log('user_secondName:', sessionStorage.getItem('user_secondName'));
+      console.log('user_businessName:', sessionStorage.getItem('user_businessName'));
+      console.log('user_name:', sessionStorage.getItem('user_name'));
+      console.log('user_email:', sessionStorage.getItem('user_email'));
+      
+      // Construir el nombre igual que en Authoriza
+      const firstName = sessionStorage.getItem('user_firstName');
+      const secondName = sessionStorage.getItem('user_secondName');
+      const businessName = sessionStorage.getItem('user_businessName');
+      const userName = sessionStorage.getItem('user_name');
+      const userEmail = sessionStorage.getItem('user_email');
+      
+      // Si user_name es igual al email o contiene @, no lo usamos
+      const fallbackName = (userName && userName !== userEmail && !userName.includes('@')) ? userName : 'Usuario';
+      
+      this.userName = businessName
+        ? businessName
+        : `${firstName ?? ''} ${secondName ?? ''}`.trim() || fallbackName;
+      
+      console.log('userName final:', this.userName);
+      
+      this.userEmail = userEmail || '';
+      this.userRolDescription = sessionStorage.getItem('user_rolDescription') || sessionStorage.getItem('user_rol') || 'Usuario';
+      this.userRole = sessionStorage.getItem('user_rol') || 'Usuario';
+      this.userImage = sessionStorage.getItem('user_image') || undefined;
+    }
+  }
+
+  loadNotifications(): void {
+    this.dashboardService.getDashboardMetrics().subscribe({
+      next: (metrics: DashboardMetrics) => {
+        this.notifications = [];
+        if (metrics.pendingInvoices > 0) {
+          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} Facturas pendientes`, type: 'warning', visible: true });
+        }
+        if (metrics.paidInvoices > 0) {
+          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} Facturas pagadas`, type: 'success', visible: true });
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando notificaciones:', error);
+        this.notifications = [];
+      }
+    });
+  }
+
+  toggleToolbox(event: Event) {
+    event.preventDefault();
+
+    // Solo en mobile controlamos con click
+    if (this.isMobile) {
+      this.showToolbox = !this.showToolbox;
+    }
+
+    // En desktop NO hacemos nada porque funciona con hover
+  }
 
   // Métodos de herramientas del desplegable
   openCalculator() {
@@ -123,6 +192,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   
   openSettings() {
     console.log('Abriendo configuración avanzada...');
- 
- }
+  }
+
+  async openChangePasswordModal(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      const modalElement = document.getElementById('changePasswordModal');
+      if (modalElement) {
+        const bootstrap = await import('bootstrap');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+      }
+    }
+  }
 }

@@ -144,6 +144,47 @@
     left: auto !important;
 }
 
+/* Estilos para el dropdown de usuario - igual a Authoriza */
+.dropdown-menu {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--sidebar-background-color);
+}
+
+.dropdown-icon {
+    margin-right: 8px;
+}
+
+.dropdown-menu .user-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--sidebar-background-color);
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background-color: var(--header-background-color);
+    color: var(--sidebar-background-color);
+}
+
+.dropdown-menu .dropdown-item:hover svg {
+    fill: var(--sidebar-background-color);
+    color: var(--sidebar-background-color);
+}
+
+.logout-btn {
+    color: #dc3545 !important;
+}
+
+.logout-btn:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+.logout-btn svg {
+    margin-right: 8px;
+}
+
 /* ------------------------------------------------ */
 /* 4. ESTILOS PARA LOS ÍCONOS DE HERRAMIENTAS EN LA BARRA DE NAVEGACIÓN */
 /* ------------------------------------------------ */
@@ -320,4 +361,3 @@
 .notifications-menu .notification-item:hover {
     background-color: rgba(0,0,0,0.05);
 }
-

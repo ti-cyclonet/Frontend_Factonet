@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
+import { FactonetService } from '../../shared/services/factonet/factonet.service';
 
 interface Factura {
   id: string;
@@ -32,23 +33,31 @@ export class FacturasComponent implements OnInit {
   selectedFactura: Factura | null = null;
   isModalOpen = false;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private factonetService: FactonetService
+  ) {}
 
   ngOnInit(): void {
-    this.loadMockFacturas();
-    this.showToast(
-      'Módulo de Facturación Inicializado: Datos de prueba cargados correctamente.',
-      'primary', 'B', 1
-    );
+    this.loadFacturas();
   }
 
-  loadMockFacturas(): void {
-    this.facturas = [
-      { id: 'INV-2024-001', numero: 'FAC-001-2024', cliente: 'TechCorp Solutions', fechaEmision: '2024-01-15', fechaVencimiento: '2024-02-15', total: 25750.00, estado: 'Pagada' },
-      { id: 'INV-2024-002', numero: 'FAC-002-2024', cliente: 'Global Industries Ltd', fechaEmision: '2024-01-20', fechaVencimiento: '2024-02-20', total: 18900.50, estado: 'Pendiente' },
-      { id: 'INV-2024-003', numero: 'FAC-003-2024', cliente: 'Innovation Hub Inc', fechaEmision: '2024-01-10', fechaVencimiento: '2024-02-10', total: 12300.75, estado: 'Vencida' },
-      { id: 'INV-2024-004', numero: 'FAC-004-2024', cliente: 'Digital Dynamics Corp', fechaEmision: '2024-01-25', fechaVencimiento: '2024-02-25', total: 8750.00, estado: 'Pendiente' }
-    ];
+  loadFacturas(): void {
+    this.factonetService.getInvoices().subscribe({
+      next: (facturas) => {
+        this.facturas = facturas || [];
+        if (this.facturas.length > 0) {
+          this.showToast('Facturas cargadas correctamente', 'success', 'A', 0);
+        } else {
+          this.showToast('No hay facturas disponibles', 'primary', 'A', 0);
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando facturas:', error);
+        this.facturas = [];
+        this.showToast('Error conectando con el servidor de facturas', 'danger', 'A', 0);
+      }
+    });
   }
 
   setSelectedFactura(factura: Factura) {

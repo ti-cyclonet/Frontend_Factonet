@@ -81,10 +81,6 @@ input.form-control {
   border-radius: 30px; /* Cambiar este valor para ajustar el nivel de redondez */
 }
 
-.text-danger {
-  width: 200px;
-}
-
 /* Redondear el botón de "Sign in" */
 .custom-btn {
   border-radius: 30px;
