@@ -87,14 +87,14 @@ export default class LayoutComponent implements OnInit {
       url: '/contracts', 
       icon: 'journal-richtext',
       type: 'main_menu',
-      id: '3', description: '', idMPather: null, order: '1', idApplication: ''
+      id: '3', description: 'Gestión de Contratos', idMPather: null, order: '1', idApplication: ''
     },
     { 
       name: 'Facturas', 
       url: '/invoices', 
       icon: 'file-earmark-text',
       type: 'main_menu',
-      id: '2', description: '', idMPather: null, order: '2', idApplication: ''
+      id: '2', description: 'Gestión de Facturas', idMPather: null, order: '2', idApplication: ''
     },
     ].sort((a, b) => (a.order > b.order ? 1 : -1));
   }

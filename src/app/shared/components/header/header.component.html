@@ -147,7 +147,7 @@
                 <svg class="me-1" width="16" height="16" fill="currentColor">
                     <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + option.icon" />
                 </svg>
-                {{ option.name }}
+                {{ option.description || option.name }}
             </a>
         </div>
         

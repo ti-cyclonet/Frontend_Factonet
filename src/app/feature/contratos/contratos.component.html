@@ -27,17 +27,17 @@
                 [class.selected]="selectedContrato() === contrato"
                 (click)="setSelectedContrato(contrato)">
               <td class="col-id">{{ contrato.id }}</td>
-              <td class="col-user">{{ contrato.user }}</td>
-              <td class="col-package">{{ contrato.package }}</td>
+              <td class="col-user">{{ contrato.user.strUserName || 'N/A' }}</td>
+              <td class="col-package">{{ contrato.package.name || 'N/A' }}</td>
               <td class="col-value">{{ contrato.value | number:'1.2-2' }}</td>
               <td class="col-payday hide-mobile">{{ contrato.payday }}</td>
               <td class="col-dates hide-mobile">{{ contrato.startDate }}</td>
               <td class="col-dates">{{ contrato.endDate }}</td>
               <td class="col-status">
                 <span class="status-badge" [ngClass]="{
-                  'status-active': contrato.status === 'Active',
-                  'status-expired': contrato.status === 'Expired',
-                  'status-pending': contrato.status === 'Pending',
+                  'status-active': contrato.status === 'ACTIVE',
+                  'status-expired': contrato.status === 'EXPIRED',
+                  'status-pending': contrato.status === 'PENDING',
                 }">{{ contrato.status }}</span>
               </td>
               <td class="col-actions">
