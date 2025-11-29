@@ -38,17 +38,11 @@ export default class LayoutComponent implements OnInit {
     this.fetchApplication(NAME_APP_SHORT);
   }
 
-  /**
-   * Intenta obtener la configuración de la aplicación desde la API.
-   * Si falla (API no disponible o rol no encontrado), carga menús estáticos.
-   */
   fetchApplication(name: string): void {
     const userRol = sessionStorage.getItem('user_rol');
     const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
-    
-    // Si no hay token o rol, cargar menús estáticos
+  
     if (!token || !userRol) {
-      console.warn('Advertencia: Token o rol de usuario no encontrado. Cargando menús estáticos.');
       this.loadStaticMenu();
       return;
     }
@@ -56,14 +50,12 @@ export default class LayoutComponent implements OnInit {
     this.applicationsService.getApplicationByNameAndRol(name, userRol).subscribe({
       next: (app) => {
         if (!app) {
-          console.error('Aplicación no encontrada. Cargando menús estáticos.');
           this.loadStaticMenu();
           return;
         }
   
         this.application = app;
-        
-        // Lógica de mapeo original
+
         this.optionsMenu = this.application?.strRoles?.flatMap(rol =>
           rol?.menuOptions?.map(menu => ({
             id: menu?.id ?? '',
@@ -77,22 +69,17 @@ export default class LayoutComponent implements OnInit {
             idApplication: this.application?.id ?? '',
           })) || []
         ) || [];
-        
-        // Si no hay menús del backend, usar estáticos como fallback
+
         if (this.optionsMenu.length === 0) {
           this.loadStaticMenu();
         }
       },
       error: (err) => {
-        console.error('Error fetching application (API no disponible). Cargando menús estáticos:', err);
-        this.loadStaticMenu(); // Llama a la función estática en caso de error de la API
+        this.loadStaticMenu();
       }
     });
   }
 
-  /**
-   * Carga un conjunto de opciones de menú por defecto para el desarrollo.
-   */
   private loadStaticMenu(): void {
     this.optionsMenu = [
       { 
@@ -109,7 +96,7 @@ export default class LayoutComponent implements OnInit {
       type: 'main_menu',
       id: '2', description: '', idMPather: null, order: '2', idApplication: ''
     },
-    ].sort((a, b) => (a.order > b.order ? 1 : -1)); // Ordenar por 'order' si lo deseas
+    ].sort((a, b) => (a.order > b.order ? 1 : -1));
   }
 
 
@@ -118,5 +105,10 @@ export default class LayoutComponent implements OnInit {
     if (typeof window !== 'undefined') {
       this.isLargeScreen = window.innerWidth >= 992;
     }
+  }
+
+  isUserLoggedIn(): boolean {
+    const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+    return !!token;
   }
 }

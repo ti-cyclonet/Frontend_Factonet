@@ -34,11 +34,6 @@ export class AuthService {
 
   setUserSession(userData: any): void {
     if (isPlatformBrowser(this.platformId)) {
-      console.log('=== DATOS COMPLETOS DEL BACKEND ===');
-      console.log('userData completo:', JSON.stringify(userData, null, 2));
-      console.log('userData.user:', userData.user);
-      console.log('userData.user.name:', userData.user?.name);
-      console.log('userData.user.email:', userData.user?.email);
       
       sessionStorage.setItem('token', userData.access_token);
       sessionStorage.setItem('authToken', userData.access_token);
@@ -53,14 +48,6 @@ export class AuthService {
       if (userData.user?.firstName) sessionStorage.setItem('user_firstName', userData.user.firstName);
       if (userData.user?.secondName) sessionStorage.setItem('user_secondName', userData.user.secondName);
       if (userData.user?.businessName) sessionStorage.setItem('user_businessName', userData.user.businessName);
-      
-      console.log('=== DATOS GUARDADOS EN SESSIONSTORAGE ===');
-      console.log('user_name guardado:', sessionStorage.getItem('user_name'));
-      console.log('user_firstName guardado:', sessionStorage.getItem('user_firstName'));
-      console.log('user_secondName guardado:', sessionStorage.getItem('user_secondName'));
-      console.log('user_businessName guardado:', sessionStorage.getItem('user_businessName'));
-      console.log('user_email guardado:', sessionStorage.getItem('user_email'));
-      console.log('user_rol guardado:', sessionStorage.getItem('user_rol'));
       
       // Construir el nombre correctamente antes de actualizar el servicio
       const firstName = userData.user?.firstName;

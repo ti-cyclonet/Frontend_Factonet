@@ -126,13 +126,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private loadUserFromSession(): void {
     if (typeof window !== 'undefined') {
-      console.log('=== DEBUG HEADER FACTONET ===');
-      console.log('user_firstName:', sessionStorage.getItem('user_firstName'));
-      console.log('user_secondName:', sessionStorage.getItem('user_secondName'));
-      console.log('user_businessName:', sessionStorage.getItem('user_businessName'));
-      console.log('user_name:', sessionStorage.getItem('user_name'));
-      console.log('user_email:', sessionStorage.getItem('user_email'));
-      
       // Construir el nombre igual que en Authoriza
       const firstName = sessionStorage.getItem('user_firstName');
       const secondName = sessionStorage.getItem('user_secondName');
@@ -146,8 +139,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.userName = businessName
         ? businessName
         : `${firstName ?? ''} ${secondName ?? ''}`.trim() || fallbackName;
-      
-      console.log('userName final:', this.userName);
       
       this.userEmail = userEmail || '';
       this.userRolDescription = sessionStorage.getItem('user_rolDescription') || sessionStorage.getItem('user_rol') || 'Usuario';
@@ -168,7 +159,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error cargando notificaciones:', error);
         this.notifications = [];
       }
     });
@@ -187,11 +177,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Métodos de herramientas del desplegable
   openCalculator() {
-    console.log('Abriendo calculadora desde el menú de herramientas...');
+    // Funcionalidad de calculadora
   }
   
   openSettings() {
-    console.log('Abriendo configuración avanzada...');
+    // Funcionalidad de configuración
   }
 
   async openChangePasswordModal(): Promise<void> {
@@ -203,5 +193,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
         modal.show();
       }
     }
+  }
+
+  trackByOptionId(index: number, option: OptionMenu): string {
+    return option.id || index.toString();
   }
 }

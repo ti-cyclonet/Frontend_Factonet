@@ -1,6 +1,7 @@
 <div class="header-wrapper">
-    
-    <div class="header-container d-flex justify-content-between align-items-center">
+    <div class="header-content-wrapper">
+        <!-- CUADRO NEGRO CON LOGO Y USUARIO -->
+        <div class="header-container d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center flex-fill"> 
             <a href="#" class="logo-container">
                 <img src="./assets/img/logo_factonet_v3.png" alt="Logo" class="logo-img" />
@@ -131,13 +132,14 @@
 
 </div>
 
+        </div>
         
-    </div>
-    
-    <nav class="main-navbar d-flex justify-content-between align-items-center p-2">
+        <!-- NAVBAR CON MENÚS -->
+        <nav class="main-navbar d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center w-100" style="padding: 8px 20px;">
         <div class="d-flex">
             <a 
-                *ngFor="let option of optionsMenu" 
+                *ngFor="let option of optionsMenu; trackBy: trackByOptionId" 
                 [routerLink]="option.url" 
                 routerLinkActive="active" 
                 class="nav-link mx-2"
@@ -166,7 +168,9 @@
                 </div>
             </div>
         </div>
-    </nav>
+        </div>
+        </nav>
+    </div>
 </div>
 
 <!-- Modal de Cambio de Contraseña -->

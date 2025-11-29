@@ -68,7 +68,6 @@ export class ContratosComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error cargando contratos:', error);
         this.contratos.set([]);
         this.showToast('Error conectando con el servidor de contratos', 'danger', 'A', 0);
       }

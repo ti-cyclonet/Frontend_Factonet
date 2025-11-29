@@ -23,9 +23,8 @@
     border-radius: 8px; 
     
     /* MÁRGENES Y ANCHO CONSTANTES */
-    width: calc(100% - 30px) !important; 
-    margin: 10px auto !important; 
-    max-width: 1500px !important; 
+    width: 100%; 
+    margin: 10px 0; 
     
     /* Padding interno */
     padding: 15px 20px; 
@@ -51,8 +50,8 @@
 /* --- 2. REGLA CLAVE PARA PANTALLAS PEQUEÑAS (Mobile: 600px o menos) --- */
 @media (max-width: 600px) {
     .header-container {
-        width: calc(100% - 30px); 
-        margin: 10px auto; 
+        width: 100%; 
+        margin: 10px 0; 
         box-sizing: border-box; 
         padding: 10px 10px; 
     }
@@ -68,10 +67,11 @@
 
 .main-navbar {
     background-color: var(--navbar-background-color, #2782d8bb); 
-    padding: 0 20px; 
+    padding: 0; 
     height: 35px; 
     margin-bottom: 6px; 
     align-items: center;
+    width: 100%;
 }
 
 /* ------------------------------------------------ */
@@ -360,4 +360,18 @@
 /* HOVER */
 .notifications-menu .notification-item:hover {
     background-color: rgba(0,0,0,0.05);
+}
+
+/* Wrapper específico para el contenido del header */
+.header-content-wrapper {
+    max-width: 1240px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 15px;
+}
+
+@media (min-width: 1241px) {
+    .header-content-wrapper {
+        padding: 0 20px;
+    }
 }
