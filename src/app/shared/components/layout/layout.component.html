@@ -1,4 +1,6 @@
-<div class="main-layout-container d-flex flex-column" style="min-height: 100vh;">
+<div class="main-layout-container d-flex flex-column" 
+     [class.logged-in]="isUserLoggedIn()" 
+     style="min-height: 100vh;">
   
   <header class="p-0">
     <app-header [optionsMenu]="optionsMenu"></app-header>
@@ -6,7 +8,9 @@
   
   <div class="router-outlet-container flex-grow-1" 
        style="overflow-y: auto; background-color: #2782d8;">
-    <router-outlet></router-outlet>
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
   </div>
   
   <footer class="p-0">

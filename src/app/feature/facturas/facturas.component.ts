@@ -53,7 +53,6 @@ export class FacturasComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error cargando facturas:', error);
         this.facturas = [];
         this.showToast('Error conectando con el servidor de facturas', 'danger', 'A', 0);
       }

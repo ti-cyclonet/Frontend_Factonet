@@ -5,13 +5,26 @@ import { FactonetService } from '../../shared/services/factonet/factonet.service
 // Interface para un tipado estricto
 interface Contrato {
     id: string;
-    user: string;
-    package: string;
+    user: {
+        id: string;
+        strUserName: string;
+        strStatus: string;
+        basicData?: {
+            id: string;
+            strPersonType: string;
+            strStatus: string;
+        };
+    };
+    package: {
+        id: string;
+        name: string;
+        description: string;
+    };
     value: number;
     payday: number;
     startDate: string;
     endDate: string;
-    status: 'Active' | 'Expired' | 'Pending'; 
+    status: 'ACTIVE' | 'EXPIRED' | 'PENDING'; 
 }
 
 @Component({
@@ -68,7 +81,6 @@ export class ContratosComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error cargando contratos:', error);
         this.contratos.set([]);
         this.showToast('Error conectando con el servidor de contratos', 'danger', 'A', 0);
       }
