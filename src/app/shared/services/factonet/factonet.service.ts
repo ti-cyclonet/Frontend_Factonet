@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environment/environment';
 
@@ -11,11 +11,22 @@ export class FactonetService {
 
   constructor(private http: HttpClient) {}
 
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
   getInvoices(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/api/invoices`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/invoices`, { headers: this.getHeaders() });
   }
 
   getContracts(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/api/contracts`);
+    return this.http.get<any[]>(`${this.apiUrl}/api/contracts`, { headers: this.getHeaders() });
+  }
+
+  sweepInvoices(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/invoices/sweep`, {}, { headers: this.getHeaders() });
   }
 }

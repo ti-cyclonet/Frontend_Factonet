@@ -58,269 +58,145 @@ body {
   margin: 0;
 }
 
-.table-container {
-  overflow-x: auto;
-  height: 100%;
-  padding: 0;
-  width: 100%;
-}
-
 /* ============================================ */
-/* TABLA */
+/* NUEVO ESTILO DE TABLA BASADO EN LA IMAGEN */
 /* ============================================ */
-.invoices-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: 0.75rem;
-  border: 1px solid #9ca3af;
-}
-
-.invoices-table thead {
-  background-color: #f3f4f6;
-}
-
-.invoices-table th {
-  padding: 0.15rem 0.2rem;
-  text-align: center;
-  font-weight: 700;
-  color: #374151;
-  font-size: 0.65rem;
-  letter-spacing: 0.05em;
-  border-bottom: 2px solid #d1d5db;
-  border-right: 1px solid #9ca3af;
-  background-color: #f3f4f6;
-}
-
-.invoices-table th:last-child {
-  border-right: none;
-}
-
-.invoices-table td {
-  padding: 0.1rem 0.2rem;
-  border-bottom: 1px solid #d1d5db;
-  border-right: 1px solid #9ca3af;
-  color: #1f2937;
-  vertical-align: middle;
-  white-space: nowrap;
+.debt-table-container {
+  background: #f8f9fa;
+  border-radius: 8px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.invoices-table td:last-child {
-  border-right: none;
+.table-header {
+  display: grid;
+  grid-template-columns: 120px 150px 200px 100px 120px 120px 120px;
+  background: #e9ecef;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 11px;
+  color: #6c757d;
+  letter-spacing: 0.5px;
 }
 
-.invoices-table tbody tr {
-  transition: background-color 0.15s ease;
+.header-cell {
+  text-align: left;
+  padding: 0 8px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 120px 150px 200px 100px 120px 120px 120px;
+  padding: 16px;
+  border-bottom: 1px solid #e9ecef;
+  background: white;
+  transition: background-color 0.2s;
   cursor: pointer;
 }
 
-.invoices-table tbody tr:hover {
-  background-color: #f8fafc;
+.table-row:hover {
+  background: #f8f9fa;
 }
 
-.invoices-table tbody tr.selected {
-  background-color: #eff6ff;
-  border-left: 4px solid #3b82f6;
+.table-row.selected {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
 }
 
-/* ============================================ */
-/* COLUMNAS ESPECÍFICAS */
-/* ============================================ */
-.col-id {
-  width: 10%;
-  font-size: 0.7rem;
-  color: #6b7280;
-  text-align: center;
-}
-
-.col-number {
-  width: 12%;
-  font-size: 0.7rem;
-  text-align: center;
-}
-
-.col-client {
-  width: 20%;
-  text-align: center;
-}
-
-.col-amount {
-  width: 12%;
-  text-align: center;
-  color: #059669;
-}
-
-.col-dates {
-  width: 12%;
-  text-align: center;
-  font-size: 0.7rem;
-  color: #6b7280;
-}
-
-.col-status {
-  width: 10%;
-  text-align: center;
-}
-
-.col-actions {
-  width: 14%;
-  text-align: center;
-}
-
-/* ============================================ */
-/* BADGES DE ESTADO */
-/* ============================================ */
-.status-badge {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.65rem;
-  letter-spacing: 0.025em;
-}
-
-.status-paid {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status-overdue {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.status-pending {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-/* ============================================ */
-/* BOTONES DE ACCIÓN */
-/* ============================================ */
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  padding: 0.4rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.row-cell {
+  padding: 0 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  font-size: 14px;
 }
 
-.action-icon {
-  width: 0.8rem;
-  height: 0.8rem;
+.status-badge-new {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.view-btn,
-.edit-btn,
-.delete-btn {
-  background-color: #dbeafe;
-  color: #1d4ed8;
+.status-badge-new.status-pending {
+  background: #007bff;
+  color: white;
 }
 
-.view-btn:hover,
-.edit-btn:hover,
-.delete-btn:hover {
-  background-color: #bfdbfe;
-  transform: scale(1.05);
+.status-badge-new.status-paid {
+  background: #28a745;
+  color: white;
 }
 
-/* ============================================ */
-/* ESTADO VACÍO */
-/* ============================================ */
+.status-badge-new.status-overdue {
+  background: #dc3545;
+  color: white;
+}
+
+.total-amount {
+  font-weight: 600;
+  color: #dc3545;
+  font-size: 15px;
+}
+
 .no-data {
+  grid-template-columns: 1fr;
   text-align: center;
-  color: #6b7280;
+  color: #6c757d;
   font-style: italic;
-  padding: 3rem 1rem;
 }
 
-/* ============================================ */
-/* RESPONSIVE */
-/* ============================================ */
-.hide-mobile {
-  display: table-cell;
+/* Estilo del botón similar al input de fecha */
+.generate-button-container {
+  text-align: right;
 }
 
+.generate-label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.generate-button {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.generate-button:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 6px rgba(0,123,255,0.25);
+}
+
+.generate-button:active {
+  transform: translateY(1px);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .floating-container {
-    padding: 10px;
-    align-items: flex-start;
-    padding-top: 20px;
+  .table-header,
+  .table-row {
+    grid-template-columns: 100px 120px 150px 100px 100px 100px 100px;
+    font-size: 12px;
   }
   
-  .outer-container {
-    width: 98vw;
-    min-width: 320px;
-    padding: 0.75rem;
+  .header-cell,
+  .row-cell {
+    padding: 0 4px;
   }
   
-  .invoices-table {
-    table-layout: auto;
-    font-size: 0.65rem;
-  }
-  
-  .invoices-table th,
-  .invoices-table td {
-    padding: 0.4rem 0.2rem;
-    font-size: 0.65rem;
-    white-space: nowrap;
-  }
-  
-  .col-id {
-    font-size: 0.6rem;
-  }
-  
-  .hide-mobile {
-    display: none;
-  }
-  
-  .col-actions {
-    width: 20%;
-  }
-  
-  .action-buttons {
-    flex-direction: row;
-    gap: 0.25rem;
-    justify-content: center;
-  }
-  
-  .action-btn {
-    padding: 0.4rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .floating-container {
-    padding: 5px;
-  }
-  
-  .outer-container {
-    width: 98vw;
-    min-width: 300px;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-  }
-  
-  .invoices-table {
-    font-size: 0.7rem;
-  }
-  
-  .invoices-table th,
-  .invoices-table td {
-    padding: 0.4rem 0.2rem;
-  }
-  
-  .col-actions {
-    width: 25%;
+  .generate-button-container {
+    text-align: center;
   }
 }

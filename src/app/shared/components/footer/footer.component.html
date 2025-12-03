@@ -7,24 +7,12 @@
             <!-- 1. Hora Actual -->
             <span id="current-datetime" class="small-text">{{ currentDateTime }}</span>
 
-            <!-- 2. Contenedor de Métricas -->
-            <div class="invoice-metrics d-flex align-items-center ml-4">
-                
-                <!-- Facturas Pendientes -->
-                <span class="metric-item small-text">
-                    <strong class="metric-value pending-color">{{ pendingInvoices }}</strong>
-                    <span class="metric-label">Facturas pendientes</span>
+            <!-- 2. Métrica de Facturas Pendientes -->
+            <div class="d-flex align-items-center ms-4">
+                <span class="badge bg-warning text-dark px-2 py-1 me-2">
+                    {{ pendingInvoices }}
                 </span>
-                
-                <!-- Separador Vertical Flotante -->
-                <span class="metric-separator mx-2"></span> 
-                
-                <!-- Facturas Pagadas -->
-                <span class="metric-item small-text">
-                    <strong class="metric-value paid-color">{{ paidInvoices }}</strong>
-                    <span class="metric-label">Facturas pagadas</span>
-                </span>
-
+                <span class="text-dark small fw-bold">Facturas pendientes</span>
             </div>
         </div>
 

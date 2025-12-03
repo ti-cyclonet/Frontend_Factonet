@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core'; 
 import { NAME_APP_SHORT } from '../../../config/config';
 import { CommonModule } from '@angular/common';
-import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service';
+import { FactonetService } from '../../services/factonet/factonet.service';
 
 @Component({
   selector: 'app-footer',
@@ -16,13 +16,10 @@ export class FooterComponent implements OnInit, OnDestroy {
   currentDateTime: string = ''; 
   private intervalId: any;
 
-  constructor(private dashboardService: DashboardService) {} 
+  constructor(private factonetService: FactonetService) {} 
 
-  // Métricas del dashboard
+  // Métricas de facturas reales
   pendingInvoices: number = 0; 
-  paidInvoices: number = 0;
-  totalContracts: number = 0;
-  activeContracts: number = 0; 
 
   ngOnInit(): void {
     this.updateLiveDateTime(); 
@@ -31,6 +28,11 @@ export class FooterComponent implements OnInit, OnDestroy {
     }, 1000);
     
     this.loadDashboardMetrics();
+    
+    // Actualizar métricas cada 30 segundos
+    setInterval(() => {
+      this.loadDashboardMetrics();
+    }, 30000);
   }
 
   ngOnDestroy(): void {
@@ -40,23 +42,16 @@ export class FooterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga las métricas del dashboard desde el backend.
+   * Carga las facturas reales desde Authoriza.
    */
   loadDashboardMetrics(): void {
-    this.dashboardService.getDashboardMetrics().subscribe({
-      next: (metrics: DashboardMetrics) => {
-        this.pendingInvoices = metrics.pendingInvoices || 0;
-        this.paidInvoices = metrics.paidInvoices || 0;
-        this.totalContracts = metrics.totalContracts || 0;
-        this.activeContracts = metrics.activeContracts || 0;
+    this.factonetService.getInvoices().subscribe({
+      next: (facturas) => {
+        this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
       },
       error: (error) => {
-        console.error('Error cargando métricas:', error);
-        // Mostrar ceros si no hay conexión
+        console.error('Error cargando facturas:', error);
         this.pendingInvoices = 0;
-        this.paidInvoices = 0;
-        this.totalContracts = 0;
-        this.activeContracts = 0;
       }
     });
   }

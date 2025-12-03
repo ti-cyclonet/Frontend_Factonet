@@ -36,9 +36,8 @@
 }
 @media (max-width: 640px) {
 
-  /* Ocultamos la hora y métricas */
-  #current-datetime,
-  .invoice-metrics {
+  /* Ocultamos solo la hora */
+  #current-datetime {
     display: none !important;
   }
 
@@ -164,10 +163,7 @@
 /* ----------------------------------------------------------------- */
 
 @media (max-width: 640px) {
-    /* A. Ocultar todo el contenido de la derecha (métricas) */
-    .invoice-metrics {
-        display: none !important;
-    }
+    /* A. Mantener las métricas visibles pero ajustar el layout */
 
     /* B. Centrar el contenido restante (el nombre de la empresa) */
     .footer {

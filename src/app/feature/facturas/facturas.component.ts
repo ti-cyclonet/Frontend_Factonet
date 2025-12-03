@@ -3,7 +3,7 @@ import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 
 interface Factura {
-  id: string;
+  id: number;
   numero: string;
   cliente: string;
   fechaEmision: string;
@@ -47,14 +47,28 @@ export class FacturasComponent implements OnInit {
       next: (facturas) => {
         this.facturas = facturas || [];
         if (this.facturas.length > 0) {
-          this.showToast('Facturas cargadas correctamente', 'success', 'A', 0);
+          this.showToast(`${this.facturas.length} facturas cargadas desde Authoriza`, 'success', 'A', 0);
         } else {
-          this.showToast('No hay facturas disponibles', 'primary', 'A', 0);
+          this.showToast('No hay facturas disponibles en Authoriza', 'primary', 'A', 0);
         }
       },
       error: (error) => {
+        console.error('Error loading invoices:', error);
         this.facturas = [];
-        this.showToast('Error conectando con el servidor de facturas', 'danger', 'A', 0);
+        this.showToast('Error conectando con Authoriza Backend', 'danger', 'A', 0);
+      }
+    });
+  }
+
+  sweepInvoices(): void {
+    this.factonetService.sweepInvoices().subscribe({
+      next: (result) => {
+        this.showToast(`Barrido completado: ${result.generated} facturas generadas`, 'success', 'A', 0);
+        this.loadFacturas(); // Recargar la lista
+      },
+      error: (error) => {
+        console.error('Error executing sweep:', error);
+        this.showToast('Error ejecutando barrido de facturas', 'danger', 'A', 0);
       }
     });
   }
