@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { provideRouter } from '@angular/router';
 
 // Asegúrate de que ROOT_INVOICES y ROOT_CONTRACTS estén definidos en './config/config'
-import { ROOT_CONFIGURATION, ROOT_LOGIN, ROOT_REGISTER, ROOT_INVOICES, ROOT_CONTRACTS } from './config/config';
+import { ROOT_CONFIGURATION, ROOT_LOGIN, ROOT_REGISTER, ROOT_INVOICES, ROOT_CONTRACTS, ROOT_PARAMETROS } from './config/config';
 import { AuthGuard } from './shared/guards/auth.guard';
 
 import LayoutComponent from './shared/components/layout/layout.component';
@@ -13,6 +13,7 @@ import LayoutComponent from './shared/components/layout/layout.component';
 import { FacturasComponent } from './feature/facturas/facturas.component'; 
 import { ContratosComponent } from './feature/contratos/contratos.component';
 import { SetupComponent } from './feature/setup/setup.component';
+import { ParametrosGlobalesComponent } from './feature/parametros-globales/parametros-globales.component';
 import { LoginComponent } from './shared/components/login/login.component';
 import { RegisterComponent } from './shared/components/register/register.component';
 
@@ -28,8 +29,9 @@ export const routes: Routes = [
     { path: ROOT_CONTRACTS, component: ContratosComponent },
     { path: ROOT_INVOICES, component: FacturasComponent },
     
-    // RUTA DE CONFIGURACIÓN
+    // RUTAS DE CONFIGURACIÓN
     { path: ROOT_CONFIGURATION, component: SetupComponent },
+    { path: ROOT_PARAMETROS, component: ParametrosGlobalesComponent },
     
     // REDIRECCIÓN POR DEFECTO: Apunta a Contratos
     { path: '', redirectTo: ROOT_CONTRACTS, pathMatch: 'full' }

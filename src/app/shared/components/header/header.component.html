@@ -7,12 +7,17 @@
                 <img src="./assets/img/logo_factonet_v3.png" alt="Logo" class="logo-img" />
             </a>
         </div>
+        
+        <!-- DESCRIPCIÓN DEL MENÚ SELECCIONADO -->
+        <div class="position-absolute w-100 d-none d-md-flex justify-content-center" style="left: -30px;">
+            <span class="selected-menu-description">{{ getSelectedMenuDescription() }}</span>
+        </div>
 
         <!-- BOTONES USUARIO + CAMPANITA -->
 <div class="d-flex align-items-center ms-auto">
 
-    <!-- CAMPANITA DE NOTIFICACIONES SOLO MOBILE -->
-    <div *ngIf="isMobile && mobileNotifications.length > 0" class="position-relative me-3 notification-container">
+    <!-- CAMPANITA DE NOTIFICACIONES SOLO MOBILE (solo facturas pendientes) -->
+    <div *ngIf="isMobile && pendingInvoices > 0" class="position-relative me-3 notification-container">
         <a href="#" 
         class="nav-tool-btn notification-bell" 
         (click)="toggleDropdown(); $event.preventDefault()">
@@ -20,7 +25,7 @@
                 <use xlink:href="./assets/icons/bootstrap-icons.svg#bell-fill" />
             </svg>
             <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle">
-                {{ mobileNotifications.length }}
+                {{ pendingInvoices }}
             </span>
         </a>
 
@@ -30,17 +35,13 @@
     (click)="$event.stopPropagation()"
     style="right:0; z-index:1050; width:260px;">
     
-    <li *ngFor="let note of mobileNotifications" class="notification-item">
+    <!-- Facturas pendientes en móvil -->
+    <li *ngIf="isMobile && pendingInvoices > 0" class="notification-item">
         <span class="text-dark">
-            <span class="badge me-2" [ngClass]="{
-                'bg-success': note.type === 'success',
-                'bg-danger': note.type === 'danger',
-                'bg-warning': note.type === 'warning',
-                'bg-primary': note.type === 'primary'
-            }" [style.background-color]="note.type === 'warning' ? '#d84315' : null">
-                {{ note.title.split(' ')[0] }}
+            <span class="badge me-2 bg-warning text-dark">
+                {{ pendingInvoices }}
             </span>
-            {{ note.title.substring(note.title.indexOf(' ') + 1) }}
+            Facturas pendientes
         </span>
     </li>
 </ul>
@@ -48,8 +49,8 @@
 
     </div>
 
-    <!-- NOMBRE Y ROL DEL USUARIO (SOLO EN DESKTOP) -->
-    <div class="text-end me-3 d-none d-sm-block user-info-frame">
+    <!-- NOMBRE Y ROL DEL USUARIO (SOLO EN DESKTOP Y SIN NOTIFICACIONES) -->
+    <div *ngIf="!(isMobile && pendingInvoices > 0)" class="text-end me-3 d-none d-sm-block user-info-frame">
         <div class="user-name">{{ userName }}</div> 
         <div class="user-detail">{{ userRolDescription }}</div>
     </div>

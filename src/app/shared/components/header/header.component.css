@@ -103,12 +103,13 @@
     font-weight: 500; 
     color: #fff; 
     line-height: 1.1; 
-    text-transform: uppercase; 
+    text-transform: uppercase;
+    font-size: 1.1rem;
 }
 
 /* Estilos para el detalle (rol | email - la línea de abajo) */
 .user-info-frame .user-detail {
-    font-size: 0.75rem; 
+    font-size: 0.9rem; 
     color: #000; 
     line-height: 1.1; 
 }
@@ -183,6 +184,13 @@
 
 .logout-btn svg {
     margin-right: 8px;
+}
+
+.selected-menu-description {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #000;
+    text-transform: uppercase;
 }
 
 /* ------------------------------------------------ */

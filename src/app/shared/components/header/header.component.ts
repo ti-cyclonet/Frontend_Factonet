@@ -5,7 +5,8 @@ import { OptionMenu } from '../../model/option_menu';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth.service';
 import { UserDataService, UserData } from '../../services/user/user-data.service';
-import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service'; 
+import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service';
+import { FactonetService } from '../../services/factonet/factonet.service'; 
 
 @Component({
   selector: 'app-header',
@@ -44,19 +45,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userRole: string = ''; 
 
   // Controla la visibilidad de la caja de herramientas deslizable
-  showToolbox: boolean = false; 
+  showToolbox: boolean = false;
+  
+  // Facturas pendientes para móvil
+  pendingInvoices: number = 0; 
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private userDataService: UserDataService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private factonetService: FactonetService
   ) { }
 
   ngOnInit(): void {
     this.checkScreenSize();
     this.loadUserData();
     this.loadNotifications();
+    this.loadPendingInvoices();
 
     this.resizeListener = this.checkScreenSize.bind(this);
     window.addEventListener('resize', this.resizeListener);
@@ -79,6 +85,32 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
+  }
+  
+
+  
+  loadPendingInvoices(): void {
+    this.factonetService.getInvoices().subscribe({
+      next: (facturas) => {
+        this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
+      },
+      error: (error) => {
+        console.error('Error cargando facturas:', error);
+        this.pendingInvoices = 0;
+      }
+    });
+    
+    // Actualizar cada 30 segundos
+    setInterval(() => {
+      this.factonetService.getInvoices().subscribe({
+        next: (facturas) => {
+          this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
+        },
+        error: () => {
+          this.pendingInvoices = 0;
+        }
+      });
+    }, 30000);
   }
   // <-- PÉGALO AQUÍ
   @HostListener('document:click', ['$event'])
@@ -129,6 +161,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       // Construir el nombre igual que en Authoriza
       const firstName = sessionStorage.getItem('user_firstName');
       const secondName = sessionStorage.getItem('user_secondName');
+      const lastName = sessionStorage.getItem('user_lastName');
       const businessName = sessionStorage.getItem('user_businessName');
       const userName = sessionStorage.getItem('user_name');
       const userEmail = sessionStorage.getItem('user_email');
@@ -136,9 +169,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       // Si user_name es igual al email o contiene @, no lo usamos
       const fallbackName = (userName && userName !== userEmail && !userName.includes('@')) ? userName : 'Usuario';
       
+      // Concatenar nombre y apellido si llegan
+      const fullName = [firstName, secondName, lastName].filter(Boolean).join(' ');
+      
       this.userName = businessName
         ? businessName
-        : `${firstName ?? ''} ${secondName ?? ''}`.trim() || fallbackName;
+        : fullName || fallbackName;
       
       this.userEmail = userEmail || '';
       this.userRolDescription = sessionStorage.getItem('user_rolDescription') || sessionStorage.getItem('user_rol') || 'Usuario';
@@ -197,5 +233,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   trackByOptionId(index: number, option: OptionMenu): string {
     return option.id || index.toString();
+  }
+  
+  getSelectedMenuDescription(): string {
+    const currentUrl = this.router.url;
+    const selectedOption = this.optionsMenu.find(option => option.url === currentUrl);
+    return selectedOption?.description || selectedOption?.name || '';
   }
 }

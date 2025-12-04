@@ -54,6 +54,13 @@
   }
 }
 
+/* Ocultar indicador de facturas pendientes en pantallas pequeñas */
+@media (max-width: 767.98px) {
+  .footer .d-none.d-md-flex {
+    display: none !important;
+  }
+}
+
 
 /* --- NUEVO ---: Contenedor para el texto del lado izquierdo (Empresa + Hora) */
 /* Agregué un nuevo selector (asumiendo que hay un div o elemento envolviendo el lado izquierdo)
