@@ -70,6 +70,9 @@ export default class LayoutComponent implements OnInit {
           })) || []
         ) || [];
 
+        // Ordenar por ingOrder numérico
+        this.optionsMenu.sort((a, b) => parseInt(a.order) - parseInt(b.order));
+
         if (this.optionsMenu.length === 0) {
           this.loadStaticMenu();
         }
@@ -103,7 +106,7 @@ export default class LayoutComponent implements OnInit {
       type: 'main_menu',
       id: '4', description: 'Parámetros Globales', idMPather: null, order: '3', idApplication: ''
     },
-    ].sort((a, b) => (a.order > b.order ? 1 : -1));
+    ].sort((a, b) => parseInt(a.order) - parseInt(b.order));
   }
 
 
