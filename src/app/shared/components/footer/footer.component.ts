@@ -50,7 +50,7 @@ export class FooterComponent implements OnInit, OnDestroy {
         this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
       },
       error: (error) => {
-        console.error('Error cargando facturas:', error);
+
         this.pendingInvoices = 0;
       }
     });

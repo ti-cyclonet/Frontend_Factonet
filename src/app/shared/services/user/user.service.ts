@@ -26,7 +26,7 @@ export class UserService {
         this.usersSubject.next(users); // Actualiza el BehaviorSubject
       },
       error: (error) => {
-        console.error('Error al cargar usuarios', error);
+
       },
     });
   }

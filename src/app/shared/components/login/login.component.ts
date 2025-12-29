@@ -115,7 +115,7 @@ export class LoginComponent {
         }, 1000);
       },
       error: (error) => {
-        console.error('Error de autenticación:', error);
+
         this.showToast('Credenciales incorrectas o error del servidor', 'danger', 'A', 0);
       }
     });

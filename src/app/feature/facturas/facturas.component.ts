@@ -53,7 +53,7 @@ export class FacturasComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading invoices:', error);
+
         this.facturas = [];
         this.showToast('Error conectando con Authoriza Backend', 'danger', 'A', 0);
       }
@@ -67,7 +67,7 @@ export class FacturasComponent implements OnInit {
         this.loadFacturas(); // Recargar la lista
       },
       error: (error) => {
-        console.error('Error executing sweep:', error);
+
         this.showToast('Error ejecutando barrido de facturas', 'danger', 'A', 0);
       }
     });

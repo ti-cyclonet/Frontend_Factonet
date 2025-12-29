@@ -95,7 +95,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
       },
       error: (error) => {
-        console.error('Error cargando facturas:', error);
+
         this.pendingInvoices = 0;
       }
     });
@@ -131,7 +131,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    console.log('Intentando actualizar la contraseña...');
+
   }
 
   removeNotification(index: number) {

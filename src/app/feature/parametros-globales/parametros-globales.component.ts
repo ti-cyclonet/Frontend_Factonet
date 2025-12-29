@@ -45,7 +45,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   loadPeriodos(): void {
     this.parametrosService.getPeriodos().subscribe({
       next: (periodos) => {
-        console.log('Períodos cargados:', periodos);
+
         // Mapear los datos de la API a la estructura esperada por el template
         this.periodos = periodos.map(periodo => ({
           id: periodo.id,
@@ -56,24 +56,24 @@ export class ParametrosGlobalesComponent implements OnInit {
           activo: periodo.status === 'ACTIVE'
         }));
       },
-      error: (error: any) => console.error('Error loading periodos:', error)
+
     });
   }
 
   loadPeriodoActivo(): void {
     this.parametrosService.getPeriodoActivo().subscribe({
       next: (periodo) => this.periodoActivo = periodo,
-      error: (error: any) => console.error('Error loading periodo activo:', error)
+
     });
   }
 
   loadParametros(): void {
     this.parametrosService.getParametrosGlobales().subscribe({
       next: (parametros) => {
-        console.log('Parámetros cargados:', parametros);
+
         this.parametros = parametros;
       },
-      error: (error: any) => console.error('Error loading parametros:', error)
+
     });
   }
 
@@ -99,7 +99,7 @@ export class ParametrosGlobalesComponent implements OnInit {
       },
       error: (error: any) => {
         this.loading = false;
-        console.error('Error guardando parámetros:', error);
+
         Swal.fire({
           title: 'Error',
           text: 'No se pudieron guardar los parámetros',
@@ -132,7 +132,7 @@ export class ParametrosGlobalesComponent implements OnInit {
       },
       error: (error: any) => {
         this.loading = false;
-        console.error('Error creando período:', error);
+
         Swal.fire({
           title: 'Error',
           text: 'No se pudo crear el período',
@@ -157,7 +157,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
   
   agregarParametro(): void {
-    console.log('Agregar nuevo parámetro');
+
     // Lógica para agregar parámetro
   }
   
@@ -185,7 +185,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   eliminarParametro(param: any): void {
     Swal.fire({
       title: '¿Está seguro?',
-      text: `¿Desea eliminar el parámetro "${param.nombre}"?`,
+      text: `¿Desea eliminar el parámetro "${param.nombre}" del período seleccionado?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -194,8 +194,29 @@ export class ParametrosGlobalesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result: any) => {
       if (result.isConfirmed) {
-        console.log('Eliminar parámetro:', param);
-        // Lógica para eliminar parámetro
+        this.loading = true;
+        this.parametrosService.eliminarParametroDePeriodo(param.id).subscribe({
+          next: () => {
+            this.loading = false;
+            // Recargar parámetros del período
+            this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
+            Swal.fire({
+              title: '¡Eliminado!',
+              text: `Parámetro "${param.nombre}" eliminado correctamente del período`,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
+          },
+          error: (error: any) => {
+            this.loading = false;
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo eliminar el parámetro del período',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
+        });
       }
     });
   }
@@ -226,7 +247,7 @@ export class ParametrosGlobalesComponent implements OnInit {
           },
           error: (error: any) => {
             this.loading = false;
-            console.error('Error eliminando período:', error);
+
             Swal.fire({
               title: 'Error',
               text: 'No se pudo eliminar el período',
@@ -287,7 +308,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         this.parametrosDisponibles = parametros.map(p => ({ ...p, selected: false, value: '' }));
         this.aplicarFiltros();
       },
-      error: (error: any) => console.error('Error loading available parameters:', error)
+
     });
   }
 
@@ -347,7 +368,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         });
       },
       error: (error: any) => {
-        console.error('Error agregando parámetros:', error);
+
         Swal.fire({
           title: 'Error',
           text: 'No se pudieron agregar los parámetros',
@@ -359,10 +380,10 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
 
   loadParametrosPorPeriodo(periodoId: string): void {
-    console.log('Cargando parámetros para periodo:', periodoId);
+
     this.parametrosService.getParametrosPorPeriodo(periodoId).subscribe({
       next: (parametros) => {
-        console.log('Parámetros del período (raw):', parametros);
+
         // Mapear los datos del backend al formato esperado por el template
         this.parametros = parametros.map(param => ({
           id: param.id,
@@ -375,25 +396,25 @@ export class ParametrosGlobalesComponent implements OnInit {
           mostrarEnDocsOriginal: param.showInDocs !== undefined ? param.showInDocs : true,
           editando: false // Campo para controlar el modo edición
         }));
-        console.log('Parámetros mapeados:', this.parametros);
+
         this.parametrosPage = 0; // Reset paginación
       },
       error: (error: any) => {
-        console.error('Error loading parametros por periodo:', error);
+
         this.parametros = []; // Limpiar parámetros en caso de error
       }
     });
   }
 
   cambiarEstadoParametro(param: any): void {
-    console.log('CLICK DETECTADO - Método ejecutado', param);
+
     const nuevoEstado = param.estado === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    console.log(`[FRONTEND] Cambiando estado de ${param.id} a ${nuevoEstado}`);
+
     param.estado = nuevoEstado;
     
     this.parametrosService.actualizarEstadoParametro(param.id, nuevoEstado).subscribe({
       next: (response) => {
-        console.log(`[FRONTEND] Respuesta exitosa:`, response);
+
         Swal.fire({
           title: '¡Éxito!',
           text: `Estado del parámetro actualizado a ${nuevoEstado === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO'}`,
@@ -403,7 +424,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         });
       },
       error: (error: any) => {
-        console.error(`[FRONTEND] Error actualizando estado:`, error);
+
         // Revertir el cambio en caso de error
         param.estado = nuevoEstado === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
         Swal.fire({
@@ -428,7 +449,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         });
       },
       error: (error: any) => {
-        console.error('Error actualizando valor:', error);
+
         Swal.fire({
           title: 'Error',
           text: 'No se pudo actualizar el valor',
@@ -445,7 +466,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         param.mostrarEnDocsOriginal = param.mostrarEnDocs; // Actualizar valor original
       },
       error: (error: any) => {
-        console.error('Error actualizando mostrarEnDocs:', error);
+
         param.mostrarEnDocs = param.mostrarEnDocsOriginal; // Revertir en caso de error
       }
     });
