@@ -39,8 +39,7 @@ export class ParametrosGlobalesService {
   }
 
   activarPeriodo(periodoId: string): Observable<any> {
-
-    return of({ success: true });
+    return this.http.patch<any>(`${this.apiUrl}/api/periods/${periodoId}/activate`, {});
   }
 
   getParametrosGlobales(): Observable<any[]> {
@@ -87,7 +86,6 @@ export class ParametrosGlobalesService {
   }
   
   eliminarPeriodo(periodoId: string): Observable<any> {
-
-    return of({ success: true });
+    return this.http.delete<any>(`${this.apiUrl}/api/periods/${periodoId}`);
   }
 }

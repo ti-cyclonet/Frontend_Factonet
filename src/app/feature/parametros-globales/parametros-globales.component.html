@@ -41,6 +41,11 @@
               </td>
               <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
+                  <button type="button" class="btn-icon" *ngIf="!periodo.activo" (click)="activarPeriodo(periodo)" title="Activar">
+                    <svg width="18" height="18" fill="currentColor" class="text-warning">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#play-circle" />
+                    </svg>
+                  </button>
                   <button type="button" class="btn-icon" data-bs-toggle="modal" data-bs-target="#parametersModal" (click)="configurarPeriodo(periodo)" title="Configurar">
                     <svg width="18" height="18" fill="currentColor" class="text-success">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#gear" />
@@ -287,24 +292,34 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form>
+        <form [formGroup]="nuevoPeriodoForm">
           <div class="mb-3">
-            <label for="periodName" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="periodName" [(ngModel)]="nuevoPeriodo.nombre" name="nombre" placeholder="Ej: 2025-Q1">
+            <label for="periodName" class="form-label">Nombre *</label>
+            <input type="text" class="form-control" id="periodName" formControlName="nombre" placeholder="Ej: 2025-Q1">
+            <div class="text-danger small mt-1" *ngIf="nuevoPeriodoForm.get('nombre')?.invalid && nuevoPeriodoForm.get('nombre')?.touched">
+              <div *ngIf="nuevoPeriodoForm.get('nombre')?.errors?.['required']">El nombre es obligatorio</div>
+              <div *ngIf="nuevoPeriodoForm.get('nombre')?.errors?.['minlength']">El nombre debe tener al menos 3 caracteres</div>
+            </div>
           </div>
           <div class="mb-3">
-            <label for="periodStartDate" class="form-label">Fecha Inicio</label>
-            <input type="date" class="form-control" id="periodStartDate" [(ngModel)]="nuevoPeriodo.fechaInicio" name="fechaInicio">
+            <label for="periodStartDate" class="form-label">Fecha Inicio *</label>
+            <input type="date" class="form-control" id="periodStartDate" formControlName="fechaInicio">
+            <div class="text-danger small mt-1" *ngIf="nuevoPeriodoForm.get('fechaInicio')?.invalid && nuevoPeriodoForm.get('fechaInicio')?.touched">
+              <div *ngIf="nuevoPeriodoForm.get('fechaInicio')?.errors?.['required']">La fecha de inicio es obligatoria</div>
+            </div>
           </div>
           <div class="mb-3">
-            <label for="periodEndDate" class="form-label">Fecha Fin</label>
-            <input type="date" class="form-control" id="periodEndDate" [(ngModel)]="nuevoPeriodo.fechaFin" name="fechaFin">
+            <label for="periodEndDate" class="form-label">Fecha Fin *</label>
+            <input type="date" class="form-control" id="periodEndDate" formControlName="fechaFin">
+            <div class="text-danger small mt-1" *ngIf="nuevoPeriodoForm.get('fechaFin')?.invalid && nuevoPeriodoForm.get('fechaFin')?.touched">
+              <div *ngIf="nuevoPeriodoForm.get('fechaFin')?.errors?.['required']">La fecha fin es obligatoria</div>
+            </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success" (click)="crearPeriodo()" [disabled]="loading">
+        <button type="button" class="btn btn-success" (click)="crearPeriodo()" [disabled]="loading || nuevoPeriodoForm.invalid">
           <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
           Crear Período
         </button>

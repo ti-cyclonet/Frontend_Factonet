@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ParametrosGlobalesService } from '../../shared/services/parametros-globales/parametros-globales.service';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-parametros-globales',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './parametros-globales.component.html',
   styleUrl: './parametros-globales.component.css'
 })
@@ -19,6 +19,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   loading = false;
   showCreateForm = false;
   showParametros = false;
+  nuevoPeriodoForm: FormGroup;
   nuevoPeriodo = { nombre: '', fechaInicio: '', fechaFin: '' };
   
   parametrosDisponibles: any[] = [];
@@ -34,7 +35,13 @@ export class ParametrosGlobalesComponent implements OnInit {
   parametrosPage = 0;
   parametrosPageSize = 5;
 
-  constructor(private parametrosService: ParametrosGlobalesService) {}
+  constructor(private parametrosService: ParametrosGlobalesService, private fb: FormBuilder) {
+    this.nuevoPeriodoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      fechaInicio: ['', Validators.required],
+      fechaFin: ['', Validators.required]
+    });
+  }
 
   ngOnInit(): void {
     this.loadPeriodos();
@@ -111,11 +118,35 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
 
   crearPeriodo(): void {
+    if (this.nuevoPeriodoForm.invalid) {
+      this.nuevoPeriodoForm.markAllAsTouched();
+      return;
+    }
+
+    const fechaInicio = new Date(this.nuevoPeriodoForm.value.fechaInicio);
+    const fechaFin = new Date(this.nuevoPeriodoForm.value.fechaFin);
+    
+    if (fechaFin <= fechaInicio) {
+      Swal.fire({
+        title: 'Error de validación',
+        text: 'La fecha fin debe ser posterior a la fecha inicio',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
     this.loading = true;
-    this.parametrosService.crearPeriodo(this.nuevoPeriodo).subscribe({
+    const periodoData = {
+      nombre: this.nuevoPeriodoForm.value.nombre,
+      fechaInicio: this.nuevoPeriodoForm.value.fechaInicio,
+      fechaFin: this.nuevoPeriodoForm.value.fechaFin
+    };
+    
+    this.parametrosService.crearPeriodo(periodoData).subscribe({
       next: () => {
         this.loading = false;
-        this.nuevoPeriodo = { nombre: '', fechaInicio: '', fechaFin: '' };
+        this.nuevoPeriodoForm.reset();
         this.loadPeriodos();
         // Cerrar modal
         const modal = document.getElementById('createPeriodModal');
@@ -132,7 +163,6 @@ export class ParametrosGlobalesComponent implements OnInit {
       },
       error: (error: any) => {
         this.loading = false;
-
         Swal.fire({
           title: 'Error',
           text: 'No se pudo crear el período',
@@ -222,6 +252,48 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
   
   eliminarPeriodo(periodo: any): void {
+    // Validar si el período está activo
+    if (periodo.activo) {
+      Swal.fire({
+        title: 'No se puede eliminar',
+        text: 'No se puede eliminar un período activo',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    // Validar fechas - solo si el período está activo
+    if (periodo.activo) {
+      const fechaActual = new Date();
+      const fechaInicio = new Date(periodo.fechaInicio);
+      const fechaFin = new Date(periodo.fechaFin);
+      
+      if (fechaActual >= fechaInicio && fechaActual <= fechaFin) {
+        Swal.fire({
+          title: 'No se puede eliminar',
+          text: 'No se puede eliminar el período actual activo',
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+    }
+    
+    // Validar períodos pasados
+    const fechaActual = new Date();
+    const fechaFin = new Date(periodo.fechaFin);
+    
+    if (fechaFin < fechaActual) {
+      Swal.fire({
+        title: 'No se puede eliminar',
+        text: 'No se puede eliminar períodos pasados',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
     Swal.fire({
       title: '¿Está seguro?',
       text: `¿Desea eliminar el período "${periodo.nombre}"?`,
@@ -247,10 +319,72 @@ export class ParametrosGlobalesComponent implements OnInit {
           },
           error: (error: any) => {
             this.loading = false;
-
             Swal.fire({
               title: 'Error',
               text: 'No se pudo eliminar el período',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  activarPeriodo(periodo: any): void {
+    // Validar si el período es futuro o pasado
+    const fechaActual = new Date();
+    const fechaInicio = new Date(periodo.fechaInicio);
+    const fechaFin = new Date(periodo.fechaFin);
+    
+    if (fechaInicio > fechaActual) {
+      Swal.fire({
+        title: 'No se puede activar',
+        text: 'No se puede activar un período futuro',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    if (fechaFin < fechaActual) {
+      Swal.fire({
+        title: 'No se puede activar',
+        text: 'No se puede activar un período pasado',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `¿Desea activar el período "${periodo.nombre}"?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, activar',
+      cancelButtonText: 'Cancelar'
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+        this.loading = true;
+        this.parametrosService.activarPeriodo(periodo.id).subscribe({
+          next: () => {
+            this.loading = false;
+            this.loadPeriodos();
+            Swal.fire({
+              title: '¡Activado!',
+              text: 'Período activado correctamente',
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
+          },
+          error: (error: any) => {
+            this.loading = false;
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo activar el período',
               icon: 'error',
               confirmButtonText: 'OK'
             });

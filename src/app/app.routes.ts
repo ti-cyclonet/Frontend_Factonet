@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 // Asegúrate de que ROOT_INVOICES y ROOT_CONTRACTS estén definidos en './config/config'
 import { ROOT_CONFIGURATION, ROOT_LOGIN, ROOT_REGISTER, ROOT_INVOICES, ROOT_CONTRACTS, ROOT_PARAMETROS } from './config/config';
 import { AuthGuard } from './shared/guards/auth.guard';
+import { ActivePeriodGuard } from './shared/guards/active-period.guard';
 
 import LayoutComponent from './shared/components/layout/layout.component';
 // ELIMINADAS: import { HomeComponent } from './feature/home/home.component';
@@ -26,21 +27,21 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         children: [
     // RUTAS DE FUNCIONALIDAD PRINCIPAL
-    { path: ROOT_CONTRACTS, component: ContratosComponent },
-    { path: ROOT_INVOICES, component: FacturasComponent },
+    { path: ROOT_CONTRACTS, component: ContratosComponent, canActivate: [ActivePeriodGuard] },
+    { path: ROOT_INVOICES, component: FacturasComponent, canActivate: [ActivePeriodGuard] },
     
     // RUTAS DE CONFIGURACIÓN
     { path: ROOT_CONFIGURATION, component: SetupComponent },
     { path: ROOT_PARAMETROS, component: ParametrosGlobalesComponent },
     
-    // REDIRECCIÓN POR DEFECTO: Apunta a Contratos
-    { path: '', redirectTo: ROOT_CONTRACTS, pathMatch: 'full' }
+    // REDIRECCIÓN POR DEFECTO: Apunta a Parámetros Globales
+    { path: '', redirectTo: ROOT_PARAMETROS, pathMatch: 'full' }
 ]
 
     },
     {
         path: '**',
-        redirectTo: ROOT_CONTRACTS // Redirige cualquier cosa desconocida a Contratos
+        redirectTo: ROOT_PARAMETROS // Redirige cualquier cosa desconocida a Parámetros Globales
     }
 ];
 
