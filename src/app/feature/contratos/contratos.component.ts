@@ -5,6 +5,7 @@ import { FactonetService } from '../../shared/services/factonet/factonet.service
 // Interface para un tipado estricto
 interface Contrato {
     id: string;
+    code?: string;
     user: {
         id: string;
         strUserName: string;

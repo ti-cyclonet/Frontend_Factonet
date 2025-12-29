@@ -79,7 +79,7 @@
 /* ------------------------------------------------ */
 
 .logo-img {
-    height: 65px; 
+    height: 80px; 
     width: auto;
     display: block; 
 }
@@ -372,14 +372,6 @@
 
 /* Wrapper específico para el contenido del header */
 .header-content-wrapper {
-    max-width: 1240px;
-    margin: 0 auto;
     width: 100%;
     padding: 0 15px;
-}
-
-@media (min-width: 1241px) {
-    .header-content-wrapper {
-        padding: 0 20px;
-    }
 }

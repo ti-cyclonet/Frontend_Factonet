@@ -1,68 +1,67 @@
 <div class="floating-container">
   <div class="outer-container">
-    <!-- Cuadro 1: Título -->
-    <div class="inner-container" id="cuadro1">
-      <h2 class="card-title">Lista de Contratos</h2>
+    <!-- Título -->
+    <div class="inner-container">
+      <h3 class="card-title mb-0">Lista de Contratos</h3>
     </div>
     
-    <!-- Cuadro 2: Tabla -->
-    <div class="inner-container" id="cuadro2">
-      <div class="table-container">
-        <table class="contracts-table">
+    <!-- Tabla de contratos -->
+    <div class="inner-container">
+      <div class="table-responsive">
+        <table class="table table-striped">
           <thead>
             <tr>
-              <th class="col-id">ID</th>
-              <th class="col-user">User</th>
-              <th class="col-package">Package</th>
-              <th class="col-value">Value</th>
-              <th class="col-payday hide-mobile">Pay Day</th>
-              <th class="col-dates hide-mobile">Start Date</th>
-              <th class="col-dates">End Date</th>
-              <th class="col-status">Status</th>
-              <th class="col-actions">Actions</th>
+              <th>Code</th>
+              <th>User</th>
+              <th>Package</th>
+              <th>Value</th>
+              <th class="d-none d-md-table-cell">Pay Day</th>
+              <th class="d-none d-md-table-cell">Start Date</th>
+              <th>End Date</th>
+              <th>Status</th>
+              <th class="text-center" style="width: 100px;">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let contrato of contratos(); trackBy: trackById" 
                 [class.selected]="selectedContrato() === contrato"
                 (click)="setSelectedContrato(contrato)">
-              <td class="col-id">{{ contrato.id }}</td>
-              <td class="col-user">{{ contrato.user.strUserName || 'N/A' }}</td>
-              <td class="col-package">{{ contrato.package.name || 'N/A' }}</td>
-              <td class="col-value">{{ contrato.value | number:'1.2-2' }}</td>
-              <td class="col-payday hide-mobile">{{ contrato.payday }}</td>
-              <td class="col-dates hide-mobile">{{ contrato.startDate }}</td>
-              <td class="col-dates">{{ contrato.endDate }}</td>
-              <td class="col-status">
-                <span class="status-badge" [ngClass]="{
-                  'status-active': contrato.status === 'ACTIVE',
-                  'status-expired': contrato.status === 'EXPIRED',
-                  'status-pending': contrato.status === 'PENDING',
+              <td>{{ contrato.code || contrato.id }}</td>
+              <td>{{ contrato.user.strUserName || 'N/A' }}</td>
+              <td>{{ contrato.package.name || 'N/A' }}</td>
+              <td>{{ contrato.value | number:'1.2-2' }}</td>
+              <td class="d-none d-md-table-cell">{{ contrato.payday }}</td>
+              <td class="d-none d-md-table-cell">{{ contrato.startDate }}</td>
+              <td>{{ contrato.endDate }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-success': contrato.status === 'ACTIVE',
+                  'bg-danger': contrato.status === 'EXPIRED',
+                  'bg-warning': contrato.status === 'PENDING'
                 }">{{ contrato.status }}</span>
               </td>
-              <td class="col-actions">
-                <div class="action-buttons">
-                  <button class="action-btn view-btn" title="Ver detalles">
-                    <svg class="action-icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+              <td>
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                  <button type="button" class="btn-icon" title="Ver detalles">
+                    <svg width="16" height="16" fill="currentColor" class="text-primary">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
                     </svg>
                   </button>
-                  <button class="action-btn edit-btn" (click)="onEditContrato()" title="Editar">
-                    <svg class="action-icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.794.793-2.828-2.828.793-.794zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                  <button type="button" class="btn-icon" (click)="onEditContrato()" title="Editar">
+                    <svg width="16" height="16" fill="currentColor" class="text-primary">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#pencil" />
                     </svg>
                   </button>
-                  <button class="action-btn delete-btn" (click)="openDeleteConfirmationModal()" title="Eliminar">
-                    <svg class="action-icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/>
+                  <button type="button" class="btn-icon" (click)="openDeleteConfirmationModal()" title="Eliminar">
+                    <svg width="16" height="16" fill="currentColor" class="text-danger">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#trash" />
                     </svg>
                   </button>
                 </div>
               </td>
             </tr>
             <tr *ngIf="contratos().length === 0">
-              <td colspan="9" class="no-data">No hay contratos disponibles...</td>
+              <td colspan="9" class="text-center">No hay contratos disponibles</td>
             </tr>
           </tbody>
         </table>

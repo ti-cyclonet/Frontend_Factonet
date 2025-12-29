@@ -7,18 +7,12 @@ import { environment } from '../../../../../environment/environment';
   providedIn: 'root'
 })
 export class ParametrosGlobalesService {
-  private apiUrl = `${environment.authorizaApiUrl}`;
+  private apiUrl = `${environment.BASE_URL_FACTONET}`;
 
   constructor(private http: HttpClient) {}
 
   getPeriodos(): Observable<any[]> {
-    const hoy = new Date();
-    const mockPeriodos = [
-      { id: '2', nombre: '2025-Actual', fechaInicio: '2025-11-01', fechaFin: '2026-01-31', activo: this.esPeriodoActivo('2025-11-01', '2026-01-31', hoy) },
-      { id: '1', nombre: '2025-Q2', fechaInicio: '2025-04-01', fechaFin: '2025-06-30', activo: this.esPeriodoActivo('2025-04-01', '2025-06-30', hoy) },
-      { id: '3', nombre: '2024-Q4', fechaInicio: '2024-10-01', fechaFin: '2024-11-30', activo: this.esPeriodoActivo('2024-10-01', '2024-11-30', hoy) }
-    ];
-    return of(mockPeriodos);
+    return this.http.get<any[]>(`${this.apiUrl}/api/periods`);
   }
 
   private esPeriodoActivo(fechaInicio: string, fechaFin: string, fechaActual: Date): boolean {
@@ -32,9 +26,16 @@ export class ParametrosGlobalesService {
     return of(mockPeriodoActivo);
   }
 
+  getParametrosDisponibles(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/api/periods/global-parameters`);
+  }
+
+  agregarParametrosAPeriodo(periodoId: string, parametros: any[]): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/periods/${periodoId}/parameters`, { parametros });
+  }
+
   crearPeriodo(periodo: any): Observable<any> {
-    console.log('Crear período:', periodo);
-    return of({ success: true });
+    return this.http.post<any>(`${this.apiUrl}/api/periods`, periodo);
   }
 
   activarPeriodo(periodoId: string): Observable<any> {
@@ -66,24 +67,19 @@ export class ParametrosGlobalesService {
   }
 
   getParametrosPorPeriodo(periodoId: string): Observable<any[]> {
-    const mockParametrosPorPeriodo: { [key: string]: any[] } = {
-      '1': [
-        { id: '1', nombre: 'IVA', valor: 19, descripcion: 'Impuesto al Valor Agregado Q1' },
-        { id: '2', nombre: 'Margen de Ganancia', valor: 15, descripcion: 'Porcentaje de margen Q1' },
-        { id: '3', nombre: 'Interés Financiero', valor: 5, descripcion: 'Interés de financiamiento Q1' }
-      ],
-      '2': [
-        { id: '1', nombre: 'IVA', valor: 21, descripcion: 'Impuesto al Valor Agregado Q2' },
-        { id: '2', nombre: 'Margen de Ganancia', valor: 18, descripcion: 'Porcentaje de margen Q2' },
-        { id: '3', nombre: 'Interés Financiero', valor: 7, descripcion: 'Interés de financiamiento Q2' }
-      ],
-      '3': [
-        { id: '1', nombre: 'IVA', valor: 20, descripcion: 'Impuesto al Valor Agregado Q3' },
-        { id: '2', nombre: 'Margen de Ganancia', valor: 12, descripcion: 'Porcentaje de margen Q3' },
-        { id: '3', nombre: 'Interés Financiero', valor: 6, descripcion: 'Interés de financiamiento Q3' }
-      ]
-    };
-    return of(mockParametrosPorPeriodo[periodoId] || []);
+    return this.http.get<any[]>(`${this.apiUrl}/api/periods/${periodoId}/parameters`);
+  }
+  
+  actualizarEstadoParametro(parametroId: string, estado: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/global-parameters-periods/${parametroId}`, { status: estado });
+  }
+  
+  actualizarValorParametro(parametroId: string, valor: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/global-parameters-periods/${parametroId}`, { value: valor });
+  }
+  
+  actualizarMostrarEnDocs(parametroId: string, mostrarEnDocs: boolean): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/global-parameters-periods/${parametroId}`, { showInDocs: mostrarEnDocs });
   }
   
   eliminarPeriodo(periodoId: string): Observable<any> {

@@ -1,46 +1,18 @@
 <div class="floating-container">
   <div class="outer-container">
     <!-- Lista de Períodos -->
-    <div class="inner-container">
+    <div class="inner-container" [class.disabled]="showParametros">
+      <h3 class="card-title mb-0">Gestión de Períodos</h3>
+    </div>
+    
+    <div class="inner-container" [class.disabled]="showParametros">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="card-title mb-0">Gestión de Períodos</h3>
-        <button class="btn btn-success" (click)="showCreateForm = !showCreateForm">
-          <i class="bi bi-plus-circle me-2"></i>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
+          <svg width="16" height="16" fill="currentColor" class="me-2">
+            <use xlink:href="./assets/icons/bootstrap-icons.svg#plus-circle" />
+          </svg>
           Nuevo Período
         </button>
-      </div>
-
-      <!-- Formulario de creación -->
-      <div *ngIf="showCreateForm" class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Crear Nuevo Período</h5>
-          <div class="row">
-            <div class="col-md-4">
-              <label class="form-label">Nombre</label>
-              <input type="text" class="form-control" [(ngModel)]="nuevoPeriodo.nombre" placeholder="Ej: 2024-Q1">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Fecha Inicio</label>
-              <input type="date" class="form-control" [(ngModel)]="nuevoPeriodo.fechaInicio">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Fecha Fin</label>
-              <input type="date" class="form-control" [(ngModel)]="nuevoPeriodo.fechaFin">
-            </div>
-            <div class="col-md-2 d-flex align-items-end justify-content-center gap-3">
-              <button type="button" class="btn-icon" (click)="crearPeriodo()" [disabled]="loading" title="Guardar">
-                <svg width="20" height="20" fill="currentColor" class="text-success">
-                  <use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle" />
-                </svg>
-              </button>
-              <button type="button" class="btn-icon" (click)="showCreateForm = false" title="Cancelar">
-                <svg width="20" height="20" fill="currentColor" class="text-danger">
-                  <use xlink:href="./assets/icons/bootstrap-icons.svg#x-circle" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Tabla de períodos -->
@@ -48,20 +20,28 @@
         <table class="table table-striped">
           <thead>
             <tr>
+              <th>Código</th>
               <th>Nombre</th>
               <th>Fecha Inicio</th>
               <th>Fecha Fin</th>
+              <th>Estado</th>
               <th class="text-center" style="width: 100px;">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let periodo of periodosPaginados" [ngClass]="periodo.activo ? 'periodo-activo' : 'periodo-inactivo'">
+              <td>{{ periodo.codigo || '-' }}</td>
               <td>{{ periodo.nombre }}</td>
               <td>{{ periodo.fechaInicio | date:'dd/MM/yyyy' }}</td>
               <td>{{ periodo.fechaFin | date:'dd/MM/yyyy' }}</td>
               <td>
+                <span class="badge" [ngClass]="periodo.activo ? 'bg-success' : 'bg-secondary'">
+                  {{ periodo.activo ? 'ACTIVO' : 'INACTIVO' }}
+                </span>
+              </td>
+              <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
-                  <button type="button" class="btn-icon" (click)="configurarPeriodo(periodo)" title="Configurar">
+                  <button type="button" class="btn-icon" data-bs-toggle="modal" data-bs-target="#parametersModal" (click)="configurarPeriodo(periodo)" title="Configurar">
                     <svg width="18" height="18" fill="currentColor" class="text-success">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#gear" />
                     </svg>
@@ -75,7 +55,7 @@
               </td>
             </tr>
             <tr *ngIf="periodos.length === 0">
-              <td colspan="4" class="text-center">No hay períodos disponibles</td>
+              <td colspan="6" class="text-center">No hay períodos creados</td>
             </tr>
           </tbody>
         </table>
@@ -99,85 +79,234 @@
       </div>
     </div>
 
-    <!-- Parámetros Globales -->
-    <div class="inner-container">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="card-title mb-0">Parámetros Globales</h3>
-        <div class="d-flex gap-2">
-          <button type="button" class="btn-icon" (click)="agregarParametro()" title="Agregar Parámetro">
-            <svg width="18" height="18" fill="currentColor" class="text-success">
-              <use xlink:href="./assets/icons/bootstrap-icons.svg#plus-circle" />
-            </svg>
-          </button>
+
+  </div>
+</div>
+
+<!-- Modal para configurar parámetros globales -->
+<div class="modal fade" id="parametersModal" tabindex="-1" aria-labelledby="parametersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="parametersModalLabel">Configurar Parámetros - {{ periodoSeleccionado?.nombre }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Parámetro</th>
+                <th>Valor</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Mostrar en Docs</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let param of parametrosPaginados" [ngClass]="{'table-warning': param.editando}">
+                <td>{{ param.nombre }}</td>
+                <td>
+                  <span *ngIf="!param.editando" class="badge bg-primary">{{ param.valor }}</span>
+                  <input *ngIf="param.editando" type="text" class="form-control form-control-sm" 
+                         [(ngModel)]="param.valor"
+                         (blur)="guardarValor(param)"
+                         (keyup.enter)="guardarValor(param)"
+                         style="min-width: 80px;">
+                </td>
+                <td>{{ param.descripcion }}</td>
+                <td>
+                  <button type="button" 
+                          class="btn" 
+                          style="border: none; background: none; padding: 0;"
+                          [style.color]="param.estado === 'ACTIVE' ? '#198754' : '#6c757d'"
+                          [style.font-weight]="'bold'"
+                          (click)="cambiarEstadoParametro(param)"
+                          title="Click para cambiar estado">
+                    {{ param.estado === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO' }}
+                  </button>
+                </td>
+                <td class="text-center">
+                  <!-- Modo normal: mostrar TRUE/FALSE -->
+                  <span *ngIf="!param.editando" 
+                        [style.color]="param.mostrarEnDocs ? '#0d47a1' : '#6c757d'"
+                        [style.font-weight]="'bold'">
+                    {{ param.mostrarEnDocs ? 'TRUE' : 'FALSE' }}
+                  </span>
+                  <!-- Modo edición: mostrar switch -->
+                  <div *ngIf="param.editando" class="form-check form-switch d-flex justify-content-center">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="param.mostrarEnDocs" 
+                           id="modal-switch-{{ param.id }}">
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center justify-content-center gap-2">
+                    <!-- Botones en modo normal -->
+                    <ng-container *ngIf="!param.editando">
+                      <button type="button" class="btn-icon" (click)="editarParametro(param)" title="Editar">
+                        <svg width="16" height="16" fill="currentColor" class="text-primary">
+                          <use xlink:href="./assets/icons/bootstrap-icons.svg#pencil" />
+                        </svg>
+                      </button>
+                      <button type="button" class="btn-icon" (click)="eliminarParametro(param)" title="Eliminar">
+                        <svg width="16" height="16" fill="currentColor" class="text-danger">
+                          <use xlink:href="./assets/icons/bootstrap-icons.svg#trash" />
+                        </svg>
+                      </button>
+                    </ng-container>
+                    <!-- Botones en modo edición -->
+                    <ng-container *ngIf="param.editando">
+                      <button type="button" class="btn-icon" (click)="guardarValor(param)" title="Guardar">
+                        <svg width="16" height="16" fill="currentColor" class="text-success">
+                          <use xlink:href="./assets/icons/bootstrap-icons.svg#check" />
+                        </svg>
+                      </button>
+                      <button type="button" class="btn-icon" (click)="cancelarEdicion(param)" title="Cancelar">
+                        <svg width="16" height="16" fill="currentColor" class="text-secondary">
+                          <use xlink:href="./assets/icons/bootstrap-icons.svg#x" />
+                        </svg>
+                      </button>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="parametros.length === 0">
+                <td colspan="6" class="text-center">No hay parámetros disponibles</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Paginación parámetros en modal -->
+        <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="parametros.length > parametrosPageSize">
+          <span class="text-muted">Página {{ parametrosPage + 1 }} de {{ totalParametrosPages }}</span>
+          <div>
+            <button class="btn btn-sm btn-outline-secondary me-2" (click)="prevParametrosPage()" [disabled]="parametrosPage === 0">
+              <svg width="16" height="16" fill="currentColor">
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-left" />
+              </svg>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="nextParametrosPage()" [disabled]="parametrosPage >= totalParametrosPages - 1">
+              <svg width="16" height="16" fill="currentColor">
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-right" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Parámetro</th>
-              <th>Valor (%)</th>
-              <th>Descripción</th>
-              <th>Mostrar en Docs</th>
-              <th class="text-center" style="width: 100px;">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let param of parametrosPaginados">
-              <td>{{ param.nombre }}</td>
-              <td>
-                <input type="number" class="form-control" [(ngModel)]="param.valor" 
-                       step="0.01" min="0" max="100">
-              </td>
-              <td>{{ param.descripcion }}</td>
-              <td class="text-center">
-                <div class="form-check form-switch d-flex justify-content-center">
-                  <input class="form-check-input" type="checkbox" [(ngModel)]="param.mostrarEnDocs" 
-                         id="switch-{{ param.id }}">
-                </div>
-              </td>
-              <td>
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                  <button type="button" class="btn-icon" (click)="editarParametro(param)" title="Editar">
-                    <svg width="16" height="16" fill="currentColor" class="text-primary">
-                      <use xlink:href="./assets/icons/bootstrap-icons.svg#pencil" />
-                    </svg>
-                  </button>
-                  <button type="button" class="btn-icon" (click)="eliminarParametro(param)" title="Eliminar">
-                    <svg width="16" height="16" fill="currentColor" class="text-danger">
-                      <use xlink:href="./assets/icons/bootstrap-icons.svg#trash" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="parametros.length === 0">
-              <td colspan="5" class="text-center">No hay parámetros disponibles</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addParameterModal" (click)="loadAvailableParameters()">
+          <svg width="16" height="16" fill="currentColor" class="me-1">
+            <use xlink:href="./assets/icons/bootstrap-icons.svg#plus-circle" />
+          </svg>
+          Agregar Parámetro
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
-      <!-- Paginación parámetros -->
-      <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="parametros.length > parametrosPageSize">
-        <span class="text-muted">Página {{ parametrosPage + 1 }} de {{ totalParametrosPages }}</span>
-        <div>
-          <button class="btn btn-sm btn-outline-secondary me-2" (click)="prevParametrosPage()" [disabled]="parametrosPage === 0">
-            <svg width="16" height="16" fill="currentColor">
-              <use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-left" />
-            </svg>
-          </button>
-          <button class="btn btn-sm btn-outline-secondary" (click)="nextParametrosPage()" [disabled]="parametrosPage >= totalParametrosPages - 1">
-            <svg width="16" height="16" fill="currentColor">
-              <use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-right" />
-            </svg>
-          </button>
+    </div>
+  </div>
+</div>
+<!-- Modal para agregar parámetros disponibles -->
+<div class="modal fade" id="addParameterModal" tabindex="-1" aria-labelledby="addParameterModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addParameterModalLabel">Agregar Parámetros - {{ periodoSeleccionado?.nombre }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Filtros -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" [(ngModel)]="filtroNombre" placeholder="Buscar por nombre..." (input)="aplicarFiltros()">
+          </div>
+          <div class="col-md-6">
+            <select class="form-select" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+              <option value="">Todos los tipos</option>
+              <option value="number">Numérico</option>
+              <option value="string">Texto</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Tabla de parámetros disponibles -->
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Seleccionar</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let param of parametrosDisponiblesFiltrados">
+                <td>
+                  <input type="checkbox" class="form-check-input" [(ngModel)]="param.selected" id="param-{{ param.id }}">
+                </td>
+                <td>{{ param.name }}</td>
+                <td>{{ param.description }}</td>
+                <td>
+                  <span class="badge" [ngClass]="param.dataType === 'number' ? 'bg-info' : 'bg-secondary'">
+                    {{ param.dataType === 'number' ? 'NUMÉRICO' : 'TEXTO' }}
+                  </span>
+                </td>
+                <td>
+                  <input type="text" class="form-control form-control-sm" 
+                         [(ngModel)]="param.value" 
+                         [placeholder]="param.dataType === 'number' ? 'Ej: 19' : 'Ej: COP'"
+                         [disabled]="!param.selected">
+                </td>
+              </tr>
+              <tr *ngIf="parametrosDisponiblesFiltrados.length === 0">
+                <td colspan="5" class="text-center">No hay parámetros disponibles</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      
-      <div class="text-end mt-3">
-        <button class="btn btn-success" (click)="guardarParametros()" [disabled]="loading">
-          <i class="bi bi-save me-2"></i>
-          Guardar Parámetros
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="agregarParametrosSeleccionados()">
+          Agregar Seleccionados
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear nuevo período -->
+<div class="modal fade" id="createPeriodModal" tabindex="-1" aria-labelledby="createPeriodModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createPeriodModalLabel">Crear Nuevo Período</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="periodName" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="periodName" [(ngModel)]="nuevoPeriodo.nombre" name="nombre" placeholder="Ej: 2025-Q1">
+          </div>
+          <div class="mb-3">
+            <label for="periodStartDate" class="form-label">Fecha Inicio</label>
+            <input type="date" class="form-control" id="periodStartDate" [(ngModel)]="nuevoPeriodo.fechaInicio" name="fechaInicio">
+          </div>
+          <div class="mb-3">
+            <label for="periodEndDate" class="form-label">Fecha Fin</label>
+            <input type="date" class="form-control" id="periodEndDate" [(ngModel)]="nuevoPeriodo.fechaFin" name="fechaFin">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" (click)="crearPeriodo()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Crear Período
         </button>
       </div>
     </div>

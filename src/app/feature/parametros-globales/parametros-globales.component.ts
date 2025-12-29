@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParametrosGlobalesService } from '../../shared/services/parametros-globales/parametros-globales.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-parametros-globales',
@@ -13,14 +14,21 @@ import { ParametrosGlobalesService } from '../../shared/services/parametros-glob
 export class ParametrosGlobalesComponent implements OnInit {
   periodos: any[] = [];
   periodoActivo: any = null;
+  periodoSeleccionado: any = null;
   parametros: any[] = [];
   loading = false;
   showCreateForm = false;
+  showParametros = false;
   nuevoPeriodo = { nombre: '', fechaInicio: '', fechaFin: '' };
+  
+  parametrosDisponibles: any[] = [];
+  parametrosDisponiblesFiltrados: any[] = [];
+  filtroNombre: string = '';
+  filtroTipo: string = '';
   
   // Paginación períodos
   periodosPage = 0;
-  periodosPageSize = 5;
+  periodosPageSize = 8;
   
   // Paginación parámetros
   parametrosPage = 0;
@@ -38,7 +46,15 @@ export class ParametrosGlobalesComponent implements OnInit {
     this.parametrosService.getPeriodos().subscribe({
       next: (periodos) => {
         console.log('Períodos cargados:', periodos);
-        this.periodos = periodos;
+        // Mapear los datos de la API a la estructura esperada por el template
+        this.periodos = periodos.map(periodo => ({
+          id: periodo.id,
+          codigo: periodo.code,
+          nombre: periodo.name || periodo.code || `Período ${periodo.id.substring(0, 8)}`,
+          fechaInicio: periodo.startDate,
+          fechaFin: periodo.endDate,
+          activo: periodo.status === 'ACTIVE'
+        }));
       },
       error: (error: any) => console.error('Error loading periodos:', error)
     });
@@ -68,11 +84,28 @@ export class ParametrosGlobalesComponent implements OnInit {
     this.parametrosService.guardarParametros(this.parametros).subscribe({
       next: () => {
         this.loading = false;
-        alert('Parámetros guardados correctamente');
+        // Cerrar modal
+        const modal = document.getElementById('parametersModal');
+        if (modal) {
+          const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
+          if (bootstrapModal) bootstrapModal.hide();
+        }
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Parámetros guardados correctamente',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
       },
       error: (error: any) => {
         this.loading = false;
         console.error('Error guardando parámetros:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudieron guardar los parámetros',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
       }
     });
   }
@@ -82,14 +115,30 @@ export class ParametrosGlobalesComponent implements OnInit {
     this.parametrosService.crearPeriodo(this.nuevoPeriodo).subscribe({
       next: () => {
         this.loading = false;
-        this.showCreateForm = false;
         this.nuevoPeriodo = { nombre: '', fechaInicio: '', fechaFin: '' };
         this.loadPeriodos();
-        alert('Período creado correctamente');
+        // Cerrar modal
+        const modal = document.getElementById('createPeriodModal');
+        if (modal) {
+          const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
+          if (bootstrapModal) bootstrapModal.hide();
+        }
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Período creado correctamente',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
       },
       error: (error: any) => {
         this.loading = false;
         console.error('Error creando período:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo crear el período',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
       }
     });
   }
@@ -97,8 +146,14 @@ export class ParametrosGlobalesComponent implements OnInit {
 
 
   configurarPeriodo(periodo: any): void {
+    this.periodoSeleccionado = periodo;
     this.parametrosPage = 0;
     this.loadParametrosPorPeriodo(periodo.id);
+  }
+  
+  volverAPeriodos(): void {
+    this.showParametros = false;
+    this.periodoSeleccionado = null;
   }
   
   agregarParametro(): void {
@@ -107,32 +162,81 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
   
   editarParametro(param: any): void {
-    console.log('Editar parámetro:', param);
-    // Lógica para editar parámetro
+    param.valorOriginal = param.valor; // Guardar valor original
+    param.mostrarEnDocsOriginal = param.mostrarEnDocs; // Guardar mostrarEnDocs original
+    param.editando = true;
+  }
+
+  guardarValor(param: any): void {
+    param.editando = false;
+    this.actualizarValorParametro(param);
+    // Si cambió mostrarEnDocs, también actualizarlo
+    if (param.mostrarEnDocs !== param.mostrarEnDocsOriginal) {
+      this.actualizarMostrarEnDocs(param);
+    }
+  }
+
+  cancelarEdicion(param: any): void {
+    param.valor = param.valorOriginal; // Restaurar valor original
+    param.mostrarEnDocs = param.mostrarEnDocsOriginal; // Restaurar mostrarEnDocs original
+    param.editando = false;
   }
   
   eliminarParametro(param: any): void {
-    if (confirm(`¿Está seguro de eliminar el parámetro "${param.nombre}"?`)) {
-      console.log('Eliminar parámetro:', param);
-      // Lógica para eliminar parámetro
-    }
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `¿Desea eliminar el parámetro "${param.nombre}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+        console.log('Eliminar parámetro:', param);
+        // Lógica para eliminar parámetro
+      }
+    });
   }
   
   eliminarPeriodo(periodo: any): void {
-    if (confirm(`¿Está seguro de eliminar el período "${periodo.nombre}"?`)) {
-      this.loading = true;
-      this.parametrosService.eliminarPeriodo(periodo.id).subscribe({
-        next: () => {
-          this.loading = false;
-          this.loadPeriodos();
-          alert('Período eliminado correctamente');
-        },
-        error: (error: any) => {
-          this.loading = false;
-          console.error('Error eliminando período:', error);
-        }
-      });
-    }
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `¿Desea eliminar el período "${periodo.nombre}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+        this.loading = true;
+        this.parametrosService.eliminarPeriodo(periodo.id).subscribe({
+          next: () => {
+            this.loading = false;
+            this.loadPeriodos();
+            Swal.fire({
+              title: '¡Eliminado!',
+              text: 'Período eliminado correctamente',
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
+          },
+          error: (error: any) => {
+            this.loading = false;
+            console.error('Error eliminando período:', error);
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo eliminar el período',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
+        });
+      }
+    });
   }
   
   get periodosPaginados() {
@@ -177,13 +281,173 @@ export class ParametrosGlobalesComponent implements OnInit {
     }
   }
 
+  loadAvailableParameters(): void {
+    this.parametrosService.getParametrosDisponibles().subscribe({
+      next: (parametros) => {
+        this.parametrosDisponibles = parametros.map(p => ({ ...p, selected: false, value: '' }));
+        this.aplicarFiltros();
+      },
+      error: (error: any) => console.error('Error loading available parameters:', error)
+    });
+  }
+
+  aplicarFiltros(): void {
+    this.parametrosDisponiblesFiltrados = this.parametrosDisponibles.filter(param => {
+      const matchNombre = !this.filtroNombre || param.name.toLowerCase().includes(this.filtroNombre.toLowerCase());
+      const matchTipo = !this.filtroTipo || param.dataType === this.filtroTipo;
+      return matchNombre && matchTipo;
+    });
+  }
+
+  agregarParametrosSeleccionados(): void {
+    const seleccionados = this.parametrosDisponibles.filter(p => p.selected);
+    if (seleccionados.length === 0) {
+      Swal.fire({
+        title: 'Advertencia',
+        text: 'Debe seleccionar al menos un parámetro',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    // Validar que todos los parámetros seleccionados tengan valor
+    const sinValor = seleccionados.filter(p => !p.value || p.value.trim() === '');
+    if (sinValor.length > 0) {
+      Swal.fire({
+        title: 'Advertencia',
+        text: 'Todos los parámetros seleccionados deben tener un valor',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    // Mapear a formato esperado por el backend
+    const parametrosConValor = seleccionados.map(p => ({
+      globalParameterId: p.id,
+      value: p.value
+    }));
+    
+    this.parametrosService.agregarParametrosAPeriodo(this.periodoSeleccionado.id, parametrosConValor).subscribe({
+      next: () => {
+        // Cerrar modal
+        const modal = document.getElementById('addParameterModal');
+        if (modal) {
+          const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
+          if (bootstrapModal) bootstrapModal.hide();
+        }
+        // Recargar parámetros del período
+        this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `${seleccionados.length} parámetros agregados correctamente`,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      },
+      error: (error: any) => {
+        console.error('Error agregando parámetros:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudieron agregar los parámetros',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  }
+
   loadParametrosPorPeriodo(periodoId: string): void {
+    console.log('Cargando parámetros para periodo:', periodoId);
     this.parametrosService.getParametrosPorPeriodo(periodoId).subscribe({
       next: (parametros) => {
-        console.log('Parámetros del período:', parametros);
-        this.parametros = parametros;
+        console.log('Parámetros del período (raw):', parametros);
+        // Mapear los datos del backend al formato esperado por el template
+        this.parametros = parametros.map(param => ({
+          id: param.id,
+          nombre: param.globalParameter.name,
+          valor: param.value,
+          valorOriginal: param.value, // Guardar valor original para cancelar
+          descripcion: param.globalParameter.description,
+          estado: param.status,
+          mostrarEnDocs: param.showInDocs !== undefined ? param.showInDocs : true,
+          mostrarEnDocsOriginal: param.showInDocs !== undefined ? param.showInDocs : true,
+          editando: false // Campo para controlar el modo edición
+        }));
+        console.log('Parámetros mapeados:', this.parametros);
+        this.parametrosPage = 0; // Reset paginación
       },
-      error: (error: any) => console.error('Error loading parametros por periodo:', error)
+      error: (error: any) => {
+        console.error('Error loading parametros por periodo:', error);
+        this.parametros = []; // Limpiar parámetros en caso de error
+      }
+    });
+  }
+
+  cambiarEstadoParametro(param: any): void {
+    console.log('CLICK DETECTADO - Método ejecutado', param);
+    const nuevoEstado = param.estado === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    console.log(`[FRONTEND] Cambiando estado de ${param.id} a ${nuevoEstado}`);
+    param.estado = nuevoEstado;
+    
+    this.parametrosService.actualizarEstadoParametro(param.id, nuevoEstado).subscribe({
+      next: (response) => {
+        console.log(`[FRONTEND] Respuesta exitosa:`, response);
+        Swal.fire({
+          title: '¡Éxito!',
+          text: `Estado del parámetro actualizado a ${nuevoEstado === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO'}`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: (error: any) => {
+        console.error(`[FRONTEND] Error actualizando estado:`, error);
+        // Revertir el cambio en caso de error
+        param.estado = nuevoEstado === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo actualizar el estado del parámetro',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  }
+
+  actualizarValorParametro(param: any): void {
+    this.parametrosService.actualizarValorParametro(param.id, param.valor).subscribe({
+      next: () => {
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Valor actualizado correctamente',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      },
+      error: (error: any) => {
+        console.error('Error actualizando valor:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo actualizar el valor',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  }
+
+  actualizarMostrarEnDocs(param: any): void {
+    this.parametrosService.actualizarMostrarEnDocs(param.id, param.mostrarEnDocs).subscribe({
+      next: () => {
+        param.mostrarEnDocsOriginal = param.mostrarEnDocs; // Actualizar valor original
+      },
+      error: (error: any) => {
+        console.error('Error actualizando mostrarEnDocs:', error);
+        param.mostrarEnDocs = param.mostrarEnDocsOriginal; // Revertir en caso de error
+      }
     });
   }
 }

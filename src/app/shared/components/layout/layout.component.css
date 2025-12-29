@@ -1,16 +1,7 @@
-/* Contenedor con ancho máximo de 1240px */
+/* Contenedor que ocupa todo el ancho de la pantalla */
 .content-wrapper {
-  max-width: 1240px;
-  margin: 0 auto;
   width: 100%;
   padding: 0 15px;
-}
-
-/* En pantallas mayores a 1240px, agregar padding lateral */
-@media (min-width: 1241px) {
-  .content-wrapper {
-    padding: 0 20px;
-  }
 }
 
 .main-content {

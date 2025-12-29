@@ -98,14 +98,7 @@ export default class LayoutComponent implements OnInit {
       icon: 'file-earmark-text',
       type: 'main_menu',
       id: '2', description: 'Gestión de Facturas', idMPather: null, order: '2', idApplication: ''
-    },
-    { 
-      name: 'Parámetros', 
-      url: '/parametros-globales', 
-      icon: 'gear-fill',
-      type: 'main_menu',
-      id: '4', description: 'Parámetros Globales', idMPather: null, order: '3', idApplication: ''
-    },
+    }
     ].sort((a, b) => parseInt(a.order) - parseInt(b.order));
   }
 
