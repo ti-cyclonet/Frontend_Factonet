@@ -20,6 +20,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   showCreateForm = false;
   showParametros = false;
   nuevoPeriodoForm: FormGroup;
+  nuevoParametroForm: FormGroup;
   nuevoPeriodo = { nombre: '', fechaInicio: '', fechaFin: '' };
   
   parametrosDisponibles: any[] = [];
@@ -40,6 +41,12 @@ export class ParametrosGlobalesComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       fechaInicio: ['', Validators.required],
       fechaFin: ['', Validators.required]
+    });
+    
+    this.nuevoParametroForm = this.fb.group({
+      name: ['', Validators.required],
+      description: ['', Validators.required],
+      dataType: ['', Validators.required]
     });
   }
 
@@ -110,6 +117,73 @@ export class ParametrosGlobalesComponent implements OnInit {
         Swal.fire({
           title: 'Error',
           text: 'No se pudieron guardar los parámetros',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  }
+
+  validateParameterName(): void {
+    const nameControl = this.nuevoParametroForm.get('name');
+    if (nameControl?.value && nameControl.value.trim()) {
+      this.parametrosService.validateParameterName(nameControl.value.trim()).subscribe({
+        next: (exists) => {
+          if (exists) {
+            nameControl.setErrors({ nameExists: true });
+          } else {
+            const currentErrors = nameControl.errors;
+            if (currentErrors) {
+              delete currentErrors['nameExists'];
+              nameControl.setErrors(Object.keys(currentErrors).length ? currentErrors : null);
+            }
+          }
+        },
+        error: () => {
+          // En caso de error, no bloquear la validación
+        }
+      });
+    }
+  }
+
+  crearParametroGlobal(): void {
+    if (this.nuevoParametroForm.invalid) {
+      this.nuevoParametroForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+    const parametroData = {
+      code: this.nuevoParametroForm.value.name.toUpperCase().replace(/\s+/g, '_'),
+      name: this.nuevoParametroForm.value.name,
+      description: this.nuevoParametroForm.value.description,
+      dataType: this.nuevoParametroForm.value.dataType,
+      value: this.nuevoParametroForm.value.dataType === 'number' ? '0' : '',
+      isActive: true
+    };
+    
+    this.parametrosService.crearParametroGlobal(parametroData).subscribe({
+      next: () => {
+        this.loading = false;
+        this.nuevoParametroForm.reset();
+        // NO cerrar el modal para permitir agregar más parámetros
+        // Recargar parámetros disponibles y parámetros del período
+        this.loadAvailableParameters();
+        if (this.periodoSeleccionado) {
+          this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
+        }
+        Swal.fire({
+          title: 'Success!',
+          text: 'Global parameter created successfully',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      },
+      error: (error: any) => {
+        this.loading = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'Could not create global parameter',
           icon: 'error',
           confirmButtonText: 'OK'
         });
@@ -439,7 +513,13 @@ export class ParametrosGlobalesComponent implements OnInit {
   loadAvailableParameters(): void {
     this.parametrosService.getParametrosDisponibles().subscribe({
       next: (parametros) => {
-        this.parametrosDisponibles = parametros.map(p => ({ ...p, selected: false, value: '' }));
+        // Obtener IDs de parámetros ya configurados en el período
+        const parametrosConfigurados = this.parametros.map(p => p.globalParameterId || p.id);
+        
+        // Filtrar parámetros disponibles excluyendo los ya configurados
+        const parametrosFiltrados = parametros.filter(p => !parametrosConfigurados.includes(p.id));
+        
+        this.parametrosDisponibles = parametrosFiltrados.map(p => ({ ...p, selected: false, value: '' }));
         this.aplicarFiltros();
       },
 
@@ -456,6 +536,7 @@ export class ParametrosGlobalesComponent implements OnInit {
 
   agregarParametrosSeleccionados(): void {
     const seleccionados = this.parametrosDisponibles.filter(p => p.selected);
+    
     if (seleccionados.length === 0) {
       Swal.fire({
         title: 'Advertencia',
@@ -485,15 +566,19 @@ export class ParametrosGlobalesComponent implements OnInit {
     }));
     
     this.parametrosService.agregarParametrosAPeriodo(this.periodoSeleccionado.id, parametrosConValor).subscribe({
-      next: () => {
-        // Cerrar modal
-        const modal = document.getElementById('addParameterModal');
-        if (modal) {
-          const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
-          if (bootstrapModal) bootstrapModal.hide();
-        }
+      next: (response) => {
+        // Limpiar selecciones y valores
+        this.parametrosDisponibles.forEach(p => {
+          if (p.selected) {
+            p.selected = false;
+            p.value = '';
+          }
+        });
+        this.aplicarFiltros();
         // Recargar parámetros del período
         this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
+        // Volver al modal anterior
+        this.volverAConfigureParameters();
         Swal.fire({
           title: '¡Éxito!',
           text: `${seleccionados.length} parámetros agregados correctamente`,
@@ -502,7 +587,6 @@ export class ParametrosGlobalesComponent implements OnInit {
         });
       },
       error: (error: any) => {
-
         Swal.fire({
           title: 'Error',
           text: 'No se pudieron agregar los parámetros',
@@ -521,6 +605,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         // Mapear los datos del backend al formato esperado por el template
         this.parametros = parametros.map(param => ({
           id: param.id,
+          globalParameterId: param.globalParameter.id,
           nombre: param.globalParameter.name,
           valor: param.value,
           valorOriginal: param.value, // Guardar valor original para cancelar
@@ -569,6 +654,24 @@ export class ParametrosGlobalesComponent implements OnInit {
         });
       }
     });
+  }
+
+  volverAConfigureParameters(): void {
+    // Cerrar modal Add Parameters
+    const addModal = document.getElementById('addParameterModal');
+    if (addModal) {
+      const bootstrapModal = (window as any).bootstrap.Modal.getInstance(addModal);
+      if (bootstrapModal) bootstrapModal.hide();
+    }
+    
+    // Abrir modal Configure Parameters
+    setTimeout(() => {
+      const configModal = document.getElementById('parametersModal');
+      if (configModal) {
+        const bootstrapModal = new (window as any).bootstrap.Modal(configModal);
+        bootstrapModal.show();
+      }
+    }, 300);
   }
 
   actualizarValorParametro(param: any): void {

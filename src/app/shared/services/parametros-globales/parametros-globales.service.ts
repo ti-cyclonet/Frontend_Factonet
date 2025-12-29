@@ -34,6 +34,14 @@ export class ParametrosGlobalesService {
     return this.http.post<any>(`${this.apiUrl}/api/periods/${periodoId}/parameters`, { parametros });
   }
 
+  validateParameterName(name: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/api/periods/global-parameters/validate-name?name=${encodeURIComponent(name)}`);
+  }
+
+  crearParametroGlobal(parametro: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/periods/global-parameters`, parametro);
+  }
+
   crearPeriodo(periodo: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/api/periods`, periodo);
   }

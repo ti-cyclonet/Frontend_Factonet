@@ -6,7 +6,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth.service';
 import { UserDataService, UserData } from '../../services/user/user-data.service';
 import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service';
-import { FactonetService } from '../../services/factonet/factonet.service'; 
+import { FactonetService } from '../../services/factonet/factonet.service';
+import { NavbarComponent } from '../navbar/navbar.component'; 
 
 @Component({
   selector: 'app-header',
@@ -15,7 +16,8 @@ import { FactonetService } from '../../services/factonet/factonet.service';
     CommonModule,     
     RouterModule,     
     FormsModule,      
-    ReactiveFormsModule, 
+    ReactiveFormsModule,
+    NavbarComponent
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -24,6 +26,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobile: boolean = false;
   dropdownOpen: boolean = false;
   private resizeListener: any;
+  window = window;
 
   @Input() optionsMenu: OptionMenu[] = []; 
   

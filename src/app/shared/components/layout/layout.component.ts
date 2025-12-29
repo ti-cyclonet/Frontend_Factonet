@@ -48,14 +48,14 @@ export default class LayoutComponent implements OnInit {
     const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
   
     if (!token || !userRol) {
-      this.loadStaticMenu();
+      this.optionsMenu = [];
       return;
     }
   
     this.applicationsService.getApplicationByNameAndRol(name, userRol).subscribe({
       next: (app) => {
         if (!app) {
-          this.loadStaticMenu();
+          this.optionsMenu = [];
           return;
         }
   
@@ -75,44 +75,29 @@ export default class LayoutComponent implements OnInit {
           })) || []
         ) || [];
 
+        // Eliminar duplicados por ID
+        const uniqueMenus = new Map();
+        this.optionsMenu.forEach(menu => {
+          uniqueMenus.set(menu.id, menu);
+        });
+        this.optionsMenu = Array.from(uniqueMenus.values());
+
         // Ordenar por ingOrder numérico
         this.optionsMenu.sort((a, b) => parseInt(a.order) - parseInt(b.order));
 
         if (this.optionsMenu.length === 0) {
-          this.loadStaticMenu();
+          // Si no hay opciones del backend, no cargar menú estático
+          this.optionsMenu = [];
         }
       },
       error: (err) => {
-        this.loadStaticMenu();
+        // En caso de error, no cargar menú estático
+        this.optionsMenu = [];
       }
     });
   }
 
-  private loadStaticMenu(): void {
-    this.optionsMenu = [
-      { 
-      name: 'Contratos', 
-      url: '/contracts', 
-      icon: 'journal-richtext',
-      type: 'main_menu',
-      id: '3', description: 'Gestión de Contratos', idMPather: null, order: '1', idApplication: ''
-    },
-    { 
-      name: 'Facturas', 
-      url: '/invoices', 
-      icon: 'file-earmark-text',
-      type: 'main_menu',
-      id: '2', description: 'Gestión de Facturas', idMPather: null, order: '2', idApplication: ''
-    },
-    { 
-      name: 'Parámetros Globales', 
-      url: '/parametros-globales', 
-      icon: 'gear',
-      type: 'main_menu',
-      id: '4', description: 'Gestión de Parámetros Globales', idMPather: null, order: '3', idApplication: ''
-    }
-    ].sort((a, b) => parseInt(a.order) - parseInt(b.order));
-  }
+
 
   checkActivePeriod(): void {
     if (!this.isUserLoggedIn()) return;

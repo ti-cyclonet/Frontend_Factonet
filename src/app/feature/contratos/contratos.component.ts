@@ -2,6 +2,17 @@ import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 
+// Pipe personalizado para reemplazar
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({name: 'replace', standalone: true})
+export class ReplacePipe implements PipeTransform {
+  transform(value: string | null, search: string, replacement: string): string {
+    if (!value) return '';
+    return value.replace(new RegExp(search, 'g'), replacement);
+  }
+}
+
 // Interface para un tipado estricto
 interface Contrato {
     id: string;
@@ -25,13 +36,14 @@ interface Contrato {
     payday: number;
     startDate: string;
     endDate: string;
-    status: 'ACTIVE' | 'EXPIRED' | 'PENDING'; 
+    status: 'ACTIVE' | 'EXPIRED' | 'PENDING';
+    mode?: string;
 }
 
 @Component({
   selector: 'app-contratos', 
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReplacePipe],
   templateUrl: './contratos.component.html', 
   styleUrls: ['./contratos.component.css'] 
 })
@@ -97,13 +109,10 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Simula la acción de edición.
+    * Muestra los detalles del contrato en el modal.
     */
-  onEditContrato() {
-    const contrato = this.selectedContrato();
-    if (contrato) {
-        this.showToast(`ACCESSING RECORD: ${contrato.id}. (Edit Simulation)`, 'primary', 'A', 0);
-    }
+  viewContrato(contrato: Contrato) {
+    this.selectedContrato.set(contrato);
   }
 
 

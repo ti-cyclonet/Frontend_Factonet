@@ -66,10 +66,10 @@
 /* ------------------------------------------------ */
 
 .main-navbar {
-    background-color: var(--navbar-background-color, #2782d8bb); 
+    background-color: var(--header-background-color, #2782d8bb); 
     padding: 0; 
-    height: 35px; 
-    margin-bottom: 6px; 
+    height: 50px; 
+    margin-bottom: 0; 
     align-items: center;
     width: 100%;
 }
@@ -374,4 +374,28 @@
 .header-content-wrapper {
     width: 100%;
     padding: 0 15px;
+}
+
+/* Responsive para Parámetros Globales */
+@media (max-width: 575px) {
+    .nav-link.hide-on-mobile {
+        display: none !important;
+    }
+}
+
+@media (min-width: 576px) {
+    .show-on-mobile {
+        display: none !important;
+    }
+}
+
+/* Forzar ocultación en móvil */
+.nav-link.hide-on-mobile {
+    display: flex;
+}
+
+@media (max-width: 575px) {
+    .nav-link.hide-on-mobile {
+        display: none !important;
+    }
 }

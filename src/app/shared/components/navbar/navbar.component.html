@@ -6,7 +6,7 @@
         *ngFor="let option of optionsMenu; trackBy: trackByOptionId" 
         [routerLink]="option.url" 
         routerLinkActive="active" 
-        class="nav-link mx-2"
+        class="nav-link mx-2 d-none d-sm-flex"
     >
         <svg class="me-1" width="16" height="16" fill="currentColor">
             <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + option.icon" />

@@ -2,7 +2,7 @@
   <div class="outer-container">
     <!-- Título -->
     <div class="inner-container">
-      <h3 class="card-title mb-0">Lista de Contratos</h3>
+      <h3 class="card-title mb-0">Contracts List</h3>
     </div>
     
     <!-- Tabla de contratos -->
@@ -13,12 +13,12 @@
             <tr>
               <th>Code</th>
               <th>User</th>
-              <th>Package</th>
-              <th>Value</th>
+              <th class="d-none d-md-table-cell">Package</th>
+              <th class="d-none d-md-table-cell">Value</th>
               <th class="d-none d-md-table-cell">Pay Day</th>
               <th class="d-none d-md-table-cell">Start Date</th>
-              <th>End Date</th>
-              <th>Status</th>
+              <th class="d-none d-md-table-cell">End Date</th>
+              <th class="d-none d-md-table-cell">Status</th>
               <th class="text-center" style="width: 100px;">Actions</th>
             </tr>
           </thead>
@@ -26,14 +26,14 @@
             <tr *ngFor="let contrato of contratos(); trackBy: trackById" 
                 [class.selected]="selectedContrato() === contrato"
                 (click)="setSelectedContrato(contrato)">
-              <td>{{ contrato.code || contrato.id }}</td>
+              <td><strong>{{ contrato.code || contrato.id }}</strong></td>
               <td>{{ contrato.user.strUserName || 'N/A' }}</td>
-              <td>{{ contrato.package.name || 'N/A' }}</td>
-              <td>{{ contrato.value | number:'1.2-2' }}</td>
+              <td class="d-none d-md-table-cell">{{ contrato.package.name || 'N/A' }}</td>
+              <td class="d-none d-md-table-cell">$ {{ ((+contrato.value || 0) | number:'1.0-0' || '0') | replace:',':'.' }},oo</td>
               <td class="d-none d-md-table-cell">{{ contrato.payday }}</td>
               <td class="d-none d-md-table-cell">{{ contrato.startDate }}</td>
-              <td>{{ contrato.endDate }}</td>
-              <td>
+              <td class="d-none d-md-table-cell">{{ contrato.endDate }}</td>
+              <td class="d-none d-md-table-cell">
                 <span class="badge" [ngClass]="{
                   'bg-success': contrato.status === 'ACTIVE',
                   'bg-danger': contrato.status === 'EXPIRED',
@@ -42,14 +42,9 @@
               </td>
               <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
-                  <button type="button" class="btn-icon" title="Ver detalles">
+                  <button type="button" class="btn-icon" data-bs-toggle="modal" data-bs-target="#viewContractModal" (click)="viewContrato(contrato)" title="Ver detalles">
                     <svg width="16" height="16" fill="currentColor" class="text-primary">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
-                    </svg>
-                  </button>
-                  <button type="button" class="btn-icon" (click)="onEditContrato()" title="Editar">
-                    <svg width="16" height="16" fill="currentColor" class="text-primary">
-                      <use xlink:href="./assets/icons/bootstrap-icons.svg#pencil" />
                     </svg>
                   </button>
                   <button type="button" class="btn-icon" (click)="openDeleteConfirmationModal()" title="Eliminar">
@@ -61,10 +56,66 @@
               </td>
             </tr>
             <tr *ngIf="contratos().length === 0">
-              <td colspan="9" class="text-center">No hay contratos disponibles</td>
+              <td colspan="3" class="text-center d-md-none">No hay contratos disponibles</td>
+              <td colspan="9" class="text-center d-none d-md-table-cell">No hay contratos disponibles</td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ver detalles del contrato -->
+<div class="modal fade" id="viewContractModal" tabindex="-1" aria-labelledby="viewContractModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewContractModalLabel">Detalles del Contrato</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="card" *ngIf="selectedContrato()">
+          <div class="card-header">
+            <h6 class="card-title mb-0"><strong>{{ selectedContrato()?.code || selectedContrato()?.id }}</strong></h6>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Usuario:</strong> {{ selectedContrato()?.user?.strUserName || 'N/A' }}</p>
+                <p><strong>Paquete:</strong> {{ selectedContrato()?.package?.name || 'N/A' }}</p>
+                <p><strong>Descripción:</strong> {{ selectedContrato()?.package?.description || 'N/A' }}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Valor:</strong> $ {{ ((+(selectedContrato()?.value || 0)) | number:'1.0-0' || '0') | replace:',':'.' }},oo</p>
+                <p><strong>Día de Pago:</strong> {{ selectedContrato()?.payday }}</p>
+                <p><strong>Modalidad:</strong> {{ selectedContrato()?.mode || 'N/A' }}</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Fecha Inicio:</strong> {{ selectedContrato()?.startDate | date:'dd/MM/yyyy' }}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Fecha Fin:</strong> {{ selectedContrato()?.endDate | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <p><strong>Estado:</strong> 
+                  <span class="badge" [ngClass]="{
+                    'bg-success': selectedContrato()?.status === 'ACTIVE',
+                    'bg-danger': selectedContrato()?.status === 'EXPIRED',
+                    'bg-warning': selectedContrato()?.status === 'PENDING'
+                  }">{{ selectedContrato()?.status }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { OptionMenu } from '../../model/option_menu';
@@ -10,9 +10,22 @@ import { OptionMenu } from '../../model/option_menu';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit, OnChanges {
   @Input() optionsMenu: OptionMenu[] = [];
   showToolbox: boolean = false;
+
+  ngOnInit() {
+    console.log('Opciones en navbar ngOnInit:', this.optionsMenu);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['optionsMenu']) {
+      console.log('Opciones cambiaron en navbar:', this.optionsMenu);
+      console.log('Cantidad de opciones:', this.optionsMenu.length);
+      const parametersCount = this.optionsMenu.filter(opt => opt.url === '/parametros-globales').length;
+      console.log('Cantidad de Parameters:', parametersCount);
+    }
+  }
 
   toggleToolbox(event: Event) {
     event.preventDefault();
