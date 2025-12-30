@@ -7,6 +7,7 @@ export interface Contract {
   startDate: string;
   endDate: string;
   status: string;
+  pdfUrl?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

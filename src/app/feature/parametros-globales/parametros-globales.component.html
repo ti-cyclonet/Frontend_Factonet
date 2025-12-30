@@ -8,15 +8,15 @@
     <div class="inner-container" [class.disabled]="showParametros">
       <!-- Filtros -->
       <div class="row mb-3">
-        <div class="col-md-4">
+        <div class="col-md-4 mb-2 mb-md-0">
           <input type="text" class="form-control" [(ngModel)]="filtroNombrePeriodo" 
                  placeholder="Search by name..." (input)="aplicarFiltrosPeriodos()">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-2 mb-md-0">
           <input type="date" class="form-control" [(ngModel)]="filtroFecha" 
                  placeholder="Date within period" (change)="aplicarFiltrosPeriodos()">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-2 mb-2 mb-md-0">
           <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltrosPeriodos()">
             Clear
           </button>

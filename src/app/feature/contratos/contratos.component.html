@@ -15,9 +15,10 @@
               <th>User</th>
               <th class="d-none d-md-table-cell">Package</th>
               <th class="d-none d-md-table-cell">Value</th>
-              <th class="d-none d-md-table-cell">Pay Day</th>
-              <th class="d-none d-md-table-cell">Start Date</th>
-              <th class="d-none d-md-table-cell">End Date</th>
+              <th class="d-none d-xl-table-cell">Mode</th>
+              <th class="d-none d-xl-table-cell">Pay Day</th>
+              <th class="d-none d-xl-table-cell">Start Date</th>
+              <th class="d-none d-xl-table-cell">End Date</th>
               <th class="d-md-none">Status</th>
               <th class="d-none d-md-table-cell">Status</th>
               <th class="text-center" style="width: 100px;">Actions</th>
@@ -31,9 +32,10 @@
               <td>{{ contrato.user.strUserName || 'N/A' }}</td>
               <td class="d-none d-md-table-cell">{{ contrato.package.name || 'N/A' }}</td>
               <td class="d-none d-md-table-cell">$ {{ ((+contrato.value || 0) | number:'1.0-0' || '0') | replace:',':'.' }},oo</td>
-              <td class="d-none d-md-table-cell">{{ contrato.payday }}</td>
-              <td class="d-none d-md-table-cell">{{ contrato.startDate }}</td>
-              <td class="d-none d-md-table-cell">{{ contrato.endDate }}</td>
+              <td class="d-none d-xl-table-cell">{{ contrato.mode || 'N/A' }}</td>
+              <td class="d-none d-xl-table-cell">{{ contrato.payday }}</td>
+              <td class="d-none d-xl-table-cell">{{ contrato.startDate }}</td>
+              <td class="d-none d-xl-table-cell">{{ contrato.endDate }}</td>
               <td class="d-md-none">
                 <span class="badge" [ngClass]="{
                   'bg-success': contrato.status === 'ACTIVE',
@@ -55,6 +57,12 @@
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
                     </svg>
                   </button>
+                  <button type="button" class="btn-icon" (click)="generateContractPDF(contrato)" [disabled]="generatingPDF()" [title]="contrato.pdfUrl ? 'Ver/Descargar PDF' : 'Generar contrato PDF'">
+                    <span *ngIf="generatingPDF()" class="spinner-border spinner-border-sm text-success"></span>
+                    <svg *ngIf="!generatingPDF()" width="16" height="16" fill="currentColor" [class]="contrato.pdfUrl ? 'text-primary' : 'text-success'">
+                      <use [attr.xlink:href]="contrato.pdfUrl ? './assets/icons/bootstrap-icons.svg#file-earmark-pdf-fill' : './assets/icons/bootstrap-icons.svg#file-earmark-pdf'" />
+                    </svg>
+                  </button>
                   <button type="button" class="btn-icon" (click)="openDeleteConfirmationModal()" title="Eliminar">
                     <svg width="16" height="16" fill="currentColor" class="text-danger">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#trash" />
@@ -65,7 +73,7 @@
             </tr>
             <tr *ngIf="contratos().length === 0">
               <td colspan="3" class="text-center d-md-none">No hay contratos disponibles</td>
-              <td colspan="10" class="text-center d-none d-md-table-cell">No hay contratos disponibles</td>
+              <td colspan="9" class="text-center d-none d-md-table-cell">No hay contratos disponibles</td>
             </tr>
           </tbody>
         </table>

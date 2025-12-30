@@ -29,6 +29,7 @@
     "bootstrap-icons": "^1.11.3",
     "express": "^4.18.2",
     "glob": "^11.0.0",
+    "jspdf": "^3.0.4",
     "ngx-cookie-service": "^19.1.2",
     "rimraf": "^6.0.1",
     "rxjs": "~7.8.0",

@@ -1,7 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
+import { ContractPdfService } from '../../shared/services/contract-pdf.service';
 import { Contract } from '../../shared/model/contract.model';
+import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
 
 // Pipe personalizado para reemplazar
 import { Pipe, PipeTransform } from '@angular/core';
@@ -47,7 +50,8 @@ export class ContratosComponent implements OnInit {
 
   constructor(
     private cdr: ChangeDetectorRef,
-    private factonetService: FactonetService
+    private factonetService: FactonetService,
+    private contractPdfService: ContractPdfService
   ) { 
     // Las signals reemplazan la necesidad de inicializar arrays vacíos aquí
   }
@@ -63,6 +67,13 @@ export class ContratosComponent implements OnInit {
     this.factonetService.getContracts().subscribe({
       next: (contratos) => {
         this.contratos.set(contratos || []);
+        // Limpiar y actualizar contratos con PDF
+        this.contractsWithPDF.clear();
+        contratos?.forEach(contrato => {
+          if (contrato.pdfUrl) {
+            this.contractsWithPDF.add(contrato.id);
+          }
+        });
         if (contratos && contratos.length > 0) {
           this.showToast('Contratos cargados correctamente', 'success', 'A', 0);
         } else {
@@ -92,6 +103,12 @@ export class ContratosComponent implements OnInit {
   
   // Controla la visibilidad de la información detallada del paquete
   showPackageDetails = signal(false);
+  
+  // Controla el estado de generación de PDF
+  generatingPDF = signal(false);
+  
+  // Almacena los contratos que ya tienen PDF generado
+  contractsWithPDF = new Set<string>();
 
   /**
     * Muestra los detalles del contrato en el modal.
@@ -125,6 +142,344 @@ export class ContratosComponent implements OnInit {
     */
   togglePackageDetails() {
     this.showPackageDetails.update(current => !current);
+  }
+
+  /**
+    * Genera y descarga el contrato en PDF.
+    */
+  generateContractPDF(contrato: Contract) {
+    // Si ya existe el PDF en Cloudinary, mostrar opciones directamente
+    if (contrato.pdfUrl) {
+      this.showPDFOptions(contrato);
+      return;
+    }
+    
+    // Si no existe PDF, generarlo
+    this.generatingPDF.set(true);
+    
+    Swal.fire({
+      title: 'Generando PDF...',
+      text: `Creando contrato para ${contrato.code || contrato.id}`,
+      icon: 'info',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    // Generar PDF y subirlo al servidor
+    this.generateAndUploadPDF(contrato).then(() => {
+      this.generatingPDF.set(false);
+      // Recargar contratos para obtener la URL actualizada
+      this.loadContratos();
+      // Mostrar opciones con el contrato actualizado
+      setTimeout(() => {
+        const contratoActualizado = this.contratos().find(c => c.id === contrato.id);
+        if (contratoActualizado) {
+          this.showPDFOptions(contratoActualizado);
+        }
+      }, 1000);
+    }).catch(error => {
+      this.generatingPDF.set(false);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo generar el PDF',
+        icon: 'error'
+      });
+    });
+  }
+
+  /**
+    * Muestra las opciones disponibles para el PDF.
+    */
+  private showPDFOptions(contrato: Contract) {
+    Swal.fire({
+      title: '¡PDF Disponible!',
+      text: `Contrato ${contrato.code || contrato.id} listo`,
+      icon: 'success',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Ver PDF',
+      denyButtonText: 'Descargar',
+      cancelButtonText: 'Cerrar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Siempre usar modal HTML local
+        this.viewContractPDF(contrato);
+      } else if (result.isDenied) {
+        this.downloadContractPDF(contrato);
+      }
+    });
+  }
+
+  /**
+    * Muestra el contrato PDF en un modal.
+    */
+  private viewContractPDF(contrato: Contract) {
+    const contractContent = this.generateContractHTML(contrato);
+    
+    Swal.fire({
+      title: `Contrato ${contrato.code || contrato.id}`,
+      html: contractContent,
+      width: '80%',
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        popup: 'contract-modal'
+      }
+    });
+  }
+
+  /**
+    * Genera el contenido HTML del contrato.
+    */
+  private generateContractHTML(contrato: Contract): string {
+    const clientName = contrato.user.basicData?.legalEntityData?.businessName || 
+                      `${contrato.user.basicData?.naturalPersonData?.firstName || ''} ${contrato.user.basicData?.naturalPersonData?.firstSurname || ''}`.trim() ||
+                      contrato.user.strUserName;
+    
+    const contactInfo = contrato.user.basicData?.legalEntityData ? `
+      <strong>Representante Legal:</strong> ${contrato.user.basicData.legalEntityData.contactName}<br>
+      <strong>Email:</strong> ${contrato.user.basicData.legalEntityData.contactEmail}<br>
+      <strong>Teléfono:</strong> ${contrato.user.basicData.legalEntityData.contactPhone}<br>
+      ${contrato.user.basicData.legalEntityData.webSite ? `<strong>Sitio Web:</strong> ${contrato.user.basicData.legalEntityData.webSite}<br>` : ''}
+    ` : `<strong>Email:</strong> ${contrato.user.strUserName}<br>`;
+
+    const configurations = contrato.package.configurations?.map(config => 
+      `• ${config.totalAccount} cuentas ${config.rol.strName} a $${config.price} c/u`
+    ).join('<br>') || 'No disponible';
+
+    return `
+      <div style="text-align: center; margin-bottom: 40px;">
+        <img src="assets/img/Cyclonet_nit.png" alt="Cyclonet Logo" style="max-width: 280px; height: auto; margin-bottom: 30px;">
+      </div>
+      <h3 style="text-align: center; margin-bottom: 30px;">CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS</h3>
+      
+      <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+        <h4 style="color: #2c3e50; margin-bottom: 15px;">PROVEEDOR:</h4>
+        <p><strong>Cyclonet S. A. S.</strong><br>
+        NIT: 901515884-4<br>
+        Dirección: Bonanza, Mz 23 Lt 30 (Turbaco - Bolívar)<br>
+        Teléfono: 314 414 4986 - 321 898 5475<br>
+        Email: ti.cyclonet@hotmail.com<br>
+        Sitio web: https://www.cyclonet.com.co/</p>
+      </div>
+      
+      <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f0f8ff;">
+        <h4 style="color: #2c3e50; margin-bottom: 15px;">CLIENTE:</h4>
+        <p><strong>${clientName}</strong><br>
+        ${contactInfo}</p>
+      </div>
+      
+      <h4>1. OBJETO DEL CONTRATO</h4>
+      <p>Prestación de servicios SaaS "${contrato.package.name}"<br>
+      <strong>Descripción:</strong> ${contrato.package.description}<br>
+      <strong>Configuración:</strong><br>${configurations}</p>
+      
+      <h4>2. VALOR Y FORMA DE PAGO</h4>
+      <p><strong>Valor total:</strong> $${contrato.value}<br>
+      <strong>Modalidad:</strong> ${contrato.mode}<br>
+      ${contrato.payday ? `<strong>Día de pago:</strong> ${contrato.payday}<br>` : ''}</p>
+      
+      <h4>3. VIGENCIA</h4>
+      <p><strong>Fecha de inicio:</strong> ${contrato.startDate}<br>
+      <strong>Fecha de finalización:</strong> ${contrato.endDate}<br>
+      <strong>Estado:</strong> ${contrato.status}</p>
+      
+      <h4>4. OBLIGACIONES DEL PROVEEDOR</h4>
+      <p>• Garantizar disponibilidad del servicio 24/7<br>
+      • Proporcionar soporte técnico<br>
+      • Mantener seguridad y confidencialidad de datos</p>
+      
+      <h4>5. OBLIGACIONES DEL CLIENTE</h4>
+      <p>• Realizar pagos en fechas acordadas<br>
+      • Usar el servicio conforme a términos establecidos<br>
+      • No compartir credenciales con terceros</p>
+    `;
+  }
+
+  /**
+    * Formatea valores monetarios al formato colombiano.
+    */
+  private formatCurrency(value: string | number): string {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    return numValue.toLocaleString('es-CO').replace(/,/g, '.') + ',oo';
+  }
+
+  /**
+    * Genera el PDF y lo sube al servidor.
+    */
+  private async generateAndUploadPDF(contrato: Contract): Promise<void> {
+    const pdf = new jsPDF();
+    
+    // Generar PDF simple sin logo para evitar recursión
+    pdf.setFontSize(16);
+    pdf.text('CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS', 20, 30);
+    pdf.setFontSize(14);
+    pdf.text(`CONTRATO No. ${contrato.code || contrato.id}`, 20, 50);
+    
+    pdf.setFontSize(12);
+    pdf.text('PROVEEDOR:', 20, 80);
+    pdf.text('Cyclonet S. A. S.', 20, 90);
+    pdf.text('NIT: 901515884-4', 20, 100);
+    
+    pdf.text('CLIENTE:', 20, 130);
+    pdf.text(`${contrato.user.strUserName}`, 20, 140);
+    
+    pdf.text('PAQUETE:', 20, 170);
+    pdf.text(`${contrato.package.name}`, 20, 180);
+    
+    pdf.text('VALOR:', 20, 210);
+    pdf.text(`$${contrato.value}`, 20, 220);
+    
+    // Convertir a buffer y subir
+    const pdfBuffer = pdf.output('arraybuffer');
+    const base64PDF = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
+    
+    return new Promise((resolve, reject) => {
+      this.contractPdfService.uploadContractPDF(contrato.id, base64PDF).subscribe({
+        next: (result) => {
+          console.log('PDF subido exitosamente:', result.pdfUrl);
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error subiendo PDF:', error);
+          reject(error);
+        }
+      });
+    });
+  }
+
+  /**
+    * Genera el contenido del PDF (extraído para reutilización).
+    */
+  private generatePDFContent(pdf: jsPDF, contrato: Contract, logoImg: HTMLImageElement): void {
+    // Logo
+    const logoWidth = 70;
+    const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
+    const logoX = (pdf.internal.pageSize.getWidth() - logoWidth) / 2;
+    
+    pdf.addImage(logoImg, 'PNG', logoX, 10, logoWidth, logoHeight);
+    
+    // Título
+    pdf.setFontSize(16);
+    pdf.text('CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS', 20, logoHeight + 25);
+    
+    pdf.setFontSize(14);
+    pdf.text(`CONTRATO No. ${contrato.code || contrato.id}`, 20, logoHeight + 40);
+    
+    let yPosition = logoHeight + 60;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    
+    const checkNewPage = (requiredSpace: number) => {
+      if (yPosition + requiredSpace > pageHeight - margin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+    };
+    
+    // Proveedor
+    checkNewPage(80);
+    pdf.setFontSize(12);
+    pdf.text('PROVEEDOR:', 20, yPosition);
+    pdf.text('Cyclonet S. A. S.', 20, yPosition + 10);
+    pdf.text('NIT: 901515884-4', 20, yPosition + 20);
+    pdf.text('Dirección: Bonanza, Mz 23 Lt 30 (Turbaco - Bolívar)', 20, yPosition + 30);
+    pdf.text('Teléfono: 314 414 4986 - 321 898 5475', 20, yPosition + 40);
+    pdf.text('Email: ti.cyclonet@hotmail.com', 20, yPosition + 50);
+    pdf.text('Sitio web: https://www.cyclonet.com.co/', 20, yPosition + 60);
+    
+    yPosition += 80;
+    
+    // Cliente
+    const clientName = contrato.user.basicData?.legalEntityData?.businessName || 
+                      `${contrato.user.basicData?.naturalPersonData?.firstName || ''} ${contrato.user.basicData?.naturalPersonData?.firstSurname || ''}`.trim() ||
+                      contrato.user.strUserName;
+    
+    checkNewPage(60);
+    pdf.line(20, yPosition - 5, 190, yPosition - 5);
+    
+    pdf.text('CLIENTE:', 20, yPosition);
+    pdf.text(clientName, 20, yPosition + 10);
+    pdf.text(`Email: ${contrato.user.strUserName}`, 20, yPosition + 20);
+    
+    if (contrato.user.basicData?.legalEntityData) {
+      pdf.text(`Representante: ${contrato.user.basicData.legalEntityData.contactName}`, 20, yPosition + 30);
+      pdf.text(`Teléfono: ${contrato.user.basicData.legalEntityData.contactPhone}`, 20, yPosition + 40);
+      yPosition += 20;
+    }
+    
+    yPosition += 40;
+    pdf.line(20, yPosition, 190, yPosition);
+    
+    // Contenido del contrato
+    yPosition += 20;
+    checkNewPage(40);
+    pdf.text('1. OBJETO DEL CONTRATO', 20, yPosition);
+    pdf.text(`Servicio: ${contrato.package.name}`, 20, yPosition + 10);
+    
+    const description = contrato.package.description || 'Sin descripción';
+    const descLines = pdf.splitTextToSize(`Descripción: ${description}`, 170);
+    checkNewPage(descLines.length * 10 + 20);
+    pdf.text(descLines, 20, yPosition + 20);
+    yPosition += descLines.length * 10 + 30;
+    
+    checkNewPage(40);
+    pdf.text('2. VALOR Y FORMA DE PAGO', 20, yPosition);
+    pdf.text(`Valor total: $${contrato.value}`, 20, yPosition + 10);
+    pdf.text(`Modalidad: ${contrato.mode}`, 20, yPosition + 20);
+    if (contrato.payday) {
+      pdf.text(`Día de pago: ${contrato.payday}`, 20, yPosition + 30);
+      yPosition += 10;
+    }
+    
+    yPosition += 40;
+    checkNewPage(40);
+    pdf.text('3. VIGENCIA', 20, yPosition);
+    pdf.text(`Fecha de inicio: ${contrato.startDate}`, 20, yPosition + 10);
+    pdf.text(`Fecha de finalización: ${contrato.endDate}`, 20, yPosition + 20);
+    pdf.text(`Estado: ${contrato.status}`, 20, yPosition + 30);
+    
+    yPosition += 50;
+    checkNewPage(60);
+    pdf.text('4. OBLIGACIONES DEL PROVEEDOR', 20, yPosition);
+    pdf.text('• Garantizar disponibilidad del servicio 24/7', 20, yPosition + 10);
+    pdf.text('• Proporcionar soporte técnico', 20, yPosition + 20);
+    pdf.text('• Mantener seguridad y confidencialidad de datos', 20, yPosition + 30);
+    
+    yPosition += 50;
+    checkNewPage(60);
+    pdf.text('5. OBLIGACIONES DEL CLIENTE', 20, yPosition);
+    pdf.text('• Realizar pagos en fechas acordadas', 20, yPosition + 10);
+    pdf.text('• Usar el servicio conforme a términos establecidos', 20, yPosition + 20);
+    pdf.text('• No compartir credenciales con terceros', 20, yPosition + 30);
+    
+    yPosition += 50;
+    checkNewPage(60);
+    pdf.text('FIRMAS:', 20, yPosition);
+    pdf.text('_________________________', 20, yPosition + 30);
+    pdf.text('CYCLONET S.A.S.', 20, yPosition + 40);
+    pdf.text('Representante Legal', 20, yPosition + 50);
+    
+    pdf.text('_________________________', 120, yPosition + 30);
+    pdf.text('CLIENTE', 120, yPosition + 40);
+    pdf.text(clientName, 120, yPosition + 50);
+  }
+
+
+
+  private downloadContractPDF(contrato: Contract) {
+    const pdf = new jsPDF();
+    
+    const logoImg = new Image();
+    logoImg.onload = () => {
+      this.generatePDFContent(pdf, contrato, logoImg);
+      pdf.save(`Contrato_${contrato.code || contrato.id}.pdf`);
+    };
+    
+    logoImg.src = 'assets/img/Cyclonet_nit.png';
   }
 
 

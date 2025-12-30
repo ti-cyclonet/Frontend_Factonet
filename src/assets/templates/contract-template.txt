@@ -1,0 +1,80 @@
+[LOGO CYCLONET]
+
+CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS
+CONTRATO No. {{contract.code}}
+
+ENTRE:
+
+PROVEEDOR: Cyclonet S. A. S.
+NIT: 901515884-4
+Dirección: Bonanza, Mz 23 Lt 30 (Turbaco - Bolívar)
+Teléfono: 314 414 4986 - 321 898 5475
+Email: ti.cyclonet@hotmail.com
+Sitio web: https://www.cyclonet.com.co/
+
+Y
+
+CLIENTE: {{contract.user.basicData.legalEntityData.businessName || contract.user.basicData.naturalPersonData.firstName + ' ' + contract.user.basicData.naturalPersonData.firstSurname}}
+{{#if contract.user.basicData.legalEntityData}}
+NIT/CC: [Documento de identificación]
+Representante Legal: {{contract.user.basicData.legalEntityData.contactName}}
+Email: {{contract.user.basicData.legalEntityData.contactEmail}}
+Teléfono: {{contract.user.basicData.legalEntityData.contactPhone}}
+Sitio Web: {{contract.user.basicData.legalEntityData.webSite}}
+{{else}}
+CC: [Documento de identificación]
+Email: {{contract.user.strUserName}}
+{{/if}}
+
+CLÁUSULAS:
+
+1. OBJETO DEL CONTRATO
+El proveedor se compromete a brindar acceso al servicio de aplicación SaaS denominado "{{contract.package.name}}" con las siguientes características:
+- Descripción: {{contract.package.description}}
+- Configuración del paquete:
+{{#each contract.package.configurations}}
+  • {{this.totalAccount}} cuentas de tipo {{this.rol.strName}} a ${{this.price}} c/u
+{{/each}}
+
+2. VALOR Y FORMA DE PAGO
+- Valor total del contrato: ${{contract.value}}
+- Modalidad de pago: {{contract.mode}}
+{{#if contract.payday}}
+- Día de pago mensual: {{contract.payday}}
+{{/if}}
+
+3. VIGENCIA
+- Fecha de inicio: {{contract.startDate}}
+- Fecha de finalización: {{contract.endDate}}
+- Estado actual: {{contract.status}}
+
+4. OBLIGACIONES DEL PROVEEDOR
+- Garantizar la disponibilidad del servicio 24/7
+- Proporcionar soporte técnico
+- Mantener la seguridad y confidencialidad de los datos
+- Realizar respaldos periódicos de la información
+
+5. OBLIGACIONES DEL CLIENTE
+- Realizar los pagos en las fechas acordadas
+- Usar el servicio conforme a los términos establecidos
+- No compartir credenciales de acceso con terceros
+- Reportar cualquier incidencia o problema técnico
+
+6. TERMINACIÓN DEL CONTRATO
+El contrato podrá terminarse por:
+- Vencimiento del plazo establecido
+- Incumplimiento de las obligaciones por cualquiera de las partes
+- Mutuo acuerdo entre las partes
+
+7. CONFIDENCIALIDAD
+Ambas partes se comprometen a mantener la confidencialidad de la información intercambiada durante la vigencia del contrato.
+
+8. LEGISLACIÓN APLICABLE
+Este contrato se rige por las leyes de [País/Región].
+
+Firmado en [Ciudad] el [Fecha]
+
+_________________________                    _________________________
+PROVEEDOR                                    CLIENTE
+[Nombre y cargo]                             {{contract.user.basicData.legalEntityData.contactName || contract.user.basicData.naturalPersonData.firstName + ' ' + contract.user.basicData.naturalPersonData.firstSurname}}
+[Documento]                                  [Documento]
