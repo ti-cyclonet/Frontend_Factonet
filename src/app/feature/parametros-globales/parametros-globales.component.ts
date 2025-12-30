@@ -21,6 +21,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   showParametros = false;
   nuevoPeriodoForm: FormGroup;
   nuevoParametroForm: FormGroup;
+  nuevoSubperiodoForm: FormGroup;
   nuevoPeriodo = { nombre: '', fechaInicio: '', fechaFin: '' };
   
   parametrosDisponibles: any[] = [];
@@ -48,6 +49,12 @@ export class ParametrosGlobalesComponent implements OnInit {
       description: ['', Validators.required],
       dataType: ['', Validators.required]
     });
+    
+    this.nuevoSubperiodoForm = this.fb.group({
+      nombre: ['', Validators.required],
+      fechaInicio: ['', Validators.required],
+      fechaFin: ['', Validators.required]
+    });
   }
 
   ngOnInit(): void {
@@ -67,8 +74,12 @@ export class ParametrosGlobalesComponent implements OnInit {
           nombre: periodo.name || periodo.code || `Período ${periodo.id.substring(0, 8)}`,
           fechaInicio: periodo.startDate,
           fechaFin: periodo.endDate,
-          activo: periodo.status === 'ACTIVE'
+          activo: periodo.status === 'ACTIVE',
+          parentPeriodId: periodo.parentPeriodId // Agregar este campo
         }));
+        
+        // Encontrar período activo para el botón flotante
+        this.periodoActivo = this.periodos.find(p => p.activo);
       },
 
     });
@@ -144,6 +155,95 @@ export class ParametrosGlobalesComponent implements OnInit {
         }
       });
     }
+  }
+
+  configurarSubperiodo(periodo: any): void {
+    this.periodoSeleccionado = periodo;
+    // Establecer fechas mínimas y máximas basadas en el período padre
+    const startDate = new Date(periodo.fechaInicio).toISOString().slice(0, 16);
+    const endDate = new Date(periodo.fechaFin).toISOString().slice(0, 16);
+    
+    // Configurar límites en los inputs
+    setTimeout(() => {
+      const startInput = document.getElementById('subperiodStartDate') as HTMLInputElement;
+      const endInput = document.getElementById('subperiodEndDate') as HTMLInputElement;
+      if (startInput && endInput) {
+        startInput.min = startDate;
+        startInput.max = endDate;
+        endInput.min = startDate;
+        endInput.max = endDate;
+      }
+    }, 100);
+  }
+
+  crearSubperiodo(): void {
+    if (this.nuevoSubperiodoForm.invalid) {
+      this.nuevoSubperiodoForm.markAllAsTouched();
+      return;
+    }
+
+    const fechaInicio = new Date(this.nuevoSubperiodoForm.value.fechaInicio);
+    const fechaFin = new Date(this.nuevoSubperiodoForm.value.fechaFin);
+    const periodoInicio = new Date(this.periodoSeleccionado.fechaInicio);
+    const periodoFin = new Date(this.periodoSeleccionado.fechaFin);
+    
+    // Validaciones
+    if (fechaFin <= fechaInicio) {
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'End date must be after start date',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    if (fechaInicio < periodoInicio || fechaFin > periodoFin) {
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'Subperiod must be within the parent period dates',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    this.loading = true;
+    const subperiodoData = {
+      nombre: this.nuevoSubperiodoForm.value.nombre,
+      fechaInicio: this.nuevoSubperiodoForm.value.fechaInicio,
+      fechaFin: this.nuevoSubperiodoForm.value.fechaFin,
+      parentPeriodId: this.periodoSeleccionado.id
+    };
+    
+    this.parametrosService.crearSubperiodo(subperiodoData).subscribe({
+      next: () => {
+        this.loading = false;
+        this.nuevoSubperiodoForm.reset();
+        this.loadPeriodos();
+        // Cerrar modal
+        const modal = document.getElementById('createSubperiodModal');
+        if (modal) {
+          const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
+          if (bootstrapModal) bootstrapModal.hide();
+        }
+        Swal.fire({
+          title: 'Success!',
+          text: 'Subperiod created successfully',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      },
+      error: (error: any) => {
+        this.loading = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'Could not create subperiod',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
   }
 
   crearParametroGlobal(): void {
@@ -406,25 +506,38 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
   
   activarPeriodo(periodo: any): void {
-    // Validar si el período es futuro o pasado
     const fechaActual = new Date();
     const fechaInicio = new Date(periodo.fechaInicio);
     const fechaFin = new Date(periodo.fechaFin);
     
-    if (fechaInicio > fechaActual) {
-      Swal.fire({
-        title: 'No se puede activar',
-        text: 'No se puede activar un período futuro',
-        icon: 'warning',
-        confirmButtonText: 'OK'
-      });
-      return;
+    // Para períodos principales (no subperíodos)
+    if (!periodo.parentPeriodId) {
+      if (fechaInicio > fechaActual) {
+        Swal.fire({
+          title: 'No se puede activar',
+          text: 'No se puede activar un período futuro',
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+      
+      if (fechaFin < fechaActual) {
+        Swal.fire({
+          title: 'No se puede activar',
+          text: 'No se puede activar un período pasado',
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
     }
     
-    if (fechaFin < fechaActual) {
+    // Para subperíodos, permitir activación si es futuro o actual
+    if (periodo.parentPeriodId && fechaInicio >= fechaActual && fechaFin < fechaActual) {
       Swal.fire({
         title: 'No se puede activar',
-        text: 'No se puede activar un período pasado',
+        text: 'No se puede activar un subperíodo expirado',
         icon: 'warning',
         confirmButtonText: 'OK'
       });
@@ -433,7 +546,7 @@ export class ParametrosGlobalesComponent implements OnInit {
 
     Swal.fire({
       title: '¿Está seguro?',
-      text: `¿Desea activar el período "${periodo.nombre}"?`,
+      text: `¿Desea activar el ${periodo.parentPeriodId ? 'subperíodo' : 'período'} "${periodo.nombre}"?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#28a745',
@@ -447,9 +560,13 @@ export class ParametrosGlobalesComponent implements OnInit {
           next: () => {
             this.loading = false;
             this.loadPeriodos();
+            // Iniciar monitoreo de expiración para subperíodos
+            if (periodo.parentPeriodId) {
+              this.monitorearExpiracionSubperiodo(periodo);
+            }
             Swal.fire({
               title: '¡Activado!',
-              text: 'Período activado correctamente',
+              text: `${periodo.parentPeriodId ? 'Subperíodo' : 'Período'} activado correctamente`,
               icon: 'success',
               confirmButtonText: 'OK'
             });
@@ -458,7 +575,7 @@ export class ParametrosGlobalesComponent implements OnInit {
             this.loading = false;
             Swal.fire({
               title: 'Error',
-              text: 'No se pudo activar el período',
+              text: `No se pudo activar el ${periodo.parentPeriodId ? 'subperíodo' : 'período'}`,
               icon: 'error',
               confirmButtonText: 'OK'
             });
@@ -672,6 +789,39 @@ export class ParametrosGlobalesComponent implements OnInit {
         bootstrapModal.show();
       }
     }, 300);
+  }
+
+  monitorearExpiracionSubperiodo(subperiodo: any): void {
+    const fechaFin = new Date(subperiodo.fechaFin);
+    const ahora = new Date();
+    const tiempoRestante = fechaFin.getTime() - ahora.getTime();
+    
+    if (tiempoRestante > 0) {
+      setTimeout(() => {
+        // Desactivar subperíodo automáticamente
+        this.parametrosService.desactivarPeriodo(subperiodo.id).subscribe({
+          next: () => {
+            this.loadPeriodos();
+            Swal.fire({
+              title: 'Subperiod Expired',
+              text: `Subperiod "${subperiodo.nombre}" has been automatically deactivated`,
+              icon: 'info',
+              timer: 5000,
+              showConfirmButton: true,
+              confirmButtonText: 'OK'
+            });
+          },
+          error: () => {
+            // Silencioso en caso de error
+          }
+        });
+      }, tiempoRestante);
+    }
+  }
+
+  getParentPeriodName(parentPeriodId: string): string {
+    const parentPeriod = this.periodos.find(p => p.id === parentPeriodId);
+    return parentPeriod ? parentPeriod.nombre : 'Unknown';
   }
 
   actualizarValorParametro(param: any): void {

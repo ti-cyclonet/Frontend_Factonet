@@ -15,15 +15,12 @@ export class NavbarComponent implements OnInit, OnChanges {
   showToolbox: boolean = false;
 
   ngOnInit() {
-    console.log('Opciones en navbar ngOnInit:', this.optionsMenu);
+    // Inicialización del navbar
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['optionsMenu']) {
-      console.log('Opciones cambiaron en navbar:', this.optionsMenu);
-      console.log('Cantidad de opciones:', this.optionsMenu.length);
-      const parametersCount = this.optionsMenu.filter(opt => opt.url === '/parametros-globales').length;
-      console.log('Cantidad de Parameters:', parametersCount);
+      // Opciones de menú actualizadas
     }
   }
 

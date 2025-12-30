@@ -16,6 +16,7 @@ export const ROOT_CONTRACTS = 'contracts'; // Nueva ruta para Contratos
 //Rutas de administración de la aplicación
 export const ROOT_CONFIGURATION= 'setup';
 export const ROOT_PARAMETROS = 'parametros-globales';
+export const ROOT_PARAMETROS_FACTURAS = 'parametros-facturas';
 
 //-----------------------------------------------------
 // Variables de Color (Ajustadas al tema Oscuro/Azul)

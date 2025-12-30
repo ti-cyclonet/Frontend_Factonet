@@ -1,0 +1,120 @@
+<div class="floating-container">
+  <div class="outer-container">
+    <div class="inner-container">
+      <h3 class="card-title mb-0">Invoice Parameters Configuration</h3>
+      <p class="text-muted">Select which global parameters from the active period should apply to invoices</p>
+    </div>
+    
+    <div class="inner-container">
+      <!-- Filtros -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <input type="text" class="form-control" [(ngModel)]="filtroNombre" 
+                 placeholder="Search by name..." (input)="aplicarFiltros()">
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+            <option value="">All types</option>
+            <option value="number">Numeric</option>
+            <option value="string">Text</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option value="">All status</option>
+            <option value="applied">Applied</option>
+            <option value="not-applied">Not Applied</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+            Clear
+          </button>
+        </div>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th width="50">
+                <input type="checkbox" class="form-check-input" 
+                       [checked]="allSelected" 
+                       [indeterminate]="someSelected && !allSelected"
+                       (change)="toggleAll($event)">
+              </th>
+              <th>Parameter</th>
+              <th>Value</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th class="text-center">Status</th>
+              <th class="text-center">Show in Docs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let param of parametrosPaginados" 
+                [class.table-success]="param.aplicaFacturas">
+              <td>
+                <input type="checkbox" class="form-check-input" 
+                       [(ngModel)]="param.aplicaFacturas"
+                       (change)="onParameterChange(param)">
+              </td>
+              <td><strong>{{ param.globalParameter.name }}</strong></td>
+              <td>
+                <span class="badge bg-primary">{{ param.value }}</span>
+              </td>
+              <td>{{ param.globalParameter.description }}</td>
+              <td>
+                <span class="badge" [ngClass]="param.globalParameter.dataType === 'number' ? 'bg-info' : 'bg-secondary'">
+                  {{ param.globalParameter.dataType === 'number' ? 'NUMERIC' : 'TEXT' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-success" *ngIf="param.aplicaFacturas">APPLIED</span>
+                <span class="badge bg-secondary" *ngIf="!param.aplicaFacturas">NOT APPLIED</span>
+              </td>
+              <td class="text-center">
+                <div class="form-check form-switch d-flex justify-content-center">
+                  <input class="form-check-input" type="checkbox" 
+                         [(ngModel)]="param.showInDocs" 
+                         [disabled]="!param.aplicaFacturas"
+                         id="switch-{{ param.id }}">
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="parametrosActivos.length === 0">
+              <td colspan="7" class="text-center">No active parameters found in current period</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Paginación -->
+      <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="parametrosFiltrados.length > pageSize">
+        <span class="text-muted">Página {{ currentPage + 1 }} de {{ totalPages }} ({{ parametrosFiltrados.length }} parámetros)</span>
+        <div>
+          <button class="btn btn-sm btn-outline-secondary me-2" (click)="prevPage()" [disabled]="currentPage === 0">
+            <svg width="16" height="16" fill="currentColor">
+              <use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-left" />
+            </svg>
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">
+            <svg width="16" height="16" fill="currentColor">
+              <use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-right" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-end mt-3">
+        <button class="btn btn-success" (click)="guardarConfiguracion()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <svg width="16" height="16" fill="currentColor" class="me-1">
+            <use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle" />
+          </svg>
+          Save Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

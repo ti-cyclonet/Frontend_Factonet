@@ -41,6 +41,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1001;
 }
 
 .nav-tool-btn:hover {
@@ -48,14 +50,24 @@
   color: #000;
 }
 
+.tool-dropdown:hover .nav-tool-btn {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .floating-toolbox {
   position: absolute;
-  top: 100%;
-  right: 0;
-  background: white;
-  border-radius: 8px;
+  top: calc(100% - 8px);
+  left: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 8px;
+  padding-top: 16px;
+  width: 40px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -72,13 +84,17 @@
 .toolbox-btn {
   background: none;
   border: none;
-  padding: 8px 12px;
+  padding: 0;
+  margin: 0;
   border-radius: 6px;
   color: #333;
   cursor: pointer;
   transition: background-color 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
 }
 
 .toolbox-btn:hover {
@@ -90,4 +106,77 @@
   .nav-link.hide-on-mobile {
     display: none !important;
   }
+}
+.floating-nav-tools {
+  position: fixed;
+  bottom: 40px;
+  right: 15px;
+  z-index: 1000;
+}
+
+.floating-nav-tools .nav-tool-btn {
+  background-color: transparent;
+  color: #000;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1001;
+  transition: all 0.3s ease;
+}
+
+.floating-nav-tools .nav-tool-btn svg {
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.floating-nav-tools .tool-dropdown:hover .nav-tool-btn {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.floating-nav-tools .floating-toolbox {
+  position: absolute;
+  top: calc(-100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 28px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  padding-bottom: 16px;
+  width: 56px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.floating-nav-tools .floating-toolbox.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.floating-nav-tools .toolbox-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
 }

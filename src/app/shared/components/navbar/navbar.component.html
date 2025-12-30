@@ -1,5 +1,5 @@
 <!-- NAVBAR CON MENÚS -->
-<nav class="main-navbar d-flex justify-content-between align-items-center">
+<nav class="main-navbar d-flex justify-content-between align-items-center d-none d-sm-flex">
 <div class="d-flex justify-content-between align-items-center w-100" style="padding: 8px 20px;">
 <div class="d-flex">
     <a 
@@ -16,8 +16,8 @@
 </div>
 
 <div class="nav-tools d-flex align-items-center">
-    <div class="tool-dropdown position-relative">
-        <a class="nav-tool-btn" href="#" (click)="toggleToolbox($event)">
+    <div class="tool-dropdown position-relative" (mouseenter)="showToolbox = true" (mouseleave)="showToolbox = false">
+        <a class="nav-tool-btn" href="#">
             <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                 <use xlink:href="./assets/icons/bootstrap-icons.svg#gear-fill" />
             </svg>
@@ -25,12 +25,32 @@
         
         <div class="floating-toolbox" [class.show]="showToolbox" >
             <button class="toolbox-btn" (click)="openCalculator()">
-                <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                     <use xlink:href="./assets/icons/bootstrap-icons.svg#calculator-fill" />
                 </svg>
             </button>
         </div>
     </div>
 </div>
+
 </div>
 </nav>
+
+<!-- Versión flotante para móvil -->
+<div class="floating-nav-tools d-block d-sm-none">
+    <div class="tool-dropdown position-relative" (mouseenter)="showToolbox = true" (mouseleave)="showToolbox = false">
+        <a class="nav-tool-btn" href="#">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#gear-fill" />
+            </svg>
+        </a>
+        
+        <div class="floating-toolbox" [class.show]="showToolbox" >
+            <button class="toolbox-btn" (click)="openCalculator()">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <use xlink:href="./assets/icons/bootstrap-icons.svg#calculator-fill" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
