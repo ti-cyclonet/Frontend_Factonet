@@ -78,6 +78,7 @@ export class ParametrosFacturasComponent implements OnInit {
         const param = this.parametrosActivos.find(p => p.id === config.globalParameterPeriodId);
         if (param) {
           param.aplicaFacturas = true;
+          param.showInDocs = config.showInDocs || false;
         }
       });
     } catch (error) {

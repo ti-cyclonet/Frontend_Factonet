@@ -29,6 +29,11 @@ export class ParametrosGlobalesComponent implements OnInit {
   filtroNombre: string = '';
   filtroTipo: string = '';
   
+  // Filtros para períodos
+  filtroNombrePeriodo = '';
+  filtroFecha = '';
+  periodosFiltrados: any[] = [];
+  
   // Paginación períodos
   periodosPage = 0;
   periodosPageSize = 8;
@@ -80,6 +85,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         
         // Encontrar período activo para el botón flotante
         this.periodoActivo = this.periodos.find(p => p.activo);
+        this.aplicarFiltrosPeriodos();
       },
 
     });
@@ -587,7 +593,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   
   get periodosPaginados() {
     const start = this.periodosPage * this.periodosPageSize;
-    return this.periodos.slice(start, start + this.periodosPageSize);
+    return this.periodosFiltrados.slice(start, start + this.periodosPageSize);
   }
   
   get parametrosPaginados() {
@@ -596,7 +602,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
   
   get totalPeriodosPages() {
-    return Math.ceil(this.periodos.length / this.periodosPageSize);
+    return Math.ceil(this.periodosFiltrados.length / this.periodosPageSize);
   }
   
   get totalParametrosPages() {
@@ -649,6 +655,27 @@ export class ParametrosGlobalesComponent implements OnInit {
       const matchTipo = !this.filtroTipo || param.dataType === this.filtroTipo;
       return matchNombre && matchTipo;
     });
+  }
+
+  aplicarFiltrosPeriodos(): void {
+    this.periodosFiltrados = this.periodos.filter(periodo => {
+      const matchNombre = !this.filtroNombrePeriodo || 
+        periodo.nombre.toLowerCase().includes(this.filtroNombrePeriodo.toLowerCase());
+      
+      const matchFecha = !this.filtroFecha || (
+        new Date(periodo.fechaInicio) <= new Date(this.filtroFecha) &&
+        new Date(periodo.fechaFin) >= new Date(this.filtroFecha)
+      );
+      
+      return matchNombre && matchFecha;
+    });
+    this.periodosPage = 0; // Reset a primera página
+  }
+
+  limpiarFiltrosPeriodos() {
+    this.filtroNombrePeriodo = '';
+    this.filtroFecha = '';
+    this.aplicarFiltrosPeriodos();
   }
 
   agregarParametrosSeleccionados(): void {

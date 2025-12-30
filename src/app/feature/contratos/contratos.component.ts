@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
+import { Contract } from '../../shared/model/contract.model';
 
 // Pipe personalizado para reemplazar
 import { Pipe, PipeTransform } from '@angular/core';
@@ -13,32 +14,7 @@ export class ReplacePipe implements PipeTransform {
   }
 }
 
-// Interface para un tipado estricto
-interface Contrato {
-    id: string;
-    code?: string;
-    user: {
-        id: string;
-        strUserName: string;
-        strStatus: string;
-        basicData?: {
-            id: string;
-            strPersonType: string;
-            strStatus: string;
-        };
-    };
-    package: {
-        id: string;
-        name: string;
-        description: string;
-    };
-    value: number;
-    payday: number;
-    startDate: string;
-    endDate: string;
-    status: 'ACTIVE' | 'EXPIRED' | 'PENDING';
-    mode?: string;
-}
+
 
 @Component({
   selector: 'app-contratos', 
@@ -50,8 +26,8 @@ interface Contrato {
 export class ContratosComponent implements OnInit { 
   
   // Utilizamos signals para el estado reactivo
-  contratos = signal<Contrato[]>([]);
-  selectedContrato = signal<Contrato | null>(null); 
+  contratos = signal<Contract[]>([]);
+  selectedContrato = signal<Contract | null>(null); 
   
   // Bandera para el modal de creación/edición
   isModalOpen = signal(false);
@@ -108,18 +84,54 @@ export class ContratosComponent implements OnInit {
     this.showToast('SYSTEM: Opening Contract Creation Interface...', 'primary', 'A', 0);
   }
 
+  // Propiedad para el contrato del modal
+  modalContrato: Contract | null = null;
+  
+  // Controla la visibilidad de la información detallada del usuario
+  showUserDetails = signal(false);
+  
+  // Controla la visibilidad de la información detallada del paquete
+  showPackageDetails = signal(false);
+
   /**
     * Muestra los detalles del contrato en el modal.
     */
-  viewContrato(contrato: Contrato) {
+  viewContrato(contrato: Contract) {
+    this.modalContrato = contrato; // Usar propiedad normal en lugar de signal
     this.selectedContrato.set(contrato);
+    this.showUserDetails.set(false); // Resetear al abrir modal
+    this.showPackageDetails.set(false); // Resetear al abrir modal
+    this.showToast(`Viewing contract: ${contrato.code || contrato.id}`, 'primary', 'A', 0);
+    
+    // Abrir modal programáticamente
+    setTimeout(() => {
+      const modal = document.getElementById('viewContractModal');
+      if (modal) {
+        const bootstrapModal = new (window as any).bootstrap.Modal(modal);
+        bootstrapModal.show();
+      }
+    }, 100);
+  }
+
+  /**
+    * Alterna la visibilidad de los detalles del usuario.
+    */
+  toggleUserDetails() {
+    this.showUserDetails.update(current => !current);
+  }
+
+  /**
+    * Alterna la visibilidad de los detalles del paquete.
+    */
+  togglePackageDetails() {
+    this.showPackageDetails.update(current => !current);
   }
 
 
   /**
     * Establece el contrato seleccionado o lo deselecciona.
     */
-  setSelectedContrato(contrato: Contrato) { 
+  setSelectedContrato(contrato: Contract) { 
     if (this.selectedContrato() === contrato) {
         this.selectedContrato.set(null);
     } else {
@@ -172,7 +184,7 @@ export class ContratosComponent implements OnInit {
   /**
     * Función trackBy para optimización.
     */
-  trackById(index: number, contrato: Contrato): string { 
+  trackById(index: number, contrato: Contract): string { 
     return contrato.id;
   }
 

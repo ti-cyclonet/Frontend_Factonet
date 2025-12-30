@@ -117,6 +117,116 @@
   padding: 0.25rem 0.5rem;
 }
 
+/* Estilos del modal tipo tarjeta */
+.contract-card-modal {
+  background: white;
+  overflow: hidden;
+  width: 100%;
+}
+
+.contract-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contract-code {
+  font-size: 1.5rem;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.contract-body {
+  padding: 30px;
+}
+
+.info-section {
+  margin-bottom: 20px;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  color: #212529;
+  margin-bottom: 5px;
+}
+
+.info-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.value-box {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.value-amount {
+  font-size: 1.3rem;
+  margin-bottom: 5px;
+}
+
+.value-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.date-section {
+  text-align: left;
+}
+
+.date-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.date-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.action-buttons .btn {
+  width: 100%;
+  border-radius: 25px;
+  padding: 10px 20px;
+}
+
+.user-clickable {
+  cursor: pointer;
+  color: #6c757d;
+  font-weight: bold;
+  transition: color 0.2s ease;
+}
+
+.user-clickable:hover,
+.user-clickable.user-active {
+  color: black;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .floating-container {
@@ -136,12 +246,4 @@
     height: 35px;
     padding: 6px;
   }
-}
-.card-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #374151;
-  margin: 0;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
 }
