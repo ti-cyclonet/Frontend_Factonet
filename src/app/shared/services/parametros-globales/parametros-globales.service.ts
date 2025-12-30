@@ -35,18 +35,26 @@ export class ParametrosGlobalesService {
   crearSubperiodo(data: any): Observable<any> { return of(null); }
   crearParametroGlobal(data: any): Observable<any> { return of(null); }
   crearPeriodo(data: any): Observable<any> { return of(null); }
-  eliminarParametroDePeriodo(id: string): Observable<any> { return of(null); }
+  eliminarParametroDePeriodo(id: string): Observable<any> { 
+    return this.http.delete(`${this.authorizaUrl}/api/global-parameters-periods/${id}`);
+  }
   eliminarPeriodo(id: string): Observable<any> { return of(null); }
   activarPeriodo(id: string): Observable<any> { return of(null); }
   getParametrosDisponibles(): Observable<any[]> { 
     return this.http.get<any[]>(`${this.authorizaUrl}/api/periods/global-parameters`);
   }
-  agregarParametrosAPeriodo(periodoId: string, params: any[]): Observable<any> { return of(null); }
+  agregarParametrosAPeriodo(periodoId: string, params: any[]): Observable<any> { 
+    return this.http.post(`${this.authorizaUrl}/api/periods/${periodoId}/parameters`, { parametros: params });
+  }
   getParametrosPorPeriodo(id: string): Observable<any[]> { 
     return this.http.get<any[]>(`${this.authorizaUrl}/api/periods/${id}/parameters`);
   }
-  actualizarEstadoParametro(id: string, estado: string): Observable<any> { return of(null); }
+  actualizarEstadoParametro(id: string, estado: string): Observable<any> { 
+    return this.http.patch(`${this.authorizaUrl}/api/global-parameters-periods/${id}`, { status: estado });
+  }
   desactivarPeriodo(id: string): Observable<any> { return of(null); }
-  actualizarValorParametro(id: string, valor: string): Observable<any> { return of(null); }
+  actualizarValorParametro(id: string, valor: string): Observable<any> { 
+    return this.http.patch(`${this.authorizaUrl}/api/global-parameters-periods/${id}`, { value: valor });
+  }
   actualizarMostrarEnDocs(id: string, mostrar: boolean): Observable<any> { return of(null); }
 }

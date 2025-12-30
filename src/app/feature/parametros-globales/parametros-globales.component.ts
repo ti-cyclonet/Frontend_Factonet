@@ -372,23 +372,17 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
   
   editarParametro(param: any): void {
-    param.valorOriginal = param.valor; // Guardar valor original
-    param.mostrarEnDocsOriginal = param.mostrarEnDocs; // Guardar mostrarEnDocs original
+    param.valorOriginal = param.valor;
     param.editando = true;
   }
 
   guardarValor(param: any): void {
     param.editando = false;
     this.actualizarValorParametro(param);
-    // Si cambió mostrarEnDocs, también actualizarlo
-    if (param.mostrarEnDocs !== param.mostrarEnDocsOriginal) {
-      this.actualizarMostrarEnDocs(param);
-    }
   }
 
   cancelarEdicion(param: any): void {
-    param.valor = param.valorOriginal; // Restaurar valor original
-    param.mostrarEnDocs = param.mostrarEnDocsOriginal; // Restaurar mostrarEnDocs original
+    param.valor = param.valorOriginal;
     param.editando = false;
   }
   
@@ -642,7 +636,20 @@ export class ParametrosGlobalesComponent implements OnInit {
         // Filtrar parámetros disponibles excluyendo los ya configurados
         const parametrosFiltrados = parametros.filter(p => !parametrosConfigurados.includes(p.id));
         
-        this.parametrosDisponibles = parametrosFiltrados.map(p => ({ ...p, selected: false, value: '' }));
+        // No usar spread operator para mantener referencias
+        this.parametrosDisponibles = parametrosFiltrados.map(p => {
+          return {
+            id: p.id,
+            code: p.code,
+            name: p.name,
+            description: p.description,
+            dataType: p.dataType,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
+            selected: false,
+            value: ''
+          };
+        });
         this.aplicarFiltros();
       },
 
@@ -650,6 +657,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
 
   aplicarFiltros(): void {
+    // No recrear objetos, solo filtrar referencias existentes
     this.parametrosDisponiblesFiltrados = this.parametrosDisponibles.filter(param => {
       const matchNombre = !this.filtroNombre || param.name.toLowerCase().includes(this.filtroNombre.toLowerCase());
       const matchTipo = !this.filtroTipo || param.dataType === this.filtroTipo;
@@ -678,31 +686,48 @@ export class ParametrosGlobalesComponent implements OnInit {
     this.aplicarFiltrosPeriodos();
   }
 
+  trackByParamId(index: number, param: any): string {
+    return param.id;
+  }
+
+  onParameterSelectionChange(param: any): void {
+    // Actualizar también en el array original
+    const originalParam = this.parametrosDisponibles.find(p => p.id === param.id);
+    if (originalParam) {
+      originalParam.selected = param.selected;
+      originalParam.value = param.value;
+    }
+  }
+
   agregarParametrosSeleccionados(): void {
-    const seleccionados = this.parametrosDisponibles.filter(p => p.selected);
+    // Buscar directamente en la tabla los checkboxes marcados
+    const checkboxes = document.querySelectorAll('#addParameterModal input[type="checkbox"]:checked');
+    const seleccionados: any[] = [];
+    
+    checkboxes.forEach((checkbox: any) => {
+      const paramId = checkbox.id.replace('param-', '');
+      const param = this.parametrosDisponibles.find(p => p.id === paramId);
+      if (param) {
+        // Obtener el valor del input correspondiente
+        const valueInput = document.querySelector(`#addParameterModal tr:has(#${checkbox.id}) input[type="text"]`) as HTMLInputElement;
+        if (valueInput && valueInput.value.trim()) {
+          seleccionados.push({
+            ...param,
+            value: valueInput.value.trim()
+          });
+        }
+      }
+    });
     
     if (seleccionados.length === 0) {
       Swal.fire({
         title: 'Advertencia',
-        text: 'Debe seleccionar al menos un parámetro',
+        text: 'Debe seleccionar al menos un parámetro con valor',
         icon: 'warning',
         confirmButtonText: 'OK'
       });
       return;
     }
-    
-    // Validar que todos los parámetros seleccionados tengan valor
-    const sinValor = seleccionados.filter(p => !p.value || p.value.trim() === '');
-    if (sinValor.length > 0) {
-      Swal.fire({
-        title: 'Advertencia',
-        text: 'Todos los parámetros seleccionados deben tener un valor',
-        icon: 'warning',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-    
     // Mapear a formato esperado por el backend
     const parametrosConValor = seleccionados.map(p => ({
       globalParameterId: p.id,
@@ -711,14 +736,13 @@ export class ParametrosGlobalesComponent implements OnInit {
     
     this.parametrosService.agregarParametrosAPeriodo(this.periodoSeleccionado.id, parametrosConValor).subscribe({
       next: (response) => {
-        // Limpiar selecciones y valores
-        this.parametrosDisponibles.forEach(p => {
-          if (p.selected) {
-            p.selected = false;
-            p.value = '';
-          }
+        // Limpiar checkboxes y valores del DOM
+        checkboxes.forEach((checkbox: any) => {
+          checkbox.checked = false;
+          const valueInput = document.querySelector(`#addParameterModal tr:has(#${checkbox.id}) input[type="text"]`) as HTMLInputElement;
+          if (valueInput) valueInput.value = '';
         });
-        this.aplicarFiltros();
+        
         // Recargar parámetros del período
         this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
         // Volver al modal anterior
@@ -731,6 +755,7 @@ export class ParametrosGlobalesComponent implements OnInit {
         });
       },
       error: (error: any) => {
+        console.log('Error del backend:', error);
         Swal.fire({
           title: 'Error',
           text: 'No se pudieron agregar los parámetros',
@@ -746,18 +771,15 @@ export class ParametrosGlobalesComponent implements OnInit {
     this.parametrosService.getParametrosPorPeriodo(periodoId).subscribe({
       next: (parametros) => {
 
-        // Mapear los datos del backend al formato esperado por el template
         this.parametros = parametros.map(param => ({
           id: param.id,
           globalParameterId: param.globalParameter.id,
           nombre: param.globalParameter.name,
           valor: param.value,
-          valorOriginal: param.value, // Guardar valor original para cancelar
+          valorOriginal: param.value,
           descripcion: param.globalParameter.description,
           estado: param.status,
-          mostrarEnDocs: param.showInDocs !== undefined ? param.showInDocs : true,
-          mostrarEnDocsOriginal: param.showInDocs !== undefined ? param.showInDocs : true,
-          editando: false // Campo para controlar el modo edición
+          editando: false
         }));
 
         this.parametrosPage = 0; // Reset paginación
@@ -874,15 +896,5 @@ export class ParametrosGlobalesComponent implements OnInit {
     });
   }
 
-  actualizarMostrarEnDocs(param: any): void {
-    this.parametrosService.actualizarMostrarEnDocs(param.id, param.mostrarEnDocs).subscribe({
-      next: () => {
-        param.mostrarEnDocsOriginal = param.mostrarEnDocs; // Actualizar valor original
-      },
-      error: (error: any) => {
 
-        param.mostrarEnDocs = param.mostrarEnDocsOriginal; // Revertir en caso de error
-      }
-    });
-  }
 }

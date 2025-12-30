@@ -313,25 +313,88 @@ export class ContratosComponent implements OnInit {
   private async generateAndUploadPDF(contrato: Contract): Promise<void> {
     const pdf = new jsPDF();
     
-    // Generar PDF simple sin logo para evitar recursión
+    // Título principal centrado
+    pdf.setTextColor(0, 100, 200);
     pdf.setFontSize(16);
-    pdf.text('CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS', 20, 30);
-    pdf.setFontSize(14);
-    pdf.text(`CONTRATO No. ${contrato.code || contrato.id}`, 20, 50);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Contrato de prestación de servicios¹', 105, 30, { align: 'center' });
     
-    pdf.setFontSize(12);
-    pdf.text('PROVEEDOR:', 20, 80);
-    pdf.text('Cyclonet S. A. S.', 20, 90);
-    pdf.text('NIT: 901515884-4', 20, 100);
+    // Fecha de actualización en rojo
+    pdf.setTextColor(255, 0, 0);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const fechaActual = new Date().toLocaleDateString('es-ES', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    pdf.text(`(Fecha de actualización: ${fechaActual})`, 20, 45);
     
-    pdf.text('CLIENTE:', 20, 130);
-    pdf.text(`${contrato.user.strUserName}`, 20, 140);
+    // Contenido del contrato en negro
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
     
-    pdf.text('PAQUETE:', 20, 170);
-    pdf.text(`${contrato.package.name}`, 20, 180);
+    const clientName = contrato.user.basicData?.legalEntityData?.businessName || 
+                      `${contrato.user.basicData?.naturalPersonData?.firstName || ''} ${contrato.user.basicData?.naturalPersonData?.firstSurname || ''}`.trim() ||
+                      contrato.user.strUserName;
     
-    pdf.text('VALOR:', 20, 210);
-    pdf.text(`$${contrato.value}`, 20, 220);
+    // Párrafo de identificación de las partes
+    const textoPartes = `(${clientName}), mayor de edad, identificado(a) con cédula de ciudadanía (número de cédula), actuando en nombre propio o como representante legal de un ente jurídico, en este último caso, indicar razón social y NIT), quien en adelante se denominará CONTRATANTE, y (Cyclonet S.A.S.), mayor de edad, identificado(a) con cédula de ciudadanía (901515884-4), domiciliado(a) en (Turbaco - Bolívar), quien para los efectos del presente documento se denominará CONTRATISTA, acuerdan celebrar el presente CONTRATO DE PRESTACIÓN DE SERVICIOS, el cual se regirá por las siguientes cláusulas:`;
+    
+    const lineasPartes = pdf.splitTextToSize(textoPartes, 170);
+    pdf.text(lineasPartes, 20, 60);
+    
+    let yPos = 60 + (lineasPartes.length * 5) + 15;
+    
+    // Primera cláusula - Objeto
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Primera – Objeto:', 20, yPos);
+    pdf.setFont('helvetica', 'normal');
+    
+    const textoObjeto = `el (la) CONTRATISTA, en su calidad de trabajador(a) independiente, se obliga para con el (la) CONTRATANTE a ejecutar los trabajos y demás actividades propias del servicio contratado, el cual debe realizar de conformidad con las condiciones y cláusulas del presente documento, el cual consistirá en: (${contrato.package.name} - ${contrato.package.description || 'Servicio de software'}), sin que exista horario determinado ni dependencia².`;
+    
+    const lineasObjeto = pdf.splitTextToSize(textoObjeto, 170);
+    pdf.text(lineasObjeto, 20, yPos + 8);
+    
+    yPos += 8 + (lineasObjeto.length * 5) + 10;
+    
+    // Segunda cláusula - Duración
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Segunda – Duración o plazo:', 20, yPos);
+    pdf.setFont('helvetica', 'normal');
+    
+    const textoDuracion = `el plazo para la ejecución del presente contrato será de (un año), contados a partir de (${contrato.startDate}), y podrá prorrogarse por acuerdo entre las partes, con vencimiento el (${contrato.endDate}).`;
+    
+    const lineasDuracion = pdf.splitTextToSize(textoDuracion, 170);
+    pdf.text(lineasDuracion, 20, yPos + 8);
+    
+    yPos += 8 + (lineasDuracion.length * 5) + 10;
+    
+    // Tercera cláusula - Valor
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Tercera – Valor:', 20, yPos);
+    pdf.setFont('helvetica', 'normal');
+    
+    const valorFormateado = this.formatCurrency(contrato.value);
+    const textoValor = `el valor del presente contrato es de $${valorFormateado} (año), el cual será cancelado de la siguiente manera: (especificar forma de pago y periodicidad).`;
+    
+    const lineasValor = pdf.splitTextToSize(textoValor, 170);
+    pdf.text(lineasValor, 20, yPos + 8);
+    
+    yPos += 8 + (lineasValor.length * 5) + 10;
+    
+    // Configuraciones del paquete si existen
+    if (contrato.package.configurations && contrato.package.configurations.length > 0) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Configuración del servicio:', 20, yPos);
+      pdf.setFont('helvetica', 'normal');
+      yPos += 8;
+      contrato.package.configurations.forEach((config) => {
+        pdf.text(`• ${config.totalAccount} cuentas ${config.rol.strName} - $${config.price} c/u`, 25, yPos);
+        yPos += 6;
+      });
+    }
     
     // Convertir a buffer y subir
     const pdfBuffer = pdf.output('arraybuffer');

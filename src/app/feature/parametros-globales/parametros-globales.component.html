@@ -140,7 +140,6 @@
                 <th>Value</th>
                 <th>Description</th>
                 <th>Status</th>
-                <th>Show in Docs</th>
                 <th class="text-center">Actions</th>
               </tr>
             </thead>
@@ -166,19 +165,6 @@
                           title="Click para cambiar estado">
                     {{ param.estado === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO' }}
                   </button>
-                </td>
-                <td class="text-center">
-                  <!-- Modo normal: mostrar TRUE/FALSE -->
-                  <span *ngIf="!param.editando" 
-                        [style.color]="param.mostrarEnDocs ? '#0d47a1' : '#6c757d'"
-                        [style.font-weight]="'bold'">
-                    {{ param.mostrarEnDocs ? 'TRUE' : 'FALSE' }}
-                  </span>
-                  <!-- Modo edición: mostrar switch -->
-                  <div *ngIf="param.editando" class="form-check form-switch d-flex justify-content-center">
-                    <input class="form-check-input" type="checkbox" [(ngModel)]="param.mostrarEnDocs" 
-                           id="modal-switch-{{ param.id }}">
-                  </div>
                 </td>
                 <td>
                   <div class="d-flex align-items-center justify-content-center gap-2">
@@ -212,7 +198,7 @@
                 </td>
               </tr>
               <tr *ngIf="parametros.length === 0">
-                <td colspan="6" class="text-center">No parameters available</td>
+                <td colspan="5" class="text-center">No parameters available</td>
               </tr>
             </tbody>
           </table>
@@ -291,9 +277,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let param of parametrosDisponiblesFiltrados">
+              <tr *ngFor="let param of parametrosDisponiblesFiltrados; trackBy: trackByParamId">
                 <td>
-                  <input type="checkbox" class="form-check-input" [(ngModel)]="param.selected" id="param-{{ param.id }}">
+                  <input type="checkbox" class="form-check-input" 
+                         [(ngModel)]="param.selected" 
+                         (change)="onParameterSelectionChange(param)"
+                         id="param-{{ param.id }}">
                 </td>
                 <td>{{ param.name }}</td>
                 <td>{{ param.description }}</td>
@@ -305,6 +294,7 @@
                 <td>
                   <input type="text" class="form-control form-control-sm" 
                          [(ngModel)]="param.value" 
+                         (change)="onParameterSelectionChange(param)"
                          [placeholder]="param.dataType === 'number' ? 'Ej: 19' : 'Ej: COP'"
                          [disabled]="!param.selected">
                 </td>
@@ -317,7 +307,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="volverAConfigureParameters()">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" (click)="agregarParametrosSeleccionados()">
           Add Selected
         </button>
