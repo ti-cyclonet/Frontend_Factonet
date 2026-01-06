@@ -32,14 +32,24 @@ export class ParametrosGlobalesService {
   getParametrosGlobales(): Observable<any[]> { return of([]); }
   guardarParametros(params: any): Observable<any> { return of(null); }
   validateParameterName(name: string): Observable<boolean> { return of(false); }
-  crearSubperiodo(data: any): Observable<any> { return of(null); }
-  crearParametroGlobal(data: any): Observable<any> { return of(null); }
-  crearPeriodo(data: any): Observable<any> { return of(null); }
+  crearSubperiodo(data: any): Observable<any> { 
+    return this.http.post(`${this.authorizaUrl}/api/periods/subperiods`, data);
+  }
+  crearParametroGlobal(data: any): Observable<any> { 
+    return this.http.post(`${this.authorizaUrl}/api/periods/global-parameters`, data);
+  }
+  crearPeriodo(data: any): Observable<any> { 
+    return this.http.post(`${this.authorizaUrl}/api/periods`, data);
+  }
   eliminarParametroDePeriodo(id: string): Observable<any> { 
     return this.http.delete(`${this.authorizaUrl}/api/global-parameters-periods/${id}`);
   }
-  eliminarPeriodo(id: string): Observable<any> { return of(null); }
-  activarPeriodo(id: string): Observable<any> { return of(null); }
+  eliminarPeriodo(id: string): Observable<any> { 
+    return this.http.delete(`${this.authorizaUrl}/api/periods/${id}`);
+  }
+  activarPeriodo(id: string): Observable<any> { 
+    return this.http.patch(`${this.authorizaUrl}/api/periods/${id}/activate`, {});
+  }
   getParametrosDisponibles(): Observable<any[]> { 
     return this.http.get<any[]>(`${this.authorizaUrl}/api/periods/global-parameters`);
   }
@@ -52,9 +62,14 @@ export class ParametrosGlobalesService {
   actualizarEstadoParametro(id: string, estado: string): Observable<any> { 
     return this.http.patch(`${this.authorizaUrl}/api/global-parameters-periods/${id}`, { status: estado });
   }
-  desactivarPeriodo(id: string): Observable<any> { return of(null); }
+  desactivarPeriodo(id: string): Observable<any> { 
+    return this.http.patch(`${this.authorizaUrl}/api/periods/${id}/deactivate`, {});
+  }
   actualizarValorParametro(id: string, valor: string): Observable<any> { 
     return this.http.patch(`${this.authorizaUrl}/api/global-parameters-periods/${id}`, { value: valor });
+  }
+  actualizarOperationTypeParametro(id: string, operationType: string): Observable<any> { 
+    return this.http.patch(`${this.authorizaUrl}/api/global-parameters-periods/${id}`, { operationType });
   }
   actualizarMostrarEnDocs(id: string, mostrar: boolean): Observable<any> { return of(null); }
 }

@@ -139,6 +139,7 @@
                 <th>Parameter</th>
                 <th>Value</th>
                 <th>Description</th>
+                <th>Operation</th>
                 <th>Status</th>
                 <th class="text-center">Actions</th>
               </tr>
@@ -155,6 +156,18 @@
                          style="min-width: 80px;">
                 </td>
                 <td>{{ param.descripcion }}</td>
+                <td>
+                  <select *ngIf="param.editando" class="form-select form-select-sm" 
+                          [(ngModel)]="param.operationType" 
+                          style="width: 100px;">
+                    <option value="add">+ Add</option>
+                    <option value="subtract">- Subtract</option>
+                  </select>
+                  <span *ngIf="!param.editando" class="badge" 
+                        [ngClass]="param.operationType === 'add' ? 'bg-success' : 'bg-warning'">
+                    {{ param.operationType === 'add' ? '+ Add' : '- Subtract' }}
+                  </span>
+                </td>
                 <td>
                   <button type="button" 
                           class="btn" 
@@ -198,7 +211,7 @@
                 </td>
               </tr>
               <tr *ngIf="parametros.length === 0">
-                <td colspan="5" class="text-center">No parameters available</td>
+                <td colspan="6" class="text-center">No parameters available</td>
               </tr>
             </tbody>
           </table>
@@ -274,6 +287,7 @@
                 <th>Description</th>
                 <th>Type</th>
                 <th>Value</th>
+                <th>Operation</th>
               </tr>
             </thead>
             <tbody>
@@ -298,9 +312,19 @@
                          [placeholder]="param.dataType === 'number' ? 'Ej: 19' : 'Ej: COP'"
                          [disabled]="!param.selected">
                 </td>
+                <td>
+                  <select class="form-select form-select-sm" 
+                          [(ngModel)]="param.operationType" 
+                          (change)="onParameterSelectionChange(param)"
+                          [disabled]="!param.selected"
+                          style="width: 100px;">
+                    <option value="add">+ Add</option>
+                    <option value="subtract">- Subtract</option>
+                  </select>
+                </td>
               </tr>
               <tr *ngIf="parametrosDisponiblesFiltrados.length === 0">
-                <td colspan="5" class="text-center">No parameters available</td>
+                <td colspan="6" class="text-center">No parameters available</td>
               </tr>
             </tbody>
           </table>

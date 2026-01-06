@@ -5,53 +5,147 @@
       <h3 class="card-title mb-0">Invoices List</h3>
     </div>
     
-    <!-- Tabla -->
-    <div class="inner-container" id="cuadro2">
-      <div class="d-flex justify-content-between align-items-start w-100 mb-3">
-        <div></div>
-        <div class="generate-button-container">
-          <button class="generate-button" (click)="sweepInvoices()" title="Generate pending invoices">
-            <i class="bi bi-lightning-charge me-2"></i>
-            Generate Invoices
-          </button>
+    <!-- Filtros -->
+    <div class="inner-container mb-4" id="filtros">
+      <div class="w-100 p-3">
+        <div class="row g-3">
+          <div class="col-12 col-md-4 col-xxl-2">
+            <label class="form-label">Status</label>
+            <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
+              <option value="">All</option>
+              <option value="Pendiente">Pending</option>
+              <option value="Pagada">Paid</option>
+              <option value="Vencida">Overdue</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-4 col-xxl-2">
+            <label class="form-label">Number</label>
+            <input type="text" class="form-control" [value]="filters.number" (input)="filters.number = $any($event.target).value; applyFilters()" placeholder="DF00001">
+          </div>
+          <div class="col-12 col-md-4 col-xxl-2">
+            <label class="form-label">Client</label>
+            <input type="text" class="form-control" [value]="filters.client" (input)="filters.client = $any($event.target).value; applyFilters()" placeholder="Search client">
+          </div>
+          <div class="col-12 col-md-4 col-xxl-2">
+            <label class="form-label">From</label>
+            <input type="date" class="form-control" [value]="filters.dateFrom" (change)="filters.dateFrom = $any($event.target).value; applyFilters()">
+          </div>
+          <div class="col-12 col-md-4 col-xxl-2">
+            <label class="form-label">To</label>
+            <input type="date" class="form-control" [value]="filters.dateTo" (change)="filters.dateTo = $any($event.target).value; applyFilters()">
+          </div>
+          <div class="col-12 col-md-2 col-xxl-1">
+            <label class="form-label d-block">&nbsp;</label>
+            <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
+          </div>
+          <div class="col-12 col-md-2 col-xxl-1">
+            <label class="form-label d-block">&nbsp;</label>
+            <button class="btn btn-success w-100" (click)="sweepInvoices()" title="Generate pending invoices">
+              <i class="bi bi-lightning-charge me-2"></i>
+              Generate
+            </button>
+          </div>
         </div>
       </div>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Number</th>
-              <th>Client</th>
-              <th>Amount</th>
-              <th>Issue Date</th>
-              <th>Due Date</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let factura of facturas; trackBy: trackById" 
-                 [class.selected]="selectedFactura === factura"
-                 (click)="setSelectedFactura(factura)">
-              <td>
-                <span class="badge" [ngClass]="{
-                  'bg-success': factura.estado === 'Pagada',
-                  'bg-danger': factura.estado === 'Vencida',
-                  'bg-warning': factura.estado === 'Pendiente'
-                }">{{ factura.estado.toUpperCase() }}</span>
-              </td>
-              <td>{{ factura.numero }}</td>
-              <td>{{ factura.cliente }}</td>
-              <td>{{ factura.total | number:'1.0-0' }}</td>
-              <td>{{ factura.fechaEmision }}</td>
-              <td>{{ factura.fechaVencimiento }}</td>
-              <td>${{ factura.total | number:'1.2-2' }}</td>
-            </tr>
-            <tr *ngIf="facturas.length === 0">
-              <td colspan="7" class="text-center">No invoices available</td>
-            </tr>
-          </tbody>
-        </table>
+    </div>
+    
+    <!-- Contenedor de tabla y paginación -->
+    <div class="inner-container table-pagination-container" id="cuadro2">
+      <!-- Encabezados fijos -->
+      <div class="table-header-fixed">
+        <div class="table-responsive">
+          <table class="table table-striped mb-0">
+            <thead style="background-color: white;">
+              <tr>
+                <th class="text-center">Status</th>
+                <th class="text-center">Number</th>
+                <th class="d-none d-md-table-cell">Client</th>
+                <th class="text-center d-none d-md-table-cell">Amount</th>
+                <th class="d-none d-xl-table-cell">Issue Date</th>
+                <th class="d-none d-xl-table-cell">Due Date</th>
+                <th *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell">{{ getColumnLabel(column, facturas[0]) }}</th>
+                <th class="text-center d-none d-md-table-cell">Total</th>
+                <th class="text-center" style="width: 100px;">Actions</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Tabla con scroll -->
+      <div class="table-scroll-container">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <tbody>
+              <tr *ngFor="let factura of paginatedFacturas; trackBy: trackById" 
+                   [class.selected]="selectedFactura === factura"
+                   (click)="setSelectedFactura(factura)">
+                <td>
+                  <span class="badge" [ngClass]="{
+                    'bg-success': factura.estado === 'Pagada',
+                    'bg-danger': factura.estado === 'Vencida',
+                    'bg-warning': factura.estado === 'Pendiente'
+                  }">{{ factura.estado.toUpperCase() }}</span>
+                </td>
+                <td>{{ factura.numero }}</td>
+                <td class="d-none d-md-table-cell">{{ factura.cliente }}</td>
+                <td class="text-end d-none d-md-table-cell">${{ factura.total | number:'1.0-0' }}</td>
+                <td class="d-none d-xl-table-cell">{{ factura.fechaEmision }}</td>
+                <td class="d-none d-xl-table-cell">{{ factura.fechaVencimiento }}</td>
+                <td *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell">
+                  <span *ngIf="column === 'currency'; else numberValue">{{ factura[column] || 'N/A' }}</span>
+                  <ng-template #numberValue>
+                    <span *ngIf="factura[column] !== null && factura[column] !== undefined; else noValue">
+                      ${{ factura[column] | number:'1.2-2' }}
+                      <span *ngIf="factura['percentages'] && factura['percentages'][column]" class="text-muted ms-1">
+                        ({{ factura['percentages'][column] }}%)
+                      </span>
+                    </span>
+                    <ng-template #noValue>N/A</ng-template>
+                  </ng-template>
+                </td>
+                <td class="text-end d-none d-md-table-cell">${{ calculateFinalTotal(factura) | number:'1.2-2' }}</td>
+                <td class="text-center" style="width: 100px;">
+                  <button type="button" class="btn p-0 border-0 bg-transparent me-2" title="View details">
+                    <svg width="16" height="16" fill="currentColor">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn p-0 border-0 bg-transparent" title="Generate PDF">
+                    <svg width="16" height="16" fill="currentColor">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-pdf" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="paginatedFacturas.length === 0">
+                <td [attr.colspan]="8 + dynamicColumns.length" class="text-center">No invoices available</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Paginación fija -->
+      <div class="pagination-fixed" *ngIf="totalPages > 1">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="text-muted">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredFacturas.length) }} of {{ filteredFacturas.length }} invoices
+          </div>
+          <nav>
+            <ul class="pagination mb-0">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">«</button>
+              </li>
+              <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+                <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">»</button>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
   </div>

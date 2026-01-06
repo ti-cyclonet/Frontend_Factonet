@@ -29,4 +29,11 @@ export class FactonetService {
   sweepInvoices(): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/api/invoices/sweep`, {}, { headers: this.getHeaders() });
   }
+
+  updateContractStatus(contractId: string, status: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/contracts/${contractId}/status`, 
+      { status }, 
+      { headers: this.getHeaders() }
+    );
+  }
 }

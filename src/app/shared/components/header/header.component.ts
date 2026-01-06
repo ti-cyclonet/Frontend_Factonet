@@ -7,7 +7,9 @@ import { AuthService } from '../../services/auth/auth.service';
 import { UserDataService, UserData } from '../../services/user/user-data.service';
 import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service';
 import { FactonetService } from '../../services/factonet/factonet.service';
-import { NavbarComponent } from '../navbar/navbar.component'; 
+import { NavbarComponent } from '../navbar/navbar.component';
+import { InvoiceRefreshService } from '../../services/invoice-refresh.service';
+import { Subscription } from 'rxjs'; 
 
 @Component({
   selector: 'app-header',
@@ -26,6 +28,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobile: boolean = false;
   dropdownOpen: boolean = false;
   private resizeListener: any;
+  private refreshSubscription: Subscription = new Subscription();
   window = window;
 
   @Input() optionsMenu: OptionMenu[] = []; 
@@ -58,7 +61,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userDataService: UserDataService,
     private dashboardService: DashboardService,
-    private factonetService: FactonetService
+    private factonetService: FactonetService,
+    private invoiceRefreshService: InvoiceRefreshService
   ) { }
 
   ngOnInit(): void {
@@ -69,10 +73,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.resizeListener = this.checkScreenSize.bind(this);
     window.addEventListener('resize', this.resizeListener);
+
+    // Suscribirse al servicio de refresh
+    this.refreshSubscription = this.invoiceRefreshService.refresh$.subscribe(() => {
+      this.loadPendingInvoices();
+    });
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('resize', this.resizeListener);
+    this.refreshSubscription.unsubscribe();
   }
 
   checkScreenSize() {
@@ -102,18 +112,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.pendingInvoices = 0;
       }
     });
-    
-    // Actualizar cada 30 segundos
-    setInterval(() => {
-      this.factonetService.getInvoices().subscribe({
-        next: (facturas) => {
-          this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
-        },
-        error: () => {
-          this.pendingInvoices = 0;
-        }
-      });
-    }, 30000);
+  }
+
+  // Método público para refrescar desde otros componentes
+  refreshPendingInvoices(): void {
+    this.loadPendingInvoices();
   }
   // <-- PÉGALO AQUÍ
   @HostListener('document:click', ['$event'])
@@ -191,10 +194,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       next: (metrics: DashboardMetrics) => {
         this.notifications = [];
         if (metrics.pendingInvoices > 0) {
-          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} Facturas pendientes`, type: 'warning', visible: true });
+          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} Pending invoices`, type: 'warning', visible: true });
         }
         if (metrics.paidInvoices > 0) {
-          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} Facturas pagadas`, type: 'success', visible: true });
+          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} Paid invoices`, type: 'success', visible: true });
         }
       },
       error: (error) => {

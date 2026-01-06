@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NAME_APP_SHORT } from '../../../config/config';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../services/factonet/factonet.service';
+import { InvoiceRefreshService } from '../../services/invoice-refresh.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-footer',
@@ -15,8 +17,12 @@ export class FooterComponent implements OnInit, OnDestroy {
   nombreApp = NAME_APP_SHORT;
   currentDateTime: string = ''; 
   private intervalId: any;
+  private refreshSubscription: Subscription = new Subscription();
 
-  constructor(private factonetService: FactonetService) {} 
+  constructor(
+    private factonetService: FactonetService,
+    private invoiceRefreshService: InvoiceRefreshService
+  ) {} 
 
   // Métricas de facturas reales
   pendingInvoices: number = 0; 
@@ -28,17 +34,18 @@ export class FooterComponent implements OnInit, OnDestroy {
     }, 1000);
     
     this.loadDashboardMetrics();
-    
-    // Actualizar métricas cada 30 segundos
-    setInterval(() => {
+
+    // Suscribirse al servicio de refresh
+    this.refreshSubscription = this.invoiceRefreshService.refresh$.subscribe(() => {
       this.loadDashboardMetrics();
-    }, 30000);
+    });
   }
 
   ngOnDestroy(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
+    this.refreshSubscription.unsubscribe();
   }
 
   /**
@@ -54,6 +61,11 @@ export class FooterComponent implements OnInit, OnDestroy {
         this.pendingInvoices = 0;
       }
     });
+  }
+
+  // Método público para refrescar desde otros componentes
+  refreshDashboardMetrics(): void {
+    this.loadDashboardMetrics();
   }
 
   /**

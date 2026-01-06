@@ -19,26 +19,45 @@ export class ActivePeriodGuard implements CanActivate {
     return this.parametrosService.getPeriodos().pipe(
       map(periodos => {
         const periodoActivo = periodos.find(p => p.status === 'ACTIVE');
+        
         if (!periodoActivo) {
           Swal.fire({
-            title: 'Sin período activo',
-            text: 'Debe tener un período activo para acceder a este módulo.',
+            title: 'No Active Period',
+            text: 'You must have an active period to access this module.',
             icon: 'warning',
-            confirmButtonText: 'Ir a Parámetros Globales',
+            confirmButtonText: 'Go to Periods',
             allowOutsideClick: false
           }).then(() => {
             this.router.navigate(['/parametros-globales']);
           });
           return false;
         }
+
+        // Validar vigencia del periodo activo
+        const fechaActual = new Date();
+        const fechaFin = new Date(periodoActivo.endDate);
+        
+        if (fechaFin < fechaActual) {
+          Swal.fire({
+            title: 'Expired Period',
+            text: `The active period "${periodoActivo.name}" has expired. You must activate a valid period to continue.`,
+            icon: 'error',
+            confirmButtonText: 'Go to Periods',
+            allowOutsideClick: false
+          }).then(() => {
+            this.router.navigate(['/parametros-globales']);
+          });
+          return false;
+        }
+        
         return true;
       }),
       catchError(() => {
         Swal.fire({
-          title: 'Sin períodos configurados',
-          text: 'Debe crear y activar un período para acceder a este módulo.',
+          title: 'No Periods Configured',
+          text: 'You must create and activate a period to access this module.',
           icon: 'warning',
-          confirmButtonText: 'Ir a Parámetros Globales',
+          confirmButtonText: 'Go to Periods',
           allowOutsideClick: false
         }).then(() => {
           this.router.navigate(['/parametros-globales']);

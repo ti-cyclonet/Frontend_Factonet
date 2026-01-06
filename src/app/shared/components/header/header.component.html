@@ -41,7 +41,7 @@
             <span class="badge me-2 bg-warning text-dark">
                 {{ pendingInvoices }}
             </span>
-            Facturas pendientes
+            Pending invoices
         </span>
     </li>
 </ul>
@@ -102,7 +102,7 @@
           </li>
           <li><hr class="dropdown-divider" /></li>
           <!-- Opciones de menú dinámicas (solo en móvil) -->
-          <li *ngFor="let option of optionsMenu; trackBy: trackByOptionId" class="d-block d-sm-none">
+          <li *ngFor="let option of optionsMenu; trackBy: trackByOptionId" class="d-block d-md-none">
             <a class="dropdown-item" [routerLink]="option.url">
               <svg
                 class="dropdown-icon"
@@ -115,7 +115,7 @@
               {{ option.description || option.name }}
             </a>
           </li>
-          <li class="d-block d-sm-none"><hr class="dropdown-divider" /></li>
+          <li class="d-block d-md-none"><hr class="dropdown-divider" /></li>
           <li>
             <a
               class="dropdown-item"

@@ -37,18 +37,18 @@
               <td class="d-none d-xl-table-cell">{{ contrato.startDate }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.endDate }}</td>
               <td class="d-md-none">
-                <span class="badge" [ngClass]="{
+                <span class="badge status-clickable" [ngClass]="{
                   'bg-success': contrato.status === 'ACTIVE',
                   'bg-danger': contrato.status === 'EXPIRED',
                   'bg-warning': contrato.status === 'PENDING'
-                }">{{ contrato.status }}</span>
+                }" (click)="openStatusDropdown($event, contrato.id)">{{ contrato.status }}</span>
               </td>
               <td class="d-none d-md-table-cell">
-                <span class="badge" [ngClass]="{
+                <span class="badge status-clickable" [ngClass]="{
                   'bg-success': contrato.status === 'ACTIVE',
                   'bg-danger': contrato.status === 'EXPIRED',
                   'bg-warning': contrato.status === 'PENDING'
-                }">{{ contrato.status }}</span>
+                }" (click)="openStatusDropdown($event, contrato.id)">{{ contrato.status }}</span>
               </td>
               <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
@@ -81,6 +81,21 @@
     </div>
   </div>
 </div>
+
+<!-- Dropdown flotante para cambiar estado -->
+<div *ngIf="statusDropdownOpen()" class="status-dropdown" 
+     [style.top.px]="statusDropdownPosition().top" 
+     [style.left.px]="statusDropdownPosition().left"
+     (click)="$event.stopPropagation()">
+  <div *ngFor="let status of contractStatuses" 
+       class="dropdown-item" 
+       (click)="changeContractStatus(statusDropdownOpen()!, status)">
+    {{ status }}
+  </div>
+</div>
+
+<!-- Overlay para cerrar dropdown -->
+<div *ngIf="statusDropdownOpen()" class="dropdown-overlay" (click)="closeStatusDropdown()"></div>
 
 <!-- Modal para ver detalles del contrato -->
 <div class="modal fade" id="viewContractModal" tabindex="-1" aria-labelledby="viewContractModalLabel" aria-hidden="true">

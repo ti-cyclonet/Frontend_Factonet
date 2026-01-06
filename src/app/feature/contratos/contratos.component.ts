@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { ContractPdfService } from '../../shared/services/contract-pdf.service';
@@ -17,8 +17,6 @@ export class ReplacePipe implements PipeTransform {
   }
 }
 
-
-
 @Component({
   selector: 'app-contratos', 
   standalone: true,
@@ -26,7 +24,7 @@ export class ReplacePipe implements PipeTransform {
   templateUrl: './contratos.component.html', 
   styleUrls: ['./contratos.component.css'] 
 })
-export class ContratosComponent implements OnInit { 
+export class ContratosComponent implements OnInit, OnDestroy { 
   
   // Utilizamos signals para el estado reactivo
   contratos = signal<Contract[]>([]);
@@ -47,6 +45,30 @@ export class ContratosComponent implements OnInit {
   }>>([]);
   
   showOptions = true; // Controla la visibilidad del panel de opciones
+  
+  private clickListener?: () => void;
+
+  // Propiedad para el contrato del modal
+  modalContrato: Contract | null = null;
+  
+  // Controla la visibilidad de la información detallada del usuario
+  showUserDetails = signal(false);
+  
+  // Controla la visibilidad de la información detallada del paquete
+  showPackageDetails = signal(false);
+  
+  // Controla el estado de generación de PDF
+  generatingPDF = signal(false);
+  
+  // Almacena los contratos que ya tienen PDF generado
+  contractsWithPDF = new Set<string>();
+
+  // Estados permitidos para contratos
+  contractStatuses = ['PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED', 'TERMINATED', 'RENEWED', 'DELETED'];
+  
+  // Control del dropdown de estados
+  statusDropdownOpen = signal<string | null>(null);
+  statusDropdownPosition = signal<{top: number, left: number}>({top: 0, left: 0});
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -58,11 +80,23 @@ export class ContratosComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadContratos();
+    
+    // Listener para cerrar dropdown al hacer click fuera
+    this.clickListener = () => {
+      this.closeStatusDropdown();
+    };
+    document.addEventListener('click', this.clickListener);
+  }
+
+  ngOnDestroy(): void {
+    if (this.clickListener) {
+      document.removeEventListener('click', this.clickListener);
+    }
   }
 
   /**
-    * Carga contratos desde el backend.
-    */
+   * Carga contratos desde el backend.
+   */
   loadContratos(): void {
     this.factonetService.getContracts().subscribe({
       next: (contratos) => {
@@ -88,31 +122,16 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Abre el modal para añadir un nuevo contrato.
-    */
+   * Abre el modal para añadir un nuevo contrato.
+   */
   openContratoModal() { 
     this.isModalOpen.set(true);
     this.showToast('SYSTEM: Opening Contract Creation Interface...', 'primary', 'A', 0);
   }
 
-  // Propiedad para el contrato del modal
-  modalContrato: Contract | null = null;
-  
-  // Controla la visibilidad de la información detallada del usuario
-  showUserDetails = signal(false);
-  
-  // Controla la visibilidad de la información detallada del paquete
-  showPackageDetails = signal(false);
-  
-  // Controla el estado de generación de PDF
-  generatingPDF = signal(false);
-  
-  // Almacena los contratos que ya tienen PDF generado
-  contractsWithPDF = new Set<string>();
-
   /**
-    * Muestra los detalles del contrato en el modal.
-    */
+   * Muestra los detalles del contrato en el modal.
+   */
   viewContrato(contrato: Contract) {
     this.modalContrato = contrato; // Usar propiedad normal en lugar de signal
     this.selectedContrato.set(contrato);
@@ -131,22 +150,22 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Alterna la visibilidad de los detalles del usuario.
-    */
+   * Alterna la visibilidad de los detalles del usuario.
+   */
   toggleUserDetails() {
     this.showUserDetails.update(current => !current);
   }
 
   /**
-    * Alterna la visibilidad de los detalles del paquete.
-    */
+   * Alterna la visibilidad de los detalles del paquete.
+   */
   togglePackageDetails() {
     this.showPackageDetails.update(current => !current);
   }
 
   /**
-    * Genera y descarga el contrato en PDF.
-    */
+   * Genera y descarga el contrato en PDF.
+   */
   generateContractPDF(contrato: Contract) {
     // Si ya existe el PDF en Cloudinary, mostrar opciones directamente
     if (contrato.pdfUrl) {
@@ -191,18 +210,18 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Muestra las opciones disponibles para el PDF.
-    */
+   * Muestra las opciones disponibles para el PDF.
+   */
   private showPDFOptions(contrato: Contract) {
     Swal.fire({
-      title: '¡PDF Disponible!',
-      text: `Contrato ${contrato.code || contrato.id} listo`,
+      title: 'PDF Available!',
+      text: `Contract ${contrato.code || contrato.id} ready`,
       icon: 'success',
       showCancelButton: true,
       showDenyButton: true,
-      confirmButtonText: 'Ver PDF',
-      denyButtonText: 'Descargar',
-      cancelButtonText: 'Cerrar'
+      confirmButtonText: 'View PDF',
+      denyButtonText: 'Download',
+      cancelButtonText: 'Close'
     }).then((result) => {
       if (result.isConfirmed) {
         // Siempre usar modal HTML local
@@ -214,8 +233,8 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Muestra el contrato PDF en un modal.
-    */
+   * Muestra el contrato PDF en un modal.
+   */
   private viewContractPDF(contrato: Contract) {
     const contractContent = this.generateContractHTML(contrato);
     
@@ -232,8 +251,8 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Genera el contenido HTML del contrato.
-    */
+   * Genera el contenido HTML del contrato.
+   */
   private generateContractHTML(contrato: Contract): string {
     const clientName = contrato.user.basicData?.legalEntityData?.businessName || 
                       `${contrato.user.basicData?.naturalPersonData?.firstName || ''} ${contrato.user.basicData?.naturalPersonData?.firstSurname || ''}`.trim() ||
@@ -300,16 +319,16 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Formatea valores monetarios al formato colombiano.
-    */
+   * Formatea valores monetarios al formato colombiano.
+   */
   private formatCurrency(value: string | number): string {
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
     return numValue.toLocaleString('es-CO').replace(/,/g, '.') + ',oo';
   }
 
   /**
-    * Genera el PDF y lo sube al servidor.
-    */
+   * Genera el PDF y lo sube al servidor.
+   */
   private async generateAndUploadPDF(contrato: Contract): Promise<void> {
     const pdf = new jsPDF();
     
@@ -414,9 +433,21 @@ export class ContratosComponent implements OnInit {
     });
   }
 
+  private downloadContractPDF(contrato: Contract) {
+    const pdf = new jsPDF();
+    
+    const logoImg = new Image();
+    logoImg.onload = () => {
+      this.generatePDFContent(pdf, contrato, logoImg);
+      pdf.save(`Contrato_${contrato.code || contrato.id}.pdf`);
+    };
+    
+    logoImg.src = 'assets/img/Cyclonet_nit.png';
+  }
+
   /**
-    * Genera el contenido del PDF (extraído para reutilización).
-    */
+   * Genera el contenido del PDF (extraído para reutilización).
+   */
   private generatePDFContent(pdf: jsPDF, contrato: Contract, logoImg: HTMLImageElement): void {
     // Logo
     const logoWidth = 70;
@@ -531,24 +562,9 @@ export class ContratosComponent implements OnInit {
     pdf.text(clientName, 120, yPosition + 50);
   }
 
-
-
-  private downloadContractPDF(contrato: Contract) {
-    const pdf = new jsPDF();
-    
-    const logoImg = new Image();
-    logoImg.onload = () => {
-      this.generatePDFContent(pdf, contrato, logoImg);
-      pdf.save(`Contrato_${contrato.code || contrato.id}.pdf`);
-    };
-    
-    logoImg.src = 'assets/img/Cyclonet_nit.png';
-  }
-
-
   /**
-    * Establece el contrato seleccionado o lo deselecciona.
-    */
+   * Establece el contrato seleccionado o lo deselecciona.
+   */
   setSelectedContrato(contrato: Contract) { 
     if (this.selectedContrato() === contrato) {
         this.selectedContrato.set(null);
@@ -559,9 +575,9 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Abre el modal de confirmación de eliminación (reemplazo de confirm()).
-    * Esta función debe ser llamada por el botón "Eliminar".
-    */
+   * Abre el modal de confirmación de eliminación (reemplazo de confirm()).
+   * Esta función debe ser llamada por el botón "Eliminar".
+   */
   openDeleteConfirmationModal() {
     if (this.selectedContrato()) {
         this.isDeleteConfirmationModalOpen.set(true);
@@ -571,16 +587,16 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Cierra el modal de confirmación.
-    */
+   * Cierra el modal de confirmación.
+   */
   cancelDelete() {
     this.isDeleteConfirmationModalOpen.set(false);
   }
 
   /**
-    * Ejecuta la eliminación del contrato seleccionado.
-    * Esta función debe ser llamada por el botón "Confirmar" dentro del modal.
-    */
+   * Ejecuta la eliminación del contrato seleccionado.
+   * Esta función debe ser llamada por el botón "Confirmar" dentro del modal.
+   */
   deleteContrato() { 
     const contrato = this.selectedContrato();
     if (contrato) {
@@ -600,8 +616,8 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Función trackBy para optimización.
-    */
+   * Función trackBy para optimización.
+   */
   trackById(index: number, contrato: Contract): string { 
     return contrato.id;
   }
@@ -609,8 +625,8 @@ export class ContratosComponent implements OnInit {
   // --- Funciones de Notificación ---
 
   /**
-    * Elimina una notificación por índice.
-    */
+   * Elimina una notificación por índice.
+   */
   removeNotification(index: number) {
     // Actualiza el signal 'notifications' eliminando el elemento por índice
     this.notifications.update(currentNotifications => {
@@ -620,8 +636,8 @@ export class ContratosComponent implements OnInit {
   }
 
   /**
-    * Muestra una notificación temporal (A) o persistente (B).
-    */
+   * Muestra una notificación temporal (A) o persistente (B).
+   */
   showToast(message: string, type: 'success' | 'warning' | 'danger' | 'primary', alertType: 'A' | 'B', container: 0 | 1) {
     const notification = {
       title: message,
@@ -642,5 +658,131 @@ export class ContratosComponent implements OnInit {
         );
       }, 5000);
     }
+  }
+
+  /**
+   * Abre el dropdown de estados en la posición del elemento clickeado
+   */
+  openStatusDropdown(event: MouseEvent, contractId: string) {
+    event.stopPropagation();
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    this.statusDropdownPosition.set({
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX
+    });
+    this.statusDropdownOpen.set(contractId);
+  }
+
+  /**
+   * Cierra el dropdown de estados
+   */
+  closeStatusDropdown() {
+    this.statusDropdownOpen.set(null);
+  }
+
+  /**
+   * Cambia el estado del contrato
+   */
+  changeContractStatus(contractId: string, newStatus: string) {
+    // Si es activación, validar primero
+    if (newStatus === 'ACTIVE') {
+      const contract = this.contratos().find(c => c.id === contractId);
+      if (contract) {
+        // Validar PDF
+        if (!contract.pdfUrl || contract.pdfUrl.trim() === '') {
+          Swal.fire({
+            title: 'Cannot activate contract',
+            text: 'You must generate the contract PDF before activating it.',
+            icon: 'warning',
+            confirmButtonText: 'Understood'
+          });
+          this.closeStatusDropdown();
+          return;
+        }
+        
+        // Validar confirmación de contrato firmado
+        Swal.fire({
+          title: 'Contract Confirmation',
+          text: 'Has the user reviewed, accepted and signed the contract?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, signed',
+          cancelButtonText: 'No, not yet',
+          reverseButtons: true
+        }).then((result) => {
+          if (!result.isConfirmed) {
+            Swal.fire({
+              title: 'Cannot activate contract',
+              text: 'The contract cannot be activated until the user has reviewed, accepted and signed it.',
+              icon: 'warning',
+              confirmButtonText: 'Understood'
+            });
+            this.closeStatusDropdown();
+            return;
+          }
+          
+          // Si confirma, proceder con la activación
+          this.proceedWithActivation(contractId, newStatus);
+        });
+        
+        return; // Salir aquí para evitar ejecutar el código de abajo
+      }
+    }
+    
+    // Para otros estados que no sean ACTIVE
+    this.proceedWithActivation(contractId, newStatus);
+  }
+  
+  /**
+   * Procede con la activación del contrato después de las validaciones
+   */
+  private proceedWithActivation(contractId: string, newStatus: string) {
+    // Mostrar spinner solo para activación
+    if (newStatus === 'ACTIVE') {
+      Swal.fire({
+        title: 'Activating contract...',
+        text: 'Validating requirements and activating the contract',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    }
+    
+    this.factonetService.updateContractStatus(contractId, newStatus).subscribe({
+      next: () => {
+        // Actualizar el contrato en la lista local
+        this.contratos.update(contracts => 
+          contracts.map(contract => 
+            contract.id === contractId 
+              ? { ...contract, status: newStatus }
+              : contract
+          )
+        );
+        
+        if (newStatus === 'ACTIVE') {
+          Swal.fire({
+            title: 'Activated!',
+            text: 'The contract has been successfully activated.',
+            icon: 'success',
+            confirmButtonText: 'OK'
+          });
+        } else {
+          this.showToast(`Estado actualizado a ${newStatus}`, 'success', 'A', 0);
+        }
+        this.closeStatusDropdown();
+      },
+      error: (error) => {
+        const errorMsg = error.error?.message || 'Error al actualizar el estado';
+        Swal.fire({
+          title: 'Error',
+          text: errorMsg,
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        this.closeStatusDropdown();
+        console.error('Error updating contract status:', error);
+      }
+    });
   }
 }
