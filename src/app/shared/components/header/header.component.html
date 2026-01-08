@@ -56,11 +56,10 @@
     </div>
 
     <!-- AVATAR Y DROPDOWN DE USUARIO -->
-    <div class="btn-group">
+    <div class="btn-group position-relative">
         <a
             class="profile-toggle"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
+            (click)="toggleUserDropdown($event)"
             href="#"
         >
             <img 
@@ -73,7 +72,7 @@
             />
         </a>
 
-        <ul class="dropdown-menu p-3 mt-2 dropdown-menu-end">
+        <ul class="dropdown-menu p-3 mt-2 dropdown-menu-end" [class.show]="userDropdownOpen" style="z-index: 9999;">
           <li class="d-flex align-items-center">
             <img
               *ngIf="userImage"
@@ -103,7 +102,7 @@
           <li><hr class="dropdown-divider" /></li>
           <!-- Opciones de menú dinámicas (solo en móvil) -->
           <li *ngFor="let option of optionsMenu; trackBy: trackByOptionId" class="d-block d-md-none">
-            <a class="dropdown-item" [routerLink]="option.url">
+            <a class="dropdown-item" [routerLink]="option.url" (click)="userDropdownOpen = false">
               <svg
                 class="dropdown-icon"
                 width="16"
@@ -160,8 +159,6 @@
 <div
   class="modal fade"
   id="changePasswordModal"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false"
   tabindex="-1"
   aria-labelledby="staticBackdropLabel"
   aria-hidden="true"
@@ -172,10 +169,10 @@
         <h1 class="modal-title fs-5" id="staticBackdropLabel">
           Password Change Form
         </h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <!-- Aquí iría el componente de cambio de contraseña -->
-        <p>Funcionalidad de cambio de contraseña</p>
+        <app-change-password></app-change-password>
       </div>
     </div>
   </div>

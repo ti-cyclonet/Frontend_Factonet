@@ -1,49 +1,28 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../../environment/environment';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = '/api/users';
-
-  // Crear un BehaviorSubject para almacenar los usuarios
-  private usersSubject = new BehaviorSubject<any[]>([]);
-  public users$ = this.usersSubject.asObservable();
+  private apiUrl = environment.BASE_URL_FACTONET;
 
   constructor(private http: HttpClient) {}
 
-  // Método para obtener los usuarios desde el servidor
-  getUsers(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
-  }
-
-  // Método para cargar los usuarios y actualizar el BehaviorSubject
-  loadUsers(): void {
-    this.getUsers().subscribe({
-      next: (users) => {
-        this.usersSubject.next(users); // Actualiza el BehaviorSubject
-      },
-      error: (error) => {
-
-      },
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`
     });
   }
 
-  // Método para acceder a los usuarios actuales
-  getCurrentUsers(): any[] {
-    return this.usersSubject.getValue();
-  }
-
-  changePassword(
-    userId: string,
-    oldPassword: string,
-    newPassword: string
-  ): Observable<any> {
-    return this.http.post(`/api/users/${userId}/change-password`, {
+  changePassword(userId: string, oldPassword: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/auth/change-password`, {
+      userId,
       oldPassword,
-      newPassword,
-    });
+      newPassword
+    }, { headers: this.getHeaders() });
   }
 }

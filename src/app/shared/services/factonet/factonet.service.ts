@@ -8,6 +8,7 @@ import { environment } from '../../../../../environment/environment';
 })
 export class FactonetService {
   private apiUrl = environment.BASE_URL_FACTONET;
+  private authorizaUrl = environment.BASE_URL_AUTHORIZA;
 
   constructor(private http: HttpClient) {}
 
@@ -19,10 +20,12 @@ export class FactonetService {
   }
 
   getInvoices(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/api/invoices`, { headers: this.getHeaders() });
+    // Asegurar que solo obtenemos facturas, no contratos
+    return this.http.get<any[]>(`${this.authorizaUrl}/api/invoices`, { headers: this.getHeaders() });
   }
 
   getContracts(): Observable<any[]> {
+    // Contratos vienen de FactoNet
     return this.http.get<any[]>(`${this.apiUrl}/api/contracts`, { headers: this.getHeaders() });
   }
 
@@ -32,6 +35,13 @@ export class FactonetService {
 
   updateContractStatus(contractId: string, status: string): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/api/contracts/${contractId}/status`, 
+      { status }, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateInvoiceStatus(invoiceId: number, status: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/api/invoices/${invoiceId}/status`, 
       { status }, 
       { headers: this.getHeaders() }
     );

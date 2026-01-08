@@ -34,6 +34,13 @@ export interface BasicData {
   id: string;
   strPersonType: 'J' | 'N';
   strStatus: string;
+  documentTypeId?: string;
+  documentNumber?: string;
+  documentType?: {
+    id: string;
+    description: string;
+    documentType: string;
+  };
   naturalPersonData?: NaturalPersonData;
   legalEntityData?: LegalEntityData;
 }

@@ -1,21 +1,47 @@
 <div class="floating-container">
+  <!-- Notificaciones -->
+  <div *ngFor="let notification of notifications; let i = index" 
+       class="alert alert-dismissible fade show position-fixed" 
+       [ngClass]="'alert-' + notification.type"
+       [style.top.px]="notification.container === 0 ? 20 + (i * 70) : 'auto'"
+       [style.bottom.px]="notification.container === 1 ? 20 + (i * 70) : 'auto'"
+       [style.right.px]="20"
+       [style.z-index]="9999"
+       [style.max-width.px]="400"
+       [class.show]="notification.visible">
+    {{ notification.title }}
+    <button type="button" class="btn-close" (click)="removeNotification(i)"></button>
+  </div>
+  
   <div class="outer-container">
     <!-- Título -->
     <div class="inner-container" id="cuadro1">
       <h3 class="card-title mb-0">Invoices List</h3>
     </div>
     
+    <!-- Botón de acordeón para móvil (fuera del contenedor) -->
+    <div class="d-block d-md-none mb-2">
+      <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
+        <i class="bi bi-funnel me-2"></i>Filters
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+    </div>
+    
     <!-- Filtros -->
-    <div class="inner-container mb-4" id="filtros">
+    <div class="inner-container mb-4 collapse d-md-block" id="filtersCollapse">
       <div class="w-100 p-3">
         <div class="row g-3">
           <div class="col-12 col-md-4 col-xxl-2">
             <label class="form-label">Status</label>
             <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
               <option value="">All</option>
-              <option value="Pendiente">Pending</option>
-              <option value="Pagada">Paid</option>
-              <option value="Vencida">Overdue</option>
+              <option value="Unconfirmed">Unconfirmed</option>
+              <option value="Issued">Issued</option>
+              <option value="In arrears">In arrears</option>
+              <option value="Notification1">Notification1</option>
+              <option value="Notification2">Notification2</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Paid">Paid</option>
             </select>
           </div>
           <div class="col-12 col-md-4 col-xxl-2">
@@ -81,11 +107,14 @@
                    [class.selected]="selectedFactura === factura"
                    (click)="setSelectedFactura(factura)">
                 <td>
-                  <span class="badge" [ngClass]="{
-                    'bg-success': factura.estado === 'Pagada',
-                    'bg-danger': factura.estado === 'Vencida',
-                    'bg-warning': factura.estado === 'Pendiente'
-                  }">{{ factura.estado.toUpperCase() }}</span>
+                  <div class="position-relative">
+                    <span class="badge cursor-pointer" [ngClass]="{
+                      'bg-success': factura.estado === 'Paid',
+                      'bg-danger': factura.estado === 'In arrears' || factura.estado === 'Suspended',
+                      'bg-warning': factura.estado === 'Issued' || factura.estado === 'Notification1' || factura.estado === 'Notification2',
+                      'bg-secondary': factura.estado === 'Unconfirmed'
+                    }" (click)="openStatusDropdown($event, factura.id)">{{ factura.estado.toUpperCase() }}</span>
+                  </div>
                 </td>
                 <td>{{ factura.numero }}</td>
                 <td class="d-none d-md-table-cell">{{ factura.cliente }}</td>
@@ -95,25 +124,24 @@
                 <td *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell">
                   <span *ngIf="column === 'currency'; else numberValue">{{ factura[column] || 'N/A' }}</span>
                   <ng-template #numberValue>
-                    <span *ngIf="factura[column] !== null && factura[column] !== undefined; else noValue">
+                    <span *ngIf="factura[column] !== null && factura[column] !== undefined && isNumber(factura[column])">
                       ${{ factura[column] | number:'1.2-2' }}
                       <span *ngIf="factura['percentages'] && factura['percentages'][column]" class="text-muted ms-1">
                         ({{ factura['percentages'][column] }}%)
                       </span>
                     </span>
-                    <ng-template #noValue>N/A</ng-template>
+                    <span *ngIf="factura[column] !== null && factura[column] !== undefined && !isNumber(factura[column])">
+                      {{ factura[column] }}
+                    </span>
+                    <span *ngIf="factura[column] === null || factura[column] === undefined">N/A</span>
                   </ng-template>
                 </td>
                 <td class="text-end d-none d-md-table-cell">${{ calculateFinalTotal(factura) | number:'1.2-2' }}</td>
                 <td class="text-center" style="width: 100px;">
-                  <button type="button" class="btn p-0 border-0 bg-transparent me-2" title="View details">
+                  <button type="button" class="btn p-0 border-0 bg-transparent me-2" title="View details" 
+                          data-bs-toggle="modal" data-bs-target="#viewInvoiceModal" (click)="modalFactura = factura">
                     <svg width="16" height="16" fill="currentColor">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
-                    </svg>
-                  </button>
-                  <button type="button" class="btn p-0 border-0 bg-transparent" title="Generate PDF">
-                    <svg width="16" height="16" fill="currentColor">
-                      <use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-pdf" />
                     </svg>
                   </button>
                 </td>
@@ -146,6 +174,120 @@
             </ul>
           </nav>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dropdown de estados -->
+<div *ngIf="statusDropdownOpen()" 
+     class="position-fixed bg-white border rounded shadow-sm py-2" 
+     [style.top.px]="statusDropdownPosition().top"
+     [style.left.px]="statusDropdownPosition().left"
+     [style.z-index]="9999"
+     style="min-width: 150px;">
+  <button *ngFor="let status of invoiceStatuses" 
+          class="dropdown-item btn btn-link text-start w-100 border-0 px-3 py-2"
+          (click)="changeInvoiceStatus(+statusDropdownOpen()!, status)">
+    {{ status }}
+  </button>
+</div>
+
+<!-- Modal para visualizar detalles de factura -->
+<div class="modal fade" id="viewInvoiceModal" tabindex="-1" aria-labelledby="viewInvoiceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="viewInvoiceModalLabel">
+          <i class="bi bi-receipt me-2"></i>
+          Factura {{ modalFactura?.numero }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="modalFactura">
+        <!-- Información básica -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información General</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Número:</strong> {{ modalFactura.numero }}</p>
+                <p><strong>Cliente:</strong> {{ modalFactura.cliente }}</p>
+                <p><strong>Estado:</strong> 
+                  <span class="badge" [ngClass]="{
+                    'bg-success': modalFactura.estado === 'Paid',
+                    'bg-danger': modalFactura.estado === 'In arrears' || modalFactura.estado === 'Suspended',
+                    'bg-warning': modalFactura.estado === 'Issued' || modalFactura.estado === 'Notification1' || modalFactura.estado === 'Notification2',
+                    'bg-secondary': modalFactura.estado === 'Unconfirmed'
+                  }">{{ modalFactura.estado.toUpperCase() }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-calendar me-2"></i>Fechas</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Fecha de emisión:</strong> {{ modalFactura.fechaEmision }}</p>
+                <p><strong>Fecha de vencimiento:</strong> {{ modalFactura.fechaVencimiento }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Conceptos dinámicos -->
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Conceptos Adicionales</h6>
+          </div>
+          <div class="card-body">
+            <!-- Sección reservada para uso futuro -->
+          </div>
+        </div>
+        
+        <!-- Totales -->
+        <div class="card">
+          <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Resumen Financiero</h6>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Subtotal:</span>
+              <span>${{ modalFactura.total | number:'1.2-2' }}</span>
+            </div>
+            
+            <!-- Conceptos dinámicos con colores suaves -->
+            <div *ngFor="let column of dynamicColumns">
+              <div class="d-flex justify-content-between mb-2 text-muted" 
+                   *ngIf="modalFactura[column] !== null && modalFactura[column] !== undefined">
+                <span>{{ getColumnLabel(column, modalFactura) }}
+                  <span *ngIf="modalFactura['percentages'] && modalFactura['percentages'][column]">
+                    ({{ modalFactura['percentages'][column] }}%)
+                  </span>:
+                </span>
+                <span [class.text-danger]="modalFactura['operationTypes'] && modalFactura['operationTypes'][column] === 'subtract'">
+                  <span *ngIf="modalFactura['operationTypes'] && modalFactura['operationTypes'][column] === 'subtract'">-</span>${{ modalFactura[column] | number:'1.2-2' }}
+                </span>
+              </div>
+            </div>
+            
+            <hr class="my-3">
+            <div class="d-flex justify-content-between">
+              <strong>TOTAL:</strong>
+              <strong class="text-primary h5">${{ calculateFinalTotal(modalFactura) | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" (click)="generateInvoicePDF(modalFactura!)">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Generar PDF
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>

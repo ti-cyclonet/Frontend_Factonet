@@ -9,6 +9,7 @@ import { DashboardService, DashboardMetrics } from '../../services/dashboard/das
 import { FactonetService } from '../../services/factonet/factonet.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { InvoiceRefreshService } from '../../services/invoice-refresh.service';
+import { ChangePasswordComponent } from '../change-password/change-password.component';
 import { Subscription } from 'rxjs'; 
 
 @Component({
@@ -19,7 +20,8 @@ import { Subscription } from 'rxjs';
     RouterModule,     
     FormsModule,      
     ReactiveFormsModule,
-    NavbarComponent
+    NavbarComponent,
+    ChangePasswordComponent
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -27,6 +29,7 @@ import { Subscription } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   isMobile: boolean = false;
   dropdownOpen: boolean = false;
+  userDropdownOpen: boolean = false;
   private resizeListener: any;
   private refreshSubscription: Subscription = new Subscription();
   window = window;
@@ -99,6 +102,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
   }
+
+  toggleUserDropdown(event: Event) {
+    event.preventDefault();
+    this.userDropdownOpen = !this.userDropdownOpen;
+  }
   
 
   
@@ -128,6 +136,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
       !target.closest('.notifications-menu')
     ) {
       this.dropdownOpen = false;
+    }
+
+    if (
+      !target.closest('.profile-toggle') &&
+      !target.closest('.dropdown-menu')
+    ) {
+      this.userDropdownOpen = false;
     }
   }
 
@@ -227,11 +242,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   async openChangePasswordModal(): Promise<void> {
+    // Cerrar el dropdown de usuario antes de abrir el modal
+    this.userDropdownOpen = false;
+    
     if (typeof window !== 'undefined') {
       const modalElement = document.getElementById('changePasswordModal');
       if (modalElement) {
         const bootstrap = await import('bootstrap');
         const modal = new bootstrap.Modal(modalElement);
+        
+        // Limpiar estado cuando se cierre el modal
+        modalElement.addEventListener('hidden.bs.modal', () => {
+          document.body.classList.remove('modal-open');
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.remove();
+          }
+        }, { once: true });
+        
         modal.show();
       }
     }

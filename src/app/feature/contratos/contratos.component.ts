@@ -100,15 +100,22 @@ export class ContratosComponent implements OnInit, OnDestroy {
   loadContratos(): void {
     this.factonetService.getContracts().subscribe({
       next: (contratos) => {
-        this.contratos.set(contratos || []);
+        // Ordenar contratos por fecha de inicio (más reciente primero)
+        const contratosOrdenados = (contratos || []).sort((a, b) => {
+          const dateA = new Date(a.startDate);
+          const dateB = new Date(b.startDate);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        this.contratos.set(contratosOrdenados);
         // Limpiar y actualizar contratos con PDF
         this.contractsWithPDF.clear();
-        contratos?.forEach(contrato => {
+        contratosOrdenados.forEach(contrato => {
           if (contrato.pdfUrl) {
             this.contractsWithPDF.add(contrato.id);
           }
         });
-        if (contratos && contratos.length > 0) {
+        if (contratosOrdenados.length > 0) {
           this.showToast('Contratos cargados correctamente', 'success', 'A', 0);
         } else {
           this.showToast('No hay contratos disponibles', 'primary', 'A', 0);
@@ -258,6 +265,10 @@ export class ContratosComponent implements OnInit, OnDestroy {
                       `${contrato.user.basicData?.naturalPersonData?.firstName || ''} ${contrato.user.basicData?.naturalPersonData?.firstSurname || ''}`.trim() ||
                       contrato.user.strUserName;
     
+    const documentInfo = contrato.user.basicData?.documentType && contrato.user.basicData?.documentNumber 
+      ? `<strong>Documento:</strong> ${contrato.user.basicData.documentType.description} ${contrato.user.basicData.documentNumber}<br>`
+      : '';
+    
     const contactInfo = contrato.user.basicData?.legalEntityData ? `
       <strong>Representante Legal:</strong> ${contrato.user.basicData.legalEntityData.contactName}<br>
       <strong>Email:</strong> ${contrato.user.basicData.legalEntityData.contactEmail}<br>
@@ -266,7 +277,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
     ` : `<strong>Email:</strong> ${contrato.user.strUserName}<br>`;
 
     const configurations = contrato.package.configurations?.map(config => 
-      `• ${config.totalAccount} cuentas ${config.rol.strName} a $${config.price} c/u`
+      `• ${config.totalAccount} cuentas ${config.rol.strName} a ${this.formatCurrency(config.price)} c/u`
     ).join('<br>') || 'No disponible';
 
     return `
@@ -288,6 +299,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
       <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f0f8ff;">
         <h4 style="color: #2c3e50; margin-bottom: 15px;">CLIENTE:</h4>
         <p><strong>${clientName}</strong><br>
+        ${documentInfo}
         ${contactInfo}</p>
       </div>
       
@@ -297,7 +309,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
       <strong>Configuración:</strong><br>${configurations}</p>
       
       <h4>2. VALOR Y FORMA DE PAGO</h4>
-      <p><strong>Valor total:</strong> $${contrato.value}<br>
+      <p><strong>Valor total:</strong> ${this.formatCurrency(contrato.value)} (${this.numberToWords(typeof contrato.value === 'string' ? parseFloat(contrato.value) : contrato.value)} pesos)<br>
       <strong>Modalidad:</strong> ${contrato.mode}<br>
       ${contrato.payday ? `<strong>Día de pago:</strong> ${contrato.payday}<br>` : ''}</p>
       
@@ -319,11 +331,87 @@ export class ContratosComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Convierte un número a su representación en letras (español colombiano).
+   */
+  private numberToWords(num: number): string {
+    const units = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+    const teens = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+    const tens = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    const hundreds = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+    if (num === 0) return 'cero';
+    if (num === 100) return 'cien';
+    if (num === 1000000) return 'un millón';
+
+    let result = '';
+
+    // Millones
+    if (num >= 1000000) {
+      const millions = Math.floor(num / 1000000);
+      if (millions === 1) {
+        result += 'un millón ';
+      } else {
+        result += this.convertHundreds(millions) + ' millones ';
+      }
+      num %= 1000000;
+    }
+
+    // Miles
+    if (num >= 1000) {
+      const thousands = Math.floor(num / 1000);
+      if (thousands === 1) {
+        result += 'mil ';
+      } else {
+        result += this.convertHundreds(thousands) + ' mil ';
+      }
+      num %= 1000;
+    }
+
+    // Centenas, decenas y unidades
+    if (num > 0) {
+      result += this.convertHundreds(num);
+    }
+
+    return result.trim();
+  }
+
+  private convertHundreds(num: number): string {
+    const units = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+    const teens = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+    const tens = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    const hundreds = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+    let result = '';
+
+    if (num >= 100) {
+      if (num === 100) {
+        result += 'cien';
+      } else {
+        result += hundreds[Math.floor(num / 100)] + ' ';
+      }
+      num %= 100;
+    }
+
+    if (num >= 20) {
+      result += tens[Math.floor(num / 10)];
+      if (num % 10 > 0) {
+        result += ' y ' + units[num % 10];
+      }
+    } else if (num >= 10) {
+      result += teens[num - 10];
+    } else if (num > 0) {
+      result += units[num];
+    }
+
+    return result;
+  }
+
+  /**
    * Formatea valores monetarios al formato colombiano.
    */
   private formatCurrency(value: string | number): string {
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    return numValue.toLocaleString('es-CO').replace(/,/g, '.') + ',oo';
+    return '$' + numValue.toLocaleString('es-CO') + ',oo';
   }
 
   /**
@@ -396,7 +484,9 @@ export class ContratosComponent implements OnInit, OnDestroy {
     pdf.setFont('helvetica', 'normal');
     
     const valorFormateado = this.formatCurrency(contrato.value);
-    const textoValor = `el valor del presente contrato es de $${valorFormateado} (año), el cual será cancelado de la siguiente manera: (especificar forma de pago y periodicidad).`;
+    const valorNumerico = typeof contrato.value === 'string' ? parseFloat(contrato.value) : contrato.value;
+    const valorEnLetras = this.numberToWords(valorNumerico);
+    const textoValor = `el valor del presente contrato es de ${valorFormateado} (${valorEnLetras} pesos), el cual será cancelado de la siguiente manera: (especificar forma de pago y periodicidad).`;
     
     const lineasValor = pdf.splitTextToSize(textoValor, 170);
     pdf.text(lineasValor, 20, yPos + 8);
@@ -410,7 +500,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
       pdf.setFont('helvetica', 'normal');
       yPos += 8;
       contrato.package.configurations.forEach((config) => {
-        pdf.text(`• ${config.totalAccount} cuentas ${config.rol.strName} - $${config.price} c/u`, 25, yPos);
+        pdf.text(`• ${config.totalAccount} cuentas ${config.rol.strName} - ${this.formatCurrency(config.price)} c/u`, 25, yPos);
         yPos += 6;
       });
     }
@@ -449,117 +539,77 @@ export class ContratosComponent implements OnInit, OnDestroy {
    * Genera el contenido del PDF (extraído para reutilización).
    */
   private generatePDFContent(pdf: jsPDF, contrato: Contract, logoImg: HTMLImageElement): void {
-    // Logo
-    const logoWidth = 70;
+    // Logo más grande
+    const logoWidth = 60;
     const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
     const logoX = (pdf.internal.pageSize.getWidth() - logoWidth) / 2;
     
     pdf.addImage(logoImg, 'PNG', logoX, 10, logoWidth, logoHeight);
     
-    // Título
-    pdf.setFontSize(16);
-    pdf.text('CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS', 20, logoHeight + 25);
-    
-    pdf.setFontSize(14);
-    pdf.text(`CONTRATO No. ${contrato.code || contrato.id}`, 20, logoHeight + 40);
-    
-    let yPosition = logoHeight + 60;
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 20;
-    
-    const checkNewPage = (requiredSpace: number) => {
-      if (yPosition + requiredSpace > pageHeight - margin) {
-        pdf.addPage();
-        yPosition = margin;
-      }
-    };
-    
-    // Proveedor
-    checkNewPage(80);
+    // Título más compacto
     pdf.setFontSize(12);
-    pdf.text('PROVEEDOR:', 20, yPosition);
-    pdf.text('Cyclonet S. A. S.', 20, yPosition + 10);
-    pdf.text('NIT: 901515884-4', 20, yPosition + 20);
-    pdf.text('Dirección: Bonanza, Mz 23 Lt 30 (Turbaco - Bolívar)', 20, yPosition + 30);
-    pdf.text('Teléfono: 314 414 4986 - 321 898 5475', 20, yPosition + 40);
-    pdf.text('Email: ti.cyclonet@hotmail.com', 20, yPosition + 50);
-    pdf.text('Sitio web: https://www.cyclonet.com.co/', 20, yPosition + 60);
+    pdf.text('CONTRATO DE PRESTACIÓN DE SERVICIOS SAAS', 20, logoHeight + 20);
     
-    yPosition += 80;
+    pdf.setFontSize(10);
+    pdf.text(`CONTRATO No. ${contrato.code || contrato.id}`, 20, logoHeight + 30);
     
-    // Cliente
+    let yPosition = logoHeight + 40;
+    
+    // Proveedor - más compacto
+    pdf.setFontSize(9);
+    pdf.text('PROVEEDOR: Cyclonet S.A.S. - NIT: 901515884-4', 20, yPosition);
+    pdf.text('Dir: Bonanza, Mz 23 Lt 30 (Turbaco-Bolívar) - Tel: 314 414 4986', 20, yPosition + 8);
+    pdf.text('Email: ti.cyclonet@hotmail.com - Web: https://www.cyclonet.com.co/', 20, yPosition + 16);
+    
+    yPosition += 30;
+    
+    // Cliente - más compacto (sin línea)
     const clientName = contrato.user.basicData?.legalEntityData?.businessName || 
                       `${contrato.user.basicData?.naturalPersonData?.firstName || ''} ${contrato.user.basicData?.naturalPersonData?.firstSurname || ''}`.trim() ||
                       contrato.user.strUserName;
     
-    checkNewPage(60);
-    pdf.line(20, yPosition - 5, 190, yPosition - 5);
+    const documentInfo = contrato.user.basicData?.documentType && contrato.user.basicData?.documentNumber 
+      ? `${contrato.user.basicData.documentType.description}: ${contrato.user.basicData.documentNumber}`
+      : 'Documento: No especificado';
     
-    pdf.text('CLIENTE:', 20, yPosition);
-    pdf.text(clientName, 20, yPosition + 10);
-    pdf.text(`Email: ${contrato.user.strUserName}`, 20, yPosition + 20);
+    pdf.text(`CLIENTE: ${clientName} - ${documentInfo}`, 20, yPosition);
+    pdf.text(`Email: ${contrato.user.strUserName}`, 20, yPosition + 8);
     
     if (contrato.user.basicData?.legalEntityData) {
-      pdf.text(`Representante: ${contrato.user.basicData.legalEntityData.contactName}`, 20, yPosition + 30);
-      pdf.text(`Teléfono: ${contrato.user.basicData.legalEntityData.contactPhone}`, 20, yPosition + 40);
-      yPosition += 20;
+      pdf.text(`Rep: ${contrato.user.basicData.legalEntityData.contactName} - Tel: ${contrato.user.basicData.legalEntityData.contactPhone}`, 20, yPosition + 16);
+      yPosition += 8;
     }
     
-    yPosition += 40;
-    pdf.line(20, yPosition, 190, yPosition);
+    yPosition += 25;
     
-    // Contenido del contrato
+    // Contenido del contrato - más compacto (sin línea)
+    pdf.setFontSize(8);
+    pdf.text('1. OBJETO: Prestación de servicios SaaS', 20, yPosition);
+    pdf.text(`Servicio: ${contrato.package.name} - ${contrato.package.description || 'Sin descripción'}`, 20, yPosition + 8);
+    
     yPosition += 20;
-    checkNewPage(40);
-    pdf.text('1. OBJETO DEL CONTRATO', 20, yPosition);
-    pdf.text(`Servicio: ${contrato.package.name}`, 20, yPosition + 10);
+    const valorNumerico = typeof contrato.value === 'string' ? parseFloat(contrato.value) : contrato.value;
+    const valorEnLetras = this.numberToWords(valorNumerico);
+    pdf.text(`2. VALOR: ${this.formatCurrency(contrato.value)} (${valorEnLetras} pesos) - Modalidad: ${contrato.mode}${contrato.payday ? ` - Día pago: ${contrato.payday}` : ''}`, 20, yPosition);
     
-    const description = contrato.package.description || 'Sin descripción';
-    const descLines = pdf.splitTextToSize(`Descripción: ${description}`, 170);
-    checkNewPage(descLines.length * 10 + 20);
-    pdf.text(descLines, 20, yPosition + 20);
-    yPosition += descLines.length * 10 + 30;
+    yPosition += 12;
+    pdf.text(`3. VIGENCIA: ${contrato.startDate} al ${contrato.endDate}`, 20, yPosition);
     
-    checkNewPage(40);
-    pdf.text('2. VALOR Y FORMA DE PAGO', 20, yPosition);
-    pdf.text(`Valor total: $${contrato.value}`, 20, yPosition + 10);
-    pdf.text(`Modalidad: ${contrato.mode}`, 20, yPosition + 20);
-    if (contrato.payday) {
-      pdf.text(`Día de pago: ${contrato.payday}`, 20, yPosition + 30);
-      yPosition += 10;
-    }
+    yPosition += 15;
+    pdf.text('4. OBLIGACIONES DEL PROVEEDOR:', 20, yPosition);
+    pdf.text('• Garantizar disponibilidad 24/7 • Soporte técnico • Seguridad de datos', 20, yPosition + 8);
     
-    yPosition += 40;
-    checkNewPage(40);
-    pdf.text('3. VIGENCIA', 20, yPosition);
-    pdf.text(`Fecha de inicio: ${contrato.startDate}`, 20, yPosition + 10);
-    pdf.text(`Fecha de finalización: ${contrato.endDate}`, 20, yPosition + 20);
-    pdf.text(`Estado: ${contrato.status}`, 20, yPosition + 30);
+    yPosition += 20;
+    pdf.text('5. OBLIGACIONES DEL CLIENTE:', 20, yPosition);
+    pdf.text('• Pagos puntuales • Uso conforme a términos • No compartir credenciales', 20, yPosition + 8);
     
-    yPosition += 50;
-    checkNewPage(60);
-    pdf.text('4. OBLIGACIONES DEL PROVEEDOR', 20, yPosition);
-    pdf.text('• Garantizar disponibilidad del servicio 24/7', 20, yPosition + 10);
-    pdf.text('• Proporcionar soporte técnico', 20, yPosition + 20);
-    pdf.text('• Mantener seguridad y confidencialidad de datos', 20, yPosition + 30);
-    
-    yPosition += 50;
-    checkNewPage(60);
-    pdf.text('5. OBLIGACIONES DEL CLIENTE', 20, yPosition);
-    pdf.text('• Realizar pagos en fechas acordadas', 20, yPosition + 10);
-    pdf.text('• Usar el servicio conforme a términos establecidos', 20, yPosition + 20);
-    pdf.text('• No compartir credenciales con terceros', 20, yPosition + 30);
-    
-    yPosition += 50;
-    checkNewPage(60);
+    yPosition += 25;
     pdf.text('FIRMAS:', 20, yPosition);
-    pdf.text('_________________________', 20, yPosition + 30);
-    pdf.text('CYCLONET S.A.S.', 20, yPosition + 40);
-    pdf.text('Representante Legal', 20, yPosition + 50);
+    pdf.text('_____________________', 20, yPosition + 15);
+    pdf.text('CYCLONET S.A.S.', 20, yPosition + 22);
     
-    pdf.text('_________________________', 120, yPosition + 30);
-    pdf.text('CLIENTE', 120, yPosition + 40);
-    pdf.text(clientName, 120, yPosition + 50);
+    pdf.text('_____________________', 120, yPosition + 15);
+    pdf.text('CLIENTE', 120, yPosition + 22);
   }
 
   /**

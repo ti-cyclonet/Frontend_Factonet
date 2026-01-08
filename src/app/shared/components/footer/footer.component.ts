@@ -24,8 +24,19 @@ export class FooterComponent implements OnInit, OnDestroy {
     private invoiceRefreshService: InvoiceRefreshService
   ) {} 
 
-  // Métricas de facturas reales
-  pendingInvoices: number = 0; 
+  // Métricas de facturas y contratos
+  pendingInvoices: number = 0;
+  invoiceStats = {
+    unconfirmed: 0,
+    issued: 0,
+    paid: 0
+  };
+  contractStats = {
+    pending: 0,
+    active: 0,
+    suspended: 0,
+    expired: 0
+  }; 
 
   ngOnInit(): void {
     this.updateLiveDateTime(); 
@@ -49,16 +60,33 @@ export class FooterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga las facturas reales desde Authoriza.
+   * Carga las facturas y contratos reales desde los servicios.
    */
   loadDashboardMetrics(): void {
+    // Cargar estadísticas de facturas
     this.factonetService.getInvoices().subscribe({
       next: (facturas) => {
+        this.invoiceStats.unconfirmed = facturas.filter(f => f.status === 'Unconfirmed').length;
+        this.invoiceStats.issued = facturas.filter(f => f.status === 'Issued').length;
+        this.invoiceStats.paid = facturas.filter(f => f.status === 'Paid').length;
         this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
       },
       error: (error) => {
-
+        this.invoiceStats = { unconfirmed: 0, issued: 0, paid: 0 };
         this.pendingInvoices = 0;
+      }
+    });
+
+    // Cargar estadísticas de contratos
+    this.factonetService.getContracts().subscribe({
+      next: (contratos) => {
+        this.contractStats.pending = contratos.filter(c => c.status === 'PENDING').length;
+        this.contractStats.active = contratos.filter(c => c.status === 'ACTIVE').length;
+        this.contractStats.suspended = contratos.filter(c => c.status === 'SUSPENDED').length;
+        this.contractStats.expired = contratos.filter(c => c.status === 'EXPIRED').length;
+      },
+      error: (error) => {
+        this.contractStats = { pending: 0, active: 0, suspended: 0, expired: 0 };
       }
     });
   }
