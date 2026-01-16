@@ -92,31 +92,12 @@ export class FacturasComponent implements OnInit, OnDestroy {
   loadFacturas(): void {
     this.factonetService.getInvoices().subscribe({
       next: (facturas) => {
-        this.facturas = (facturas || []).map(factura => {
-          // Normalizar el estado del backend
-          let estado = factura.status || 'Unconfirmed';
-          if (estado === 'unconfirmed') estado = 'Unconfirmed';
-          if (estado === 'issued') estado = 'Issued';
-          if (estado === 'in arrears') estado = 'In arrears';
-          if (estado === 'notification1') estado = 'Notification1';
-          if (estado === 'notification2') estado = 'Notification2';
-          if (estado === 'suspended') estado = 'Suspended';
-          if (estado === 'paid') estado = 'Paid';
-          if (estado === 'Pendiente') estado = 'Unconfirmed'; // Mapear estado legacy
-          
-          return {
-            id: factura.id,
-            numero: factura.code,
-            cliente: factura.user?.basicData?.legalEntityData?.businessName || factura.user?.strUserName || 'N/A',
-            fechaEmision: factura.issueDate,
-            fechaVencimiento: factura.expirationDate,
-            total: parseFloat(factura.value) || 0,
-            estado,
-            operationTypes: factura.operationTypes,
-            percentages: factura.percentages,
-            ...factura.globalParameters // Spread de parámetros dinámicos
-          };
-        });
+        console.log('Facturas recibidas:', facturas);
+        this.facturas = (facturas || []).map(factura => ({
+          ...factura,
+          estado: factura.estado || factura.status || 'Unconfirmed'
+        }));
+        
         // Ordenar facturas por fecha de emisión (más reciente primero)
         this.facturas.sort((a, b) => {
           const dateA = new Date(a.fechaEmision);
@@ -128,7 +109,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.updatePagination();
       },
       error: (error) => {
-
+        console.error('Error cargando facturas:', error);
         this.facturas = [];
         this.dynamicColumns = [];
         this.showToast('Error connecting to Authoriza Backend', 'danger', 'A', 0);

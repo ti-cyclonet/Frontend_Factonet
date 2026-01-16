@@ -21,7 +21,7 @@ export class FactonetService {
 
   getInvoices(): Observable<any[]> {
     // Asegurar que solo obtenemos facturas, no contratos
-    return this.http.get<any[]>(`${this.authorizaUrl}/api/invoices`, { headers: this.getHeaders() });
+    return this.http.get<any[]>(`${this.apiUrl}/api/invoices`, { headers: this.getHeaders() });
   }
 
   getContracts(): Observable<any[]> {
