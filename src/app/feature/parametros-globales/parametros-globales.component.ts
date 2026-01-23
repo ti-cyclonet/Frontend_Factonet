@@ -924,5 +924,9 @@ export class ParametrosGlobalesComponent implements OnInit {
     });
   }
 
+  openInOutSettings(): void {
+    window.open('http://localhost:4200/materials', '_blank');
+  }
+
 
 }
