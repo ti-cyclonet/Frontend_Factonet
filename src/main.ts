@@ -11,4 +11,8 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor]))
   ]
-}).catch(err => {});
+})
+.then(() => {
+  console.log('📊 FactoNet corriendo en el puerto 4202');
+})
+.catch(err => console.error(err));

@@ -44,6 +44,10 @@ export class AuthService {
       sessionStorage.setItem('user_rolDescription', userData.user?.rolDescription || '');
       sessionStorage.setItem('user_image', userData.user?.image || '');
       
+      if (userData.user?.tenantId) {
+        localStorage.setItem('tenantId', userData.user.tenantId);
+      }
+      
       // Campos adicionales igual que Authoriza
       if (userData.user?.firstName) sessionStorage.setItem('user_firstName', userData.user.firstName);
       if (userData.user?.secondName) sessionStorage.setItem('user_secondName', userData.user.secondName);
@@ -75,11 +79,10 @@ export class AuthService {
 
   logout() {
     if (isPlatformBrowser(this.platformId)) {
-      // Limpiar localStorage
       localStorage.removeItem('authToken');
       localStorage.removeItem('token');
+      localStorage.removeItem('tenantId');
       
-      // Limpiar sessionStorage completamente
       sessionStorage.clear();
       
       // Limpiar datos del usuario en el servicio
