@@ -46,6 +46,8 @@ export default class LayoutComponent implements OnInit {
   fetchApplication(name: string): void {
     const userRol = sessionStorage.getItem('user_rol');
     const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+    const userId = sessionStorage.getItem('user_id');
+    const tenantId = localStorage.getItem('tenantId');
   
     if (!token || !userRol) {
       this.optionsMenu = [];
@@ -82,6 +84,13 @@ export default class LayoutComponent implements OnInit {
         });
         this.optionsMenu = Array.from(uniqueMenus.values());
 
+        // Si es usuario con rol adminInvoices, filtrar solo Invoices
+        if (userRol === 'adminInvoices') {
+          this.optionsMenu = this.optionsMenu.filter(menu => 
+            menu.url === '/facturas' || menu.name.toLowerCase().includes('invoice')
+          );
+        }
+
         // Ordenar por ingOrder numérico
         this.optionsMenu.sort((a, b) => parseInt(a.order) - parseInt(b.order));
 
@@ -101,6 +110,12 @@ export default class LayoutComponent implements OnInit {
 
   checkActivePeriod(): void {
     if (!this.isUserLoggedIn()) return;
+    
+    // Si es usuario con rol adminInvoices, no verificar período activo
+    const userRol = sessionStorage.getItem('user_rol');
+    if (userRol === 'adminInvoices') {
+      return;
+    }
     
     this.parametrosService.getPeriodos().subscribe({
       next: (periodos) => {

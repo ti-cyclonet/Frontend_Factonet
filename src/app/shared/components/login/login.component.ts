@@ -111,7 +111,13 @@ export class LoginComponent {
       next: (response) => {
         this.showToast('Inicio de sesión exitoso', 'success', 'A', 0);
         setTimeout(() => {
-          this.router.navigate(['/contracts']);
+          // Redirigir según el rol del usuario
+          const userRol = sessionStorage.getItem('user_rol');
+          if (userRol === 'adminInvoices') {
+            this.router.navigate(['/invoices']);
+          } else {
+            this.router.navigate(['/contracts']);
+          }
         }, 1000);
       },
       error: (error) => {

@@ -3,6 +3,7 @@ import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { InvoiceRefreshService } from '../../shared/services/invoice-refresh.service';
 import jsPDF from 'jspdf';
+import Swal from 'sweetalert2';
 
 interface Factura {
   id: number;
@@ -46,6 +47,10 @@ export class FacturasComponent implements OnInit, OnDestroy {
     return typeof value === 'number' && !isNaN(value);
   }
 
+  // Control de visibilidad de filtros
+  showFilters = false;
+  userRol: string | null = null;
+
   // Filtros
   filters = {
     status: '',
@@ -75,6 +80,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.userRol = sessionStorage.getItem('user_rol');
     this.loadFacturas();
     
     // Listener para cerrar dropdown al hacer click fuera
@@ -625,6 +631,15 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.showToast('Error updating invoice status', 'danger', 'A', 0);
         this.closeStatusDropdown();
       }
+    });
+  }
+
+  payInvoice(factura: Factura) {
+    Swal.fire({
+      title: 'Feature Under Construction',
+      text: 'The payment functionality is currently under development.',
+      icon: 'info',
+      confirmButtonText: 'OK'
     });
   }
 

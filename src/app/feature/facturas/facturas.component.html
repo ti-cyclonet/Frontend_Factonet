@@ -19,19 +19,19 @@
       <h3 class="card-title mb-0">Invoices List</h3>
     </div>
     
-    <!-- Botón de acordeón para móvil (fuera del contenedor) -->
-    <div class="d-block d-md-none mb-2">
-      <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
-        <i class="bi bi-funnel me-2"></i>Filters
-        <i class="bi bi-chevron-down ms-auto"></i>
+    <!-- Botón para mostrar/ocultar filtros -->
+    <div class="inner-container mb-2">
+      <button class="btn btn-outline-primary" (click)="showFilters = !showFilters">
+        <i class="bi" [ngClass]="showFilters ? 'bi-funnel-fill' : 'bi-funnel'"></i>
+        {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
       </button>
     </div>
     
     <!-- Filtros -->
-    <div class="inner-container mb-4 collapse d-md-block" id="filtersCollapse">
+    <div class="inner-container mb-4" *ngIf="showFilters">
       <div class="w-100 p-3">
         <div class="row g-3">
-          <div class="col-12 col-md-4 col-xxl-2">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
             <label class="form-label">Status</label>
             <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
               <option value="">All</option>
@@ -44,27 +44,27 @@
               <option value="Paid">Paid</option>
             </select>
           </div>
-          <div class="col-12 col-md-4 col-xxl-2">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
             <label class="form-label">Number</label>
             <input type="text" class="form-control" [value]="filters.number" (input)="filters.number = $any($event.target).value; applyFilters()" placeholder="DF00001">
           </div>
-          <div class="col-12 col-md-4 col-xxl-2">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2" *ngIf="userRol !== 'adminInvoices'">
             <label class="form-label">Client</label>
             <input type="text" class="form-control" [value]="filters.client" (input)="filters.client = $any($event.target).value; applyFilters()" placeholder="Search client">
           </div>
-          <div class="col-12 col-md-4 col-xxl-2">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
             <label class="form-label">From</label>
             <input type="date" class="form-control" [value]="filters.dateFrom" (change)="filters.dateFrom = $any($event.target).value; applyFilters()">
           </div>
-          <div class="col-12 col-md-4 col-xxl-2">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
             <label class="form-label">To</label>
             <input type="date" class="form-control" [value]="filters.dateTo" (change)="filters.dateTo = $any($event.target).value; applyFilters()">
           </div>
-          <div class="col-12 col-md-2 col-xxl-1">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
             <label class="form-label d-block">&nbsp;</label>
             <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
           </div>
-          <div class="col-12 col-md-2 col-xxl-1">
+          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
             <label class="form-label d-block">&nbsp;</label>
             <button class="btn btn-success w-100" (click)="sweepInvoices()" title="Generate pending invoices">
               <i class="bi bi-lightning-charge me-2"></i>
@@ -83,15 +83,15 @@
           <table class="table table-striped mb-0">
             <thead style="background-color: white;">
               <tr>
-                <th class="text-center">Status</th>
-                <th class="text-center">Number</th>
-                <th class="d-none d-md-table-cell">Client</th>
-                <th class="text-center d-none d-md-table-cell">Amount</th>
-                <th class="d-none d-xl-table-cell">Issue Date</th>
-                <th class="d-none d-xl-table-cell">Due Date</th>
-                <th *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell">{{ getColumnLabel(column, facturas[0]) }}</th>
-                <th class="text-center d-none d-md-table-cell">Total</th>
-                <th class="text-center" style="width: 100px;">Actions</th>
+                <th class="text-center" style="width: 120px;">Status</th>
+                <th class="text-center" style="width: 100px;">Number</th>
+                <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Issue Date</th>
+                <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Due Date</th>
+                <th class="text-start d-none d-md-table-cell">Client</th>
+                <th class="text-end d-none d-md-table-cell" style="width: 120px;">Amount</th>
+                <th *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell" style="width: 130px;">{{ getColumnLabel(column, facturas[0]) }}</th>
+                <th class="text-end d-none d-md-table-cell" style="width: 130px;">Total</th>
+                <th class="text-center" style="width: 80px;">Actions</th>
               </tr>
             </thead>
           </table>
@@ -106,27 +106,30 @@
               <tr *ngFor="let factura of paginatedFacturas; trackBy: trackById" 
                    [class.selected]="selectedFactura === factura"
                    (click)="setSelectedFactura(factura)">
-                <td>
+                <td class="text-center" style="width: 120px;">
                   <div class="position-relative">
-                    <span class="badge cursor-pointer" [ngClass]="{
+                    <span class="badge" 
+                          [class.cursor-pointer]="userRol === 'adminFactonet'"
+                          [ngClass]="{
                       'bg-success': factura.estado === 'Paid',
                       'bg-danger': factura.estado === 'In arrears' || factura.estado === 'Suspended',
                       'bg-warning': factura.estado === 'Issued' || factura.estado === 'Notification1' || factura.estado === 'Notification2',
                       'bg-secondary': factura.estado === 'Unconfirmed'
-                    }" (click)="openStatusDropdown($event, factura.id)">{{ factura.estado.toUpperCase() }}</span>
+                    }" 
+                          (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, factura.id) : null">{{ factura.estado.toUpperCase() }}</span>
                   </div>
                 </td>
-                <td>{{ factura.numero }}</td>
-                <td class="d-none d-md-table-cell">{{ factura.cliente }}</td>
-                <td class="text-end d-none d-md-table-cell">${{ factura.total | number:'1.0-0' }}</td>
-                <td class="d-none d-xl-table-cell">{{ factura.fechaEmision }}</td>
-                <td class="d-none d-xl-table-cell">{{ factura.fechaVencimiento }}</td>
-                <td *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell">
+                <td class="text-center" style="width: 100px;">{{ factura.numero }}</td>
+                <td class="text-center d-none d-xl-table-cell" style="width: 110px;">{{ factura.fechaEmision }}</td>
+                <td class="text-center d-none d-xl-table-cell" style="width: 110px;">{{ factura.fechaVencimiento }}</td>
+                <td class="text-start d-none d-md-table-cell">{{ factura.cliente }}</td>
+                <td class="text-end d-none d-md-table-cell" style="width: 120px;">${{ factura.total | number:'1.0-0' }}</td>
+                <td *ngFor="let column of dynamicColumns" class="text-end d-none d-xxl-table-cell" style="width: 130px;">
                   <span *ngIf="column === 'currency'; else numberValue">{{ factura[column] || 'N/A' }}</span>
                   <ng-template #numberValue>
                     <span *ngIf="factura[column] !== null && factura[column] !== undefined && isNumber(factura[column])">
-                      ${{ factura[column] | number:'1.2-2' }}
-                      <span *ngIf="factura['percentages'] && factura['percentages'][column]" class="text-muted ms-1">
+                      ${{ factura[column] | number:'1.0-0' }}
+                      <span *ngIf="factura['percentages'] && factura['percentages'][column]" class="text-muted" style="font-size: 0.75rem;">
                         ({{ factura['percentages'][column] }}%)
                       </span>
                     </span>
@@ -136,12 +139,21 @@
                     <span *ngIf="factura[column] === null || factura[column] === undefined">N/A</span>
                   </ng-template>
                 </td>
-                <td class="text-end d-none d-md-table-cell">${{ calculateFinalTotal(factura) | number:'1.2-2' }}</td>
-                <td class="text-center" style="width: 100px;">
+                <td class="text-end d-none d-md-table-cell" style="width: 130px;">${{ calculateFinalTotal(factura) | number:'1.0-0' }}</td>
+                <td class="text-center" style="width: 80px;">
                   <button type="button" class="btn p-0 border-0 bg-transparent me-2" title="View details" 
                           data-bs-toggle="modal" data-bs-target="#viewInvoiceModal" (click)="modalFactura = factura">
                     <svg width="16" height="16" fill="currentColor">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
+                    </svg>
+                  </button>
+                  <button *ngIf="userRol === 'adminInvoices' && (factura.estado === 'Issued' || factura.estado === 'In arrears' || factura.estado === 'Notification1' || factura.estado === 'Notification2' || factura.estado === 'Suspended')" 
+                          type="button" 
+                          class="btn p-0 border-0 bg-transparent" 
+                          title="Pay invoice"
+                          (click)="payInvoice(factura)">
+                    <svg width="16" height="16" fill="currentColor">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#credit-card" />
                     </svg>
                   </button>
                 </td>
