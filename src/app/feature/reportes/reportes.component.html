@@ -1,0 +1,570 @@
+<div class="floating-container">
+  <div class="scroll-wrapper">
+    <div class="outer-container">
+  <div class="reportes-header">
+    <h1>Reportes y Análisis</h1>
+    <p>Análisis detallado de clientes, contratos, facturas y ganancias</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filters-card">
+      <div class="filters-header">
+        <h3>
+          <i class="bi bi-funnel"></i> Filtros de búsqueda
+        </h3>
+        <a *ngIf="showFilters" class="toggle-filters-link" (click)="toggleFilters()">
+          Ocultar filtros
+        </a>
+        <a *ngIf="!showFilters" class="toggle-filters-link" (click)="toggleFilters()">
+          Mostrar filtros
+        </a>
+      </div>
+      <div *ngIf="showFilters" class="filters-grid">
+        <div class="filter-group">
+          <label>Fecha Inicio</label>
+          <input type="date" [(ngModel)]="filters.startDate" class="form-control">
+        </div>
+        <div class="filter-group">
+          <label>Fecha Fin</label>
+          <input type="date" [(ngModel)]="filters.endDate" class="form-control">
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-primary" (click)="applyFilters()">
+            <i class="bi bi-search"></i> Aplicar
+          </button>
+          <button class="btn btn-secondary" (click)="resetFilters()">
+            <i class="bi bi-arrow-clockwise"></i> Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs de Navegación -->
+  <div class="tabs-navigation">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'management'"
+      (click)="setActiveTab('management')">
+      <i class="bi bi-speedometer2"></i> Indicadores
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'clients'"
+      (click)="setActiveTab('clients')">
+      <i class="bi bi-people"></i> Clientes
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'contracts'"
+      (click)="setActiveTab('contracts')">
+      <i class="bi bi-file-text"></i> Contratos
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'invoices'"
+      (click)="setActiveTab('invoices')">
+      <i class="bi bi-receipt"></i> Facturas
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'profits'"
+      (click)="setActiveTab('profits')">
+      <i class="bi bi-graph-up"></i> Ganancias
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'taxes'"
+      (click)="setActiveTab('taxes')">
+      <i class="bi bi-calculator"></i> Impuestos
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'parameters'"
+      (click)="setActiveTab('parameters')">
+      <i class="bi bi-sliders"></i> Parámetros
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando datos...</p>
+  </div>
+
+  <!-- Contenido de Reportes -->
+  <div *ngIf="!loading" class="reports-content">
+
+    <!-- INDICADORES DE GESTIÓN -->
+    <div *ngIf="activeTab === 'management' && managementIndicators" class="report-section">
+      <div class="section-header">
+        <h2>Indicadores de Gestión</h2>
+      </div>
+
+      <!-- Indicadores Financieros -->
+      <div class="indicators-group">
+        <h3>Indicadores Financieros</h3>
+        <div class="cards-grid">
+          <div class="indicator-card">
+            <div class="indicator-icon financial">
+              <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Ingresos Totales</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.financial.totalRevenue) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon success">
+              <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Ingresos Pagados</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.financial.paidRevenue) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon warning">
+              <i class="bi bi-clock"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Ingresos Pendientes</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.financial.pendingRevenue) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon danger">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Ingresos Vencidos</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.financial.overdueAmount) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon profit">
+              <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Ganancia Total</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.financial.totalProfit) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon info">
+              <i class="bi bi-percent"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Margen de Ganancia</span>
+              <span class="indicator-value">{{ formatPercentage(managementIndicators.financial.profitMargin) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores Operacionales -->
+      <div class="indicators-group">
+        <h3>Indicadores Operacionales</h3>
+        <div class="cards-grid">
+          <div class="indicator-card">
+            <div class="indicator-icon primary">
+              <i class="bi bi-receipt-cutoff"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Total Facturas</span>
+              <span class="indicator-value">{{ managementIndicators.operational.totalInvoices }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon success">
+              <i class="bi bi-check2-square"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Facturas Pagadas</span>
+              <span class="indicator-value">{{ managementIndicators.operational.paidInvoices }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon warning">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Facturas Pendientes</span>
+              <span class="indicator-value">{{ managementIndicators.operational.pendingInvoices }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon danger">
+              <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Facturas Vencidas</span>
+              <span class="indicator-value">{{ managementIndicators.operational.overdueInvoices }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon success">
+              <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Tasa de Cobro</span>
+              <span class="indicator-value">{{ formatPercentage(managementIndicators.operational.collectionRate) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon danger">
+              <i class="bi bi-graph-down"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Tasa de Mora</span>
+              <span class="indicator-value">{{ formatPercentage(managementIndicators.operational.overdueRate) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores de Contratos -->
+      <div class="indicators-group">
+        <h3>Indicadores de Contratos</h3>
+        <div class="cards-grid">
+          <div class="indicator-card">
+            <div class="indicator-icon primary">
+              <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Total Contratos</span>
+              <span class="indicator-value">{{ managementIndicators.contracts.totalContracts }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon success">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Contratos Activos</span>
+              <span class="indicator-value">{{ managementIndicators.contracts.activeContracts }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon financial">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Valor Promedio</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.contracts.averageContractValue) }}</span>
+            </div>
+          </div>
+          <div class="indicator-card">
+            <div class="indicator-icon profit">
+              <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="indicator-content">
+              <span class="indicator-label">Valor Total Contratos</span>
+              <span class="indicator-value">{{ formatCurrency(managementIndicators.contracts.totalContractValue) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTE DE CLIENTES -->
+    <div *ngIf="activeTab === 'clients' && clientsReport" class="report-section">
+      <div class="section-header">
+        <h2>Reporte de Clientes</h2>
+        <button class="btn btn-export" (click)="exportToCSV('clients')">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Total Clientes</span>
+          <span class="summary-value">{{ clientsReport.summary.totalClients }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Total Facturado</span>
+          <span class="summary-value">{{ formatCurrency(clientsReport.summary.totalInvoiced) }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Total Pagado</span>
+          <span class="summary-value">{{ formatCurrency(clientsReport.summary.totalPaid) }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Total Pendiente</span>
+          <span class="summary-value">{{ formatCurrency(clientsReport.summary.totalPending) }}</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Total Facturas</th>
+              <th>Monto Total</th>
+              <th>Pagado</th>
+              <th>Pendiente</th>
+              <th>Vencido</th>
+              <th>Contratos Activos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let client of clientsReport.clients">
+              <td>{{ client.name }}</td>
+              <td>{{ client.totalInvoices }}</td>
+              <td>{{ formatCurrency(client.totalAmount) }}</td>
+              <td class="text-success">{{ formatCurrency(client.paidAmount) }}</td>
+              <td class="text-warning">{{ formatCurrency(client.pendingAmount) }}</td>
+              <td class="text-danger">{{ formatCurrency(client.overdueAmount) }}</td>
+              <td>{{ client.activeContracts }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTE DE CONTRATOS -->
+    <div *ngIf="activeTab === 'contracts' && contractsReport" class="report-section">
+      <div class="section-header">
+        <h2>Reporte de Contratos</h2>
+        <button class="btn btn-export" (click)="exportToCSV('contracts')">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Total Contratos</span>
+          <span class="summary-value">{{ contractsReport.summary.totalContracts }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Valor Total</span>
+          <span class="summary-value">{{ formatCurrency(contractsReport.summary.totalValue) }}</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Paquete</th>
+              <th>Valor</th>
+              <th>Modalidad</th>
+              <th>Estado</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let contract of contractsReport.contracts">
+              <td>{{ contract.code }}</td>
+              <td>{{ contract.clientName }}</td>
+              <td>{{ contract.packageName }}</td>
+              <td>{{ formatCurrency(contract.value) }}</td>
+              <td>{{ contract.mode }}</td>
+              <td><span [class]="getStatusClass(contract.status)">{{ contract.status }}</span></td>
+              <td>{{ contract.startDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ contract.endDate ? (contract.endDate | date:'dd/MM/yyyy') : 'N/A' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTE DE FACTURAS -->
+    <div *ngIf="activeTab === 'invoices' && invoicesReport" class="report-section">
+      <div class="section-header">
+        <h2>Reporte de Facturas</h2>
+        <button class="btn btn-export" (click)="exportToCSV('invoices')">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Total Facturas</span>
+          <span class="summary-value">{{ invoicesReport.summary.totalInvoices }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Monto Total</span>
+          <span class="summary-value">{{ formatCurrency(invoicesReport.summary.totalAmount) }}</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Valor</th>
+              <th>Fecha Emisión</th>
+              <th>Fecha Vencimiento</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let invoice of invoicesReport.invoices">
+              <td>{{ invoice.code }}</td>
+              <td>{{ invoice.clientName }}</td>
+              <td>{{ formatCurrency(invoice.value) }}</td>
+              <td>{{ invoice.issueDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ invoice.expirationDate | date:'dd/MM/yyyy' }}</td>
+              <td><span [class]="getStatusClass(invoice.status)">{{ invoice.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTE DE GANANCIAS -->
+    <div *ngIf="activeTab === 'profits' && profitsReport" class="report-section">
+      <div class="section-header">
+        <h2>Reporte de Ganancias</h2>
+        <button class="btn btn-export" (click)="exportToCSV('profits')">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Ingresos Totales</span>
+          <span class="summary-value">{{ formatCurrency(profitsReport.summary.totalRevenue) }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Ganancia Total</span>
+          <span class="summary-value">{{ formatCurrency(profitsReport.summary.totalProfit) }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Margen de Ganancia</span>
+          <span class="summary-value">{{ formatPercentage(profitsReport.summary.profitMargin) }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Facturas</span>
+          <span class="summary-value">{{ profitsReport.summary.invoiceCount }}</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Fecha</th>
+              <th>Valor Factura</th>
+              <th>Ganancia</th>
+              <th>% Ganancia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detail of profitsReport.details">
+              <td>{{ detail.code }}</td>
+              <td>{{ detail.issueDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ formatCurrency(detail.value) }}</td>
+              <td>{{ formatCurrency(detail.profitMargin) }}</td>
+              <td>{{ formatPercentage(detail.profitPercentage) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTE DE IMPUESTOS -->
+    <div *ngIf="activeTab === 'taxes' && taxesReport" class="report-section">
+      <div class="section-header">
+        <h2>Reporte de Impuestos</h2>
+        <button class="btn btn-export" (click)="exportToCSV('taxes')">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Total Impuestos</span>
+          <span class="summary-value">{{ formatCurrency(taxesReport.summary.totalTaxes) }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Tipos de Impuestos</span>
+          <span class="summary-value">{{ taxesReport.summary.taxTypes }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Facturas Procesadas</span>
+          <span class="summary-value">{{ taxesReport.summary.totalInvoices }}</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Tipo de Impuesto</th>
+              <th>Total</th>
+              <th>Cantidad</th>
+              <th>Porcentaje</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tax of taxesReport.byType">
+              <td>{{ tax.name }}</td>
+              <td>{{ formatCurrency(tax.total) }}</td>
+              <td>{{ tax.count }}</td>
+              <td>{{ formatPercentage(tax.percentage) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTE DE PARÁMETROS GLOBALES -->
+    <div *ngIf="activeTab === 'parameters' && globalParametersReport" class="report-section">
+      <div class="section-header">
+        <h2>Reporte de Parámetros Globales</h2>
+        <button class="btn btn-export" (click)="exportToCSV('parameters')">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Parámetros Aplicados</span>
+          <span class="summary-value">{{ globalParametersReport.totalParametersApplied }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Facturas Procesadas</span>
+          <span class="summary-value">{{ globalParametersReport.totalInvoices }}</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Parámetro</th>
+              <th>Total</th>
+              <th>Promedio</th>
+              <th>Cantidad</th>
+              <th>Porcentaje</th>
+              <th>Tipo Operación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let param of globalParametersReport.parameters">
+              <td>{{ param.name }}</td>
+              <td>{{ formatCurrency(param.total) }}</td>
+              <td>{{ formatCurrency(param.average) }}</td>
+              <td>{{ param.count }}</td>
+              <td>{{ formatPercentage(param.percentage) }}</td>
+              <td>{{ param.operationType }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  </div>
+</div>
+</div>

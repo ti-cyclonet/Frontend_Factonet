@@ -1,0 +1,101 @@
+.floating-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: calc(100vh - 200px);
+  padding: 10px;
+  padding-top: 10px;
+  width: 100%;
+  margin: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
+
+.floating-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.floating-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.floating-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+.floating-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.4);
+}
+
+.scroll-wrapper {
+  width: 100%;
+}
+
+.outer-container {
+  background-color: transparent;
+  width: 100%;
+  margin: 15px 0 0 0;
+  padding: 1rem;
+  padding-bottom: 3rem;
+  border-radius: 0.75rem;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.inner-container {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  padding: 20px;
+}
+
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.card-title {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.btn-icon-reports {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btn-icon-reports:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.5);
+}
+
+.btn-icon-reports i {
+  font-size: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .floating-container {
+    padding: 10px;
+  }
+  
+  .inner-container {
+    padding: 15px;
+  }
+}

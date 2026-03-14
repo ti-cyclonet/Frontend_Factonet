@@ -19,57 +19,60 @@
       <h3 class="card-title mb-0">Invoices List</h3>
     </div>
     
-    <!-- Botón para mostrar/ocultar filtros -->
+    <!-- Botón para mostrar/ocultar filtros y generar facturas -->
     <div class="inner-container mb-2">
-      <button class="btn btn-outline-primary" (click)="showFilters = !showFilters">
-        <i class="bi" [ngClass]="showFilters ? 'bi-funnel-fill' : 'bi-funnel'"></i>
-        {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
-      </button>
-    </div>
-    
-    <!-- Filtros -->
-    <div class="inner-container mb-4" *ngIf="showFilters">
-      <div class="w-100 p-3">
-        <div class="row g-3">
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-            <label class="form-label">Status</label>
-            <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
-              <option value="">All</option>
-              <option value="Unconfirmed">Unconfirmed</option>
-              <option value="Issued">Issued</option>
-              <option value="In arrears">In arrears</option>
-              <option value="Notification1">Notification1</option>
-              <option value="Notification2">Notification2</option>
-              <option value="Suspended">Suspended</option>
-              <option value="Paid">Paid</option>
-            </select>
+      <div class="p-3 border rounded">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <i class="bi bi-funnel me-2"></i>
+            <span class="fw-semibold">Search filters</span>
           </div>
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-            <label class="form-label">Number</label>
-            <input type="text" class="form-control" [value]="filters.number" (input)="filters.number = $any($event.target).value; applyFilters()" placeholder="DF00001">
-          </div>
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2" *ngIf="userRol !== 'adminInvoices'">
-            <label class="form-label">Client</label>
-            <input type="text" class="form-control" [value]="filters.client" (input)="filters.client = $any($event.target).value; applyFilters()" placeholder="Search client">
-          </div>
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-            <label class="form-label">From</label>
-            <input type="date" class="form-control" [value]="filters.dateFrom" (change)="filters.dateFrom = $any($event.target).value; applyFilters()">
-          </div>
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-            <label class="form-label">To</label>
-            <input type="date" class="form-control" [value]="filters.dateTo" (change)="filters.dateTo = $any($event.target).value; applyFilters()">
-          </div>
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-            <label class="form-label d-block">&nbsp;</label>
-            <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
-          </div>
-          <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-            <label class="form-label d-block">&nbsp;</label>
-            <button class="btn btn-success w-100" (click)="sweepInvoices()" title="Generate pending invoices">
-              <i class="bi bi-lightning-charge me-2"></i>
-              Generate
+          <div class="d-flex gap-2">
+            <button class="btn btn-link text-decoration-none" (click)="showFilters = !showFilters">
+              {{ showFilters ? 'Hide filters' : 'Show filters' }}
             </button>
+            <button *ngIf="userRol === 'adminFactonet'" class="btn btn-link text-decoration-none" (click)="sweepInvoices()" title="Generate pending invoices">
+              Generate invoices
+            </button>
+          </div>
+        </div>
+        
+        <!-- Filtros -->
+        <div *ngIf="showFilters" class="bg-warning bg-opacity-10 rounded p-3 border border-primary border-opacity-25">
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+              <label class="form-label">Status</label>
+              <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
+                <option value="">All</option>
+                <option value="Unconfirmed">Unconfirmed</option>
+                <option value="Issued">Issued</option>
+                <option value="In arrears">In arrears</option>
+                <option value="Notification1">Notification1</option>
+                <option value="Notification2">Notification2</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Paid">Paid</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+              <label class="form-label">Number</label>
+              <input type="text" class="form-control" [value]="filters.number" (input)="filters.number = $any($event.target).value; applyFilters()" placeholder="DF00001">
+            </div>
+            <div class="col-12 col-md-6 col-lg-3 col-xl-2" *ngIf="userRol !== 'adminInvoices'">
+              <label class="form-label">Client</label>
+              <input type="text" class="form-control" [value]="filters.client" (input)="filters.client = $any($event.target).value; applyFilters()" placeholder="Search client">
+            </div>
+            <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+              <label class="form-label">From</label>
+              <input type="date" class="form-control" [value]="filters.dateFrom" (change)="filters.dateFrom = $any($event.target).value; applyFilters()">
+            </div>
+            <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+              <label class="form-label">To</label>
+              <input type="date" class="form-control" [value]="filters.dateTo" (change)="filters.dateTo = $any($event.target).value; applyFilters()">
+            </div>
+            <div class="col-12 col-md-6 col-lg-3 col-xl-2">
+              <label class="form-label d-block">&nbsp;</label>
+              <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
+            </div>
           </div>
         </div>
       </div>

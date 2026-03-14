@@ -7,11 +7,10 @@ export const ROOT_LOGIN = 'login';
 export const ROOT_REGISTER = 'register';
 
 // Rutas de la aplicación (Actualizadas)
+export const ROOT_HOME = 'home'; // Nueva ruta para Dashboard
 export const ROOT_INVOICES = 'invoices'; // Nueva ruta para Facturas
 export const ROOT_CONTRACTS = 'contracts'; // Nueva ruta para Contratos
-// ELIMINADAS: export const ROOT_MATERIALS = 'materials';
-// ELIMINADAS: export const ROOT_REQUIRES = 'requests';
-// ELIMINADAS: export const ROOT_HOME = 'home';
+export const ROOT_REPORTES = 'reportes'; // Nueva ruta para Reportes
 
 //Rutas de administración de la aplicación
 export const ROOT_CONFIGURATION= 'setup';

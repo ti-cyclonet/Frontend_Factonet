@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environment/environment';
 
@@ -44,6 +44,82 @@ export class FactonetService {
     return this.http.patch<any>(`${this.apiUrl}/api/invoices/${invoiceId}/status`, 
       { status }, 
       { headers: this.getHeaders() }
+    );
+  }
+
+  // Métodos de Reportes
+  getManagementIndicators(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+    if (filters?.contractId) params = params.set('contractId', filters.contractId);
+    if (filters?.customerId) params = params.set('customerId', filters.customerId);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/management-indicators`, 
+      { headers: this.getHeaders(), params }
+    );
+  }
+
+  getClientsReport(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/clients`, 
+      { headers: this.getHeaders(), params }
+    );
+  }
+
+  getContractsReport(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.status) params = params.set('status', filters.status);
+    if (filters?.customerId) params = params.set('customerId', filters.customerId);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/contracts`, 
+      { headers: this.getHeaders(), params }
+    );
+  }
+
+  getInvoicesReport(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+    if (filters?.contractId) params = params.set('contractId', filters.contractId);
+    if (filters?.status) params = params.set('status', filters.status);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/invoices`, 
+      { headers: this.getHeaders(), params }
+    );
+  }
+
+  getProfitsReport(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+    if (filters?.contractId) params = params.set('contractId', filters.contractId);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/profits`, 
+      { headers: this.getHeaders(), params }
+    );
+  }
+
+  getTaxesReport(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/taxes`, 
+      { headers: this.getHeaders(), params }
+    );
+  }
+
+  getGlobalParametersReport(filters?: any): Observable<any> {
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+    
+    return this.http.get<any>(`${this.apiUrl}/api/reports/global-parameters`, 
+      { headers: this.getHeaders(), params }
     );
   }
 }
