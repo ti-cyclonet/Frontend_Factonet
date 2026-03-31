@@ -925,7 +925,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
 
   openInOutSettings(): void {
-    window.open('http://localhost:4200/materials', '_blank');
+    window.open('https://app.cyclonet.com.co/materials', '_blank');
   }
 
 

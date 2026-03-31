@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContractPdfService {
-  private baseUrl = 'http://localhost:3003/api/contracts';
+  private baseUrl = `${environment.BASE_URL_FACTONET}/contracts`;
 
   constructor(private http: HttpClient) {}
 
