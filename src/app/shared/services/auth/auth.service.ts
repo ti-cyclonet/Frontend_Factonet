@@ -3,14 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../../../../environment/environment';
+import { environment } from '../../../../environments/environment';
 import { UserDataService } from '../user/user-data.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = `${environment.BASE_URL_AUTHORIZA}/api/auth/login`;
+  private apiUrl = `${environment.BASE_URL_AUTHORIZA}/auth/login`;
 
   constructor(
     private http: HttpClient,
