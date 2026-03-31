@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { environment } from '../../../../../environment/environment';
+import { environment } from '../../../../environments/environment';
 
 export interface DashboardMetrics {
   pendingInvoices: number;
@@ -19,6 +19,6 @@ export class DashboardService {
   constructor(private http: HttpClient) {}
 
   getDashboardMetrics(): Observable<DashboardMetrics> {
-    return this.http.get<DashboardMetrics>(`${this.apiUrl}/api/dashboard/metrics`);
+    return this.http.get<DashboardMetrics>(`${this.apiUrl}/dashboard/metrics`);
   }
 }
