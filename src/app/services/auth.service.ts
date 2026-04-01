@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { environment } from '../../environment/environment';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +20,7 @@ export class AuthService {
   }
 
   login(credentials: { email: string; password: string }): Observable<any> {
-    return this.http.post(`${this.authUrl}/api/auth/login`, credentials);
+    return this.http.post(`${this.authUrl}/auth/login`, credentials);
   }
 
   logout(): void {
@@ -71,7 +71,7 @@ export class AuthService {
     const token = this.getToken();
     if (token) {
       // Validar token con el backend de Authoriza
-      this.http.get(`${this.authUrl}/api/auth/profile`, {
+      this.http.get(`${this.authUrl}/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       }).subscribe({
         next: (user) => {
