@@ -11,10 +11,26 @@ interface Factura {
   cliente: string;
   fechaEmision: string;
   fechaVencimiento: string;
+  fechaPago?: string;
   total: number;
   estado: 'Unconfirmed' | 'Issued' | 'In arrears' | 'Notification1' | 'Notification2' | 'Suspended' | 'Paid';
   operationTypes?: Record<string, string>;
-  [key: string]: any; // Para parámetros dinámicos
+  percentages?: Record<string, number>;
+  // Datos del cliente
+  clienteNit?: string;
+  clienteTipoPersona?: string;
+  clienteEmail?: string;
+  clienteContacto?: string;
+  clienteTelefono?: string;
+  clienteEmailContacto?: string;
+  // Datos del contrato
+  contratoCode?: string;
+  contratoModo?: string;
+  contratoPrefijo?: string;
+  // Periodo de servicio
+  periodoInicio?: string;
+  periodoFin?: string;
+  [key: string]: any;
 }
 
 interface NotificationItem {
@@ -128,7 +144,9 @@ export class FacturasComponent implements OnInit, OnDestroy {
     
     if (this.facturas.length > 0) {
       // Buscar todas las propiedades que no son campos base en TODAS las facturas
-      const baseFields = ['id', 'numero', 'cliente', 'fechaEmision', 'fechaVencimiento', 'total', 'estado', 'operationTypes', 'percentages'];
+      const baseFields = ['id', 'numero', 'cliente', 'fechaEmision', 'fechaVencimiento', 'fechaPago', 'total', 'estado', 'operationTypes', 'percentages',
+        'clienteNit', 'clienteTipoPersona', 'clienteEmail', 'clienteContacto', 'clienteTelefono', 'clienteEmailContacto',
+        'contratoCode', 'contratoModo', 'contratoPrefijo', 'periodoInicio', 'periodoFin'];
       
       this.facturas.forEach(factura => {
         Object.keys(factura).forEach(key => {
@@ -383,205 +401,254 @@ export class FacturasComponent implements OnInit, OnDestroy {
 
   generateInvoicePDF(factura: Factura): void {
     const pdf = new jsPDF();
-    
-    // Logo de la empresa
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 15;
+    const rightCol = pageW - margin;
+
     const logoImg = new Image();
     logoImg.onload = () => {
-      // Logo centrado
-      const logoWidth = 70;
+      const logoWidth = 50;
       const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
-      const logoX = (pdf.internal.pageSize.getWidth() - logoWidth) / 2;
-      pdf.addImage(logoImg, 'PNG', logoX, 10, logoWidth, logoHeight);
-      
-      // Información de la empresa
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Cyclonet S. A. S.', 105, logoHeight + 25, { align: 'center' });
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      pdf.text('NIT: 901515884-4', 105, logoHeight + 35, { align: 'center' });
-      pdf.text('Bonanza, Mz 23 Lt 30 (Turbaco - Bolívar)', 105, logoHeight + 42, { align: 'center' });
-      pdf.text('Tel: 314 414 4986 - 321 898 5475', 105, logoHeight + 49, { align: 'center' });
-      pdf.text('ti.cyclonet@hotmail.com', 105, logoHeight + 56, { align: 'center' });
-      
-      // Título de la factura
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('FACTURA DE VENTA', 105, logoHeight + 75, { align: 'center' });
-      
-      // Información de la factura
-      let yPos = logoHeight + 95;
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      
-      // Número y fecha
-      pdf.text(`Factura No: ${factura.numero}`, 20, yPos);
-      pdf.text(`Fecha de emisión: ${factura.fechaEmision}`, 20, yPos + 8);
-      pdf.text(`Fecha de vencimiento: ${factura.fechaVencimiento}`, 20, yPos + 16);
-      pdf.text(`Estado: ${factura.estado}`, 20, yPos + 24);
-      
-      // Cliente
-      yPos += 40;
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('FACTURAR A:', 20, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(factura.cliente, 20, yPos + 8);
-      
-      // Tabla de conceptos
-      yPos += 30;
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('CONCEPTO', 20, yPos);
-      pdf.text('VALOR', 150, yPos);
-      
-      // Línea separadora
-      pdf.line(20, yPos + 3, 190, yPos + 3);
-      
-      yPos += 15;
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('Servicios de software', 20, yPos);
-      pdf.text(`$${factura.total.toLocaleString('es-CO')}`, 150, yPos);
-      
-      // Conceptos dinámicos
-      this.dynamicColumns.forEach(column => {
-        const value = factura[column];
-        const operationType = factura['operationTypes']?.[column];
-        
-        if (value && operationType) {
-          yPos += 10;
-          const label = this.getColumnLabel(column, factura);
-          const sign = operationType === 'subtract' ? '-' : '+';
-          pdf.text(`${label}`, 20, yPos);
-          pdf.text(`${sign}$${value.toLocaleString('es-CO')}`, 150, yPos);
-        }
-      });
-      
-      // Total final
-      yPos += 20;
-      pdf.line(140, yPos - 5, 190, yPos - 5);
-      pdf.setFont('helvetica', 'bold');
-      const totalFinal = this.calculateFinalTotal(factura);
-      pdf.text('TOTAL:', 140, yPos);
-      pdf.text(`$${totalFinal.toLocaleString('es-CO')}`, 150, yPos);
-      
-      // Valor en letras mayúsculas
-      yPos += 15;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      const valorEnLetras = this.numberToWords(totalFinal).toUpperCase();
-      pdf.text(`SON: ${valorEnLetras} PESOS`, 20, yPos);
-      
-      // Términos y condiciones
-      yPos += 30;
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('Términos y condiciones:', 20, yPos);
-      pdf.text('• Esta factura debe ser pagada en la fecha de vencimiento indicada.', 20, yPos + 8);
-      pdf.text('• Los pagos tardíos pueden generar intereses de mora.', 20, yPos + 16);
-      pdf.text('• Para cualquier consulta, contacte a nuestro departamento de facturación.', 20, yPos + 24);
-      
-      // Descargar PDF
-      pdf.save(`Factura_${factura.numero}.pdf`);
-      this.showToast(`PDF for invoice ${factura.numero} generated`, 'success', 'A', 0);
+      pdf.addImage(logoImg, 'PNG', margin, 10, logoWidth, logoHeight);
+      this.buildInvoicePDF(pdf, factura, margin, rightCol, pageW, pageH, Math.max(logoHeight + 12, 40));
     };
-    
     logoImg.onerror = () => {
-      // Si no se puede cargar el logo, generar PDF sin logo
-      this.generatePDFWithoutLogo(pdf, factura);
+      this.buildInvoicePDF(pdf, factura, margin, rightCol, pageW, pageH, 10);
     };
-    
     logoImg.src = 'assets/img/Cyclonet_nit.png';
   }
-  
-  private generatePDFWithoutLogo(pdf: jsPDF, factura: Factura): void {
-    // Información de la empresa sin logo
-    pdf.setFontSize(14);
+
+  private buildInvoicePDF(pdf: jsPDF, factura: Factura, margin: number, rightCol: number, pageW: number, pageH: number, startY: number): void {
+    let y = startY;
+    const col2X = pageW / 2 + 10;
+
+    // ===== ENCABEZADO EMISOR =====
+    pdf.setFontSize(13);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Cyclonet S. A. S.', 105, 20, { align: 'center' });
+    pdf.text('Cyclonet S. A. S.', col2X, 18);
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text('NIT: 901515884-4', 105, 30, { align: 'center' });
-    pdf.text('Bonanza, Mz 23 Lt 30 (Turbaco - Bolívar)', 105, 37, { align: 'center' });
-    pdf.text('Tel: 314 414 4986 - 321 898 5475', 105, 44, { align: 'center' });
-    pdf.text('ti.cyclonet@hotmail.com', 105, 51, { align: 'center' });
-    
-    // Título de la factura
-    pdf.setFontSize(16);
+    pdf.text('NIT: 901.515.884-4', col2X, 24);
+    pdf.text('Responsable de IVA', col2X, 29);
+    pdf.text('Bonanza, Mz 23 Lt 30 - Turbaco, Bolívar', col2X, 34);
+    pdf.text('Tel: 314 414 4986 - 321 898 5475', col2X, 39);
+    pdf.text('ti.cyclonet@hotmail.com', col2X, 44);
+
+    // ===== BARRA TÍTULO =====
+    y = Math.max(y, 50);
+    pdf.setDrawColor(60, 60, 150);
+    pdf.setFillColor(60, 60, 150);
+    pdf.rect(margin, y, pageW - margin * 2, 10, 'F');
+    pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('FACTURA DE VENTA', 105, 70, { align: 'center' });
-    
-    // Información de la factura
-    let yPos = 90;
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'normal');
-    
-    // Número y fecha
-    pdf.text(`Factura No: ${factura.numero}`, 20, yPos);
-    pdf.text(`Fecha de emisión: ${factura.fechaEmision}`, 20, yPos + 8);
-    pdf.text(`Fecha de vencimiento: ${factura.fechaVencimiento}`, 20, yPos + 16);
-    pdf.text(`Estado: ${factura.estado}`, 20, yPos + 24);
-    
-    // Cliente
-    yPos += 40;
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('FACTURA DE VENTA', margin + 5, y + 7);
+    pdf.text('No. ' + factura.numero, rightCol - 5, y + 7, { align: 'right' });
+    pdf.setTextColor(0, 0, 0);
+
+    // ===== DATOS DE LA FACTURA =====
+    y += 16;
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('FACTURAR A:', 20, yPos);
+    pdf.text('Fecha de expedición:', margin, y);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(factura.cliente, 20, yPos + 8);
-    
-    // Tabla de conceptos
-    yPos += 30;
+    pdf.text(this.formatDate(factura.fechaEmision), margin + 42, y);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('CONCEPTO', 20, yPos);
-    pdf.text('VALOR', 150, yPos);
-    
-    // Línea separadora
-    pdf.line(20, yPos + 3, 190, yPos + 3);
-    
-    yPos += 15;
+    pdf.text('Fecha de vencimiento:', col2X, y);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Servicios de software', 20, yPos);
-    pdf.text(`$${factura.total.toLocaleString('es-CO')}`, 150, yPos);
-    
-    // Conceptos dinámicos
+    pdf.text(this.formatDate(factura.fechaVencimiento), col2X + 44, y);
+
+    y += 6;
+    const modoLabel: Record<string, string> = { 'MONTHLY': 'Mensual', 'BIMONTHLY': 'Bimestral', 'QUARTERLY': 'Trimestral', 'SEMIANNUAL': 'Semestral', 'ANNUAL': 'Anual' };
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Forma de pago:', margin, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(modoLabel[factura.contratoModo || ''] || 'Crédito', margin + 32, y);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Contrato:', col2X, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factura.contratoCode || 'N/A', col2X + 20, y);
+
+    y += 6;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Periodo de servicio:', margin, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(this.formatDate(factura.periodoInicio || '') + ' a ' + this.formatDate(factura.periodoFin || ''), margin + 40, y);
+    const estadoLabel: Record<string, string> = { 'Unconfirmed': 'Sin confirmar', 'Issued': 'Emitida', 'In arrears': 'En mora', 'Paid': 'Pagada', 'Suspended': 'Suspendida', 'Notification1': 'Notificación 1', 'Notification2': 'Notificación 2' };
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Estado:', col2X, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(estadoLabel[factura.estado] || factura.estado, col2X + 16, y);
+
+    // ===== DATOS DEL CLIENTE =====
+    y += 10;
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setFillColor(240, 240, 250);
+    pdf.rect(margin, y, pageW - margin * 2, 24, 'FD');
+    y += 6;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('ADQUIRENTE / CLIENTE', margin + 3, y);
+    y += 6;
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Razón social:', margin + 3, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factura.cliente, margin + 30, y);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(factura.clienteTipoPersona === 'J' ? 'NIT:' : 'CC:', col2X, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factura.clienteNit || 'N/A', col2X + 10, y);
+    y += 6;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Contacto:', margin + 3, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factura.clienteContacto || 'N/A', margin + 22, y);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Tel:', col2X, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factura.clienteTelefono || 'N/A', col2X + 10, y);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Email:', col2X + 40, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(factura.clienteEmailContacto || factura.clienteEmail || 'N/A', col2X + 54, y);
+
+    // ===== TABLA DE DETALLE =====
+    y += 12;
+    pdf.setFillColor(60, 60, 150);
+    pdf.rect(margin, y, pageW - margin * 2, 8, 'F');
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('CANT.', margin + 3, y + 6);
+    pdf.text('DESCRIPCIÓN', margin + 20, y + 6);
+    pdf.text('VR. UNITARIO', rightCol - 55, y + 6, { align: 'right' });
+    pdf.text('VR. TOTAL', rightCol - 3, y + 6, { align: 'right' });
+    pdf.setTextColor(0, 0, 0);
+
+    y += 8;
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(margin, y, pageW - margin * 2, 8, 'D');
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('1', margin + 6, y + 6);
+    pdf.text('Servicios de software - Paquete Cyclon Plus [+]', margin + 20, y + 6);
+    const formattedTotal = '$' + factura.total.toLocaleString('es-CO', { minimumFractionDigits: 2 });
+    pdf.text(formattedTotal, rightCol - 55, y + 6, { align: 'right' });
+    pdf.text(formattedTotal, rightCol - 3, y + 6, { align: 'right' });
+
+    // ===== RESUMEN DE TOTALES =====
+    y += 16;
+    const summaryX = pageW / 2 + 20;
+    const valX = rightCol - 3;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Subtotal:', summaryX, y);
+    pdf.text(formattedTotal, valX, y, { align: 'right' });
+
     this.dynamicColumns.forEach(column => {
       const value = factura[column];
       const operationType = factura['operationTypes']?.[column];
-      
-      if (value && operationType) {
-        yPos += 10;
+      const percentage = factura['percentages']?.[column];
+      if (value !== undefined && value !== null && operationType) {
+        y += 7;
         const label = this.getColumnLabel(column, factura);
-        const sign = operationType === 'subtract' ? '-' : '+';
-        pdf.text(`${label}`, 20, yPos);
-        pdf.text(`${sign}$${value.toLocaleString('es-CO')}`, 150, yPos);
+        const sign = operationType === 'subtract' ? '(-) ' : '(+) ';
+        const pctLabel = percentage ? ' (' + percentage + '%)' : '';
+        pdf.text(sign + label + pctLabel + ':', summaryX, y);
+        pdf.text('$' + Math.abs(value).toLocaleString('es-CO', { minimumFractionDigits: 2 }), valX, y, { align: 'right' });
       }
     });
-    
-    // Total final
-    yPos += 20;
-    pdf.line(140, yPos - 5, 190, yPos - 5);
-    pdf.setFont('helvetica', 'bold');
+
+    y += 5;
+    pdf.setDrawColor(60, 60, 150);
+    pdf.setLineWidth(0.5);
+    pdf.line(summaryX, y, rightCol, y);
+
+    y += 8;
     const totalFinal = this.calculateFinalTotal(factura);
-    pdf.text('TOTAL:', 140, yPos);
-    pdf.text(`$${totalFinal.toLocaleString('es-CO')}`, 150, yPos);
-    
-    // Valor en letras mayúsculas
-    yPos += 15;
-    pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(10);
-    const valorEnLetras = this.numberToWords(totalFinal).toUpperCase();
-    pdf.text(`SON: ${valorEnLetras} PESOS`, 20, yPos);
-    
-    // Términos y condiciones
-    yPos += 30;
-    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('TOTAL A PAGAR:', summaryX, y);
+    pdf.text('$' + totalFinal.toLocaleString('es-CO', { minimumFractionDigits: 2 }), valX, y, { align: 'right' });
+
+    y += 8;
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text('SON: ' + this.numberToWords(Math.floor(totalFinal)).toUpperCase() + ' PESOS M/CTE', margin, y);
+
+    // ===== OBSERVACIONES =====
+    y += 12;
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, y, rightCol, y);
+    y += 6;
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('OBSERVACIONES', margin, y);
+    y += 6;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Términos y condiciones:', 20, yPos);
-    pdf.text('• Esta factura debe ser pagada en la fecha de vencimiento indicada.', 20, yPos + 8);
-    pdf.text('• Los pagos tardíos pueden generar intereses de mora.', 20, yPos + 16);
-    pdf.text('• Para cualquier consulta, contacte a nuestro departamento de facturación.', 20, yPos + 24);
-    
-    // Descargar PDF
-    pdf.save(`Factura_${factura.numero}.pdf`);
-    this.showToast(`PDF for invoice ${factura.numero} generated`, 'success', 'A', 0);
+    pdf.setFontSize(7);
+    pdf.text('Actividad económica: 6201 - Actividades de desarrollo de sistemas informáticos.', margin, y);
+    y += 5;
+    pdf.text('Responsabilidad fiscal: Responsable de IVA - Agente de retención en la fuente.', margin, y);
+    y += 5;
+    pdf.text('Resolución de facturación DIAN No. 18764 del 2026-01-01. Rango autorizado: DF00001 a DF99999. Vigencia: 12 meses.', margin, y);
+
+    // ===== INFORMACIÓN DE PAGO =====
+    y += 12;
+    pdf.setFillColor(240, 240, 250);
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(margin, y, pageW - margin * 2, 18, 'FD');
+    y += 6;
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('INFORMACIÓN DE PAGO', margin + 3, y);
+    y += 6;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Banco: Bancolombia  |  Cuenta de ahorros No. 039-000000-00  |  A nombre de: Cyclonet S. A. S.  |  NIT: 901.515.884-4', margin + 3, y);
+    y += 5;
+    pdf.text('Nequi / Daviplata: 314 414 4986', margin + 3, y);
+
+    // ===== TÉRMINOS Y CONDICIONES =====
+    y += 12;
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('TÉRMINOS Y CONDICIONES', margin, y);
+    y += 5;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('1. Esta factura se asimila en todos sus efectos a una letra de cambio (Art. 774 del Código de Comercio).', margin, y);
+    y += 4;
+    pdf.text('2. El pago debe realizarse antes de la fecha de vencimiento. Pagos tardíos generan intereses de mora conforme a la ley.', margin, y);
+    y += 4;
+    pdf.text('3. La prestación del servicio podrá suspenderse si la factura no es cancelada dentro de los 30 días siguientes al vencimiento.', margin, y);
+    y += 4;
+    pdf.text('4. Para reclamaciones dispone de 3 días hábiles a partir de la recepción de esta factura.', margin, y);
+
+    // ===== PIE DE PÁGINA =====
+    const footerY = pageH - 15;
+    pdf.setDrawColor(60, 60, 150);
+    pdf.setLineWidth(0.3);
+    pdf.line(margin, footerY - 5, rightCol, footerY - 5);
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Cyclonet S. A. S. | NIT: 901.515.884-4 | www.cyclonet.com.co | ti.cyclonet@hotmail.com', pageW / 2, footerY, { align: 'center' });
+    pdf.text('Documento generado el ' + new Date().toLocaleDateString('es-CO') + ' - Representación gráfica de la factura electrónica.', pageW / 2, footerY + 4, { align: 'center' });
+    pdf.setTextColor(0, 0, 0);
+
+    pdf.save('Factura_' + factura.numero + '.pdf');
+    this.showToast('PDF de factura ' + factura.numero + ' generado', 'success', 'A', 0);
+  }
+
+  private formatDate(dateStr: string): string {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  private generatePDFWithoutLogo(pdf: jsPDF, factura: Factura): void {
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    this.buildInvoicePDF(pdf, factura, 15, pageW - 15, pageW, pageH, 10);
   }
 
   /**
