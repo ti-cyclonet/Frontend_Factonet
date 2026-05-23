@@ -25,7 +25,18 @@ export class AuthService {
       credentials      
     ).pipe(
       tap(response => {        
-        if (isPlatformBrowser(this.platformId)) {
+        // Solo guardar sesión si hay token (no es multi-contrato)
+        if (isPlatformBrowser(this.platformId) && response.access_token) {
+          this.setUserSession(response);
+        }
+      })
+    );
+  }
+
+  completeLogin(data: { email: string; applicationName: string; contractId: string }): Observable<any> {
+    return this.http.post<any>(`${environment.BASE_URL_AUTHORIZA}/auth/login/complete`, data).pipe(
+      tap(response => {
+        if (isPlatformBrowser(this.platformId) && response.access_token) {
           this.setUserSession(response);
         }
       })

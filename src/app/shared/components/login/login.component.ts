@@ -8,6 +8,12 @@ import { LoginDTO } from '../../model/login';
 import { NAME_APP_SHORT } from '../../../config/config';
 import { NotificationsComponent } from "../notifications/notifications.component";
 
+interface ClientContract {
+  contractId: string;
+  clientName: string;
+  packageName: string;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -22,6 +28,11 @@ export class LoginComponent {
   submitted = false;
   isVisible: boolean = true;
   errorMessage = '';
+
+  // Selector de cliente
+  showClientSelector: boolean = false;
+  availableContracts: ClientContract[] = [];
+  selectedContractId: string = '';
 
   // configuración notificaciones tipo toast
     toastTitle: string = '';
@@ -109,14 +120,47 @@ export class LoginComponent {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
+        // Caso multi-contrato: el backend retorna contracts[] sin token
+        if (response.contracts && response.contracts.length > 1) {
+          this.availableContracts = response.contracts;
+          this.showClientSelector = true;
+          this.cdr.detectChanges();
+          return;
+        }
+
         this.showToast('Inicio de sesión exitoso', 'success', 'A', 0);
         setTimeout(() => {
           this.router.navigate(['/home']);
         }, 1000);
       },
       error: (error) => {
-
         this.showToast('Credenciales incorrectas o error del servidor', 'danger', 'A', 0);
+      }
+    });
+  }
+
+  selectClient() {
+    if (!this.selectedContractId) {
+      this.showToast('Por favor seleccione un cliente', 'warning', 'A', 0);
+      return;
+    }
+
+    const completeLoginDTO = {
+      email: this.loginForm.get('username')?.value,
+      applicationName: NAME_APP_SHORT,
+      contractId: this.selectedContractId
+    };
+
+    this.authService.completeLogin(completeLoginDTO).subscribe({
+      next: (response) => {
+        this.showClientSelector = false;
+        this.showToast('Inicio de sesión exitoso', 'success', 'A', 0);
+        setTimeout(() => {
+          this.router.navigate(['/home']);
+        }, 1000);
+      },
+      error: (error) => {
+        this.showToast('Error al seleccionar cliente', 'danger', 'A', 0);
       }
     });
   }
