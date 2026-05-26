@@ -145,6 +145,12 @@ export class LoginComponent {
       return;
     }
 
+    // Guardar el nombre del cliente seleccionado
+    const selectedContract = this.availableContracts.find(c => c.contractId === this.selectedContractId);
+    if (selectedContract) {
+      sessionStorage.setItem('selected_client_name', selectedContract.clientName);
+    }
+
     const completeLoginDTO = {
       email: this.loginForm.get('username')?.value,
       applicationName: NAME_APP_SHORT,
