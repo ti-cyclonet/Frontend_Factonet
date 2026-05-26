@@ -52,6 +52,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Propiedades originales
   userName: string = ''; 
   userRole: string = ''; 
+  selectedClientName: string = '';
 
   // Controla la visibilidad de la caja de herramientas deslizable
   showToolbox: boolean = false;
@@ -201,6 +202,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.userRolDescription = sessionStorage.getItem('user_rolDescription') || sessionStorage.getItem('user_rol') || 'Usuario';
       this.userRole = sessionStorage.getItem('user_rol') || 'Usuario';
       this.userImage = sessionStorage.getItem('user_image') || undefined;
+      
+      // Nombre del cliente/tenant seleccionado (diferente del usuario logueado)
+      this.selectedClientName = sessionStorage.getItem('selected_client_name') || '';
     }
   }
 

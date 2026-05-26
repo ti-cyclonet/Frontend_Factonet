@@ -8,9 +8,10 @@
             </a>
         </div>
         
-        <!-- DESCRIPCIÓN DEL MENÚ SELECCIONADO -->
-        <div class="position-absolute w-100 d-none d-md-flex justify-content-center" style="left: -30px;">
+        <!-- DESCRIPCIÓN DEL MENÚ SELECCIONADO + NOMBRE DEL CLIENTE -->
+        <div class="position-absolute w-100 d-none d-md-flex flex-column align-items-center justify-content-center" style="left: -30px;">
             <span class="selected-menu-description">{{ getSelectedMenuDescription() }}</span>
+            <span *ngIf="selectedClientName" class="selected-client-name">{{ selectedClientName }}</span>
         </div>
 
         <!-- BOTONES USUARIO + CAMPANITA -->

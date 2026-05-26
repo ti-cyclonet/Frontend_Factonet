@@ -399,3 +399,12 @@
         display: none !important;
     }
 }
+
+/* Selected client name in header */
+.selected-client-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #ffa500;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
