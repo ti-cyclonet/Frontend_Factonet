@@ -408,3 +408,44 @@
   letter-spacing: 0.3px;
   margin-top: 2px;
 }
+
+/* Package info in dropdown */
+.package-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  cursor: default;
+}
+
+.package-info-item:hover {
+  background: transparent;
+}
+
+.package-info-item .dropdown-icon {
+  margin-top: 2px;
+  color: #ffa500;
+  flex-shrink: 0;
+}
+
+.package-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.package-client {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.package-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #ffa500;
+  background: rgba(255, 165, 0, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}

@@ -63,6 +63,14 @@ export class AuthService {
       if (userData.user?.firstName) sessionStorage.setItem('user_firstName', userData.user.firstName);
       if (userData.user?.secondName) sessionStorage.setItem('user_secondName', userData.user.secondName);
       if (userData.user?.businessName) sessionStorage.setItem('user_businessName', userData.user.businessName);
+
+      // Guardar info del contrato/tenant (clientName y packageName)
+      if (userData.contract?.clientName) {
+        sessionStorage.setItem('selected_client_name', userData.contract.clientName);
+      }
+      if (userData.contract?.packageName) {
+        sessionStorage.setItem('selected_package_name', userData.contract.packageName);
+      }
       
       // Construir el nombre correctamente antes de actualizar el servicio
       const firstName = userData.user?.firstName;
