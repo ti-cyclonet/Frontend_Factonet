@@ -53,7 +53,7 @@
     <!-- NOMBRE Y ROL DEL USUARIO (SOLO EN DESKTOP Y SIN NOTIFICACIONES) -->
     <div *ngIf="!(isMobile && pendingInvoices > 0)" class="text-end me-3 d-none d-sm-block user-info-frame">
         <div class="user-name">{{ userName }}</div> 
-        <div class="user-detail">{{ userRolDescription }}</div>
+        <div class="user-detail">Plan: {{ userRolDescription }}</div>
     </div>
 
     <!-- AVATAR Y DROPDOWN DE USUARIO -->
@@ -99,6 +99,22 @@
               </svg>
               {{ userEmail }}
             </a>
+          </li>
+          <li *ngIf="selectedClientName || packageName">
+            <div class="dropdown-item package-info-item">
+              <svg
+                class="dropdown-icon"
+                width="16"
+                height="16"
+                fill="currentColor"
+              >
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#box-seam" />
+              </svg>
+              <div class="package-info-text">
+                <span *ngIf="selectedClientName" class="package-client">{{ selectedClientName }}</span>
+                <span *ngIf="packageName" class="package-name">Plan: {{ packageName }}</span>
+              </div>
+            </div>
           </li>
           <li><hr class="dropdown-divider" /></li>
           <!-- Opciones de menú dinámicas (solo en móvil) -->

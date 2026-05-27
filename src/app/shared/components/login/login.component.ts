@@ -149,6 +149,7 @@ export class LoginComponent {
     const selectedContract = this.availableContracts.find(c => c.contractId === this.selectedContractId);
     if (selectedContract) {
       sessionStorage.setItem('selected_client_name', selectedContract.clientName);
+      sessionStorage.setItem('selected_package_name', selectedContract.packageName || '');
     }
 
     const completeLoginDTO = {

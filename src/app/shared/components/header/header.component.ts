@@ -53,6 +53,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userName: string = ''; 
   userRole: string = ''; 
   selectedClientName: string = '';
+  packageName: string = '';
 
   // Controla la visibilidad de la caja de herramientas deslizable
   showToolbox: boolean = false;
@@ -205,6 +206,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       
       // Nombre del cliente/tenant seleccionado (diferente del usuario logueado)
       this.selectedClientName = sessionStorage.getItem('selected_client_name') || '';
+      this.packageName = sessionStorage.getItem('selected_package_name') || '';
     }
   }
 
