@@ -57,6 +57,12 @@
     padding: 15px;
 }
 
+@media (max-width: 576px) {
+    .login-container {
+        padding: 5px;
+    }
+}
+
 .login-container::before {
     content: "";
     position: absolute;
@@ -97,14 +103,17 @@ input.form-control {
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
     color: #ffffff !important;
     width: 420px;
+    max-width: 100%;
     margin: auto;
 }
 
 /* Responsive cuando la pantalla es menor a 412px */
 @media (max-width: 412px) {
     .custom-card {
-        width: 98%;
-        padding: 25px 15px !important;
+        width: 100%;
+        max-width: 100%;
+        padding: 25px 20px !important;
+        border-radius: 12px !important;
     }
 }
 

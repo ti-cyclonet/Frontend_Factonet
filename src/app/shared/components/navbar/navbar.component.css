@@ -15,6 +15,15 @@
   font-weight: 500;
 }
 
+.nav-link .nav-icon {
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.nav-link .nav-text {
+  font-size: 0.85rem;
+}
+
 .nav-link:hover {
   background-color: rgba(0, 0, 0, 0.1);
   color: #000;
@@ -106,77 +115,82 @@
   .nav-link.hide-on-mobile {
     display: none !important;
   }
-}
-.floating-nav-tools {
-  position: fixed;
-  bottom: 40px;
-  right: 15px;
-  z-index: 1000;
-}
 
-.floating-nav-tools .nav-tool-btn {
-  background-color: transparent;
-  color: #000;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 1001;
-  transition: all 0.3s ease;
-}
+  .nav-link .nav-text {
+    display: none;
+  }
 
-.floating-nav-tools .nav-tool-btn svg {
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
-}
+  .nav-link .nav-icon {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+  }
 
-.floating-nav-tools .tool-dropdown:hover .nav-tool-btn {
-  background-color: rgba(255, 255, 255, 0.95);
-  border-bottom-left-radius: 28px;
-  border-bottom-right-radius: 28px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
+  .nav-link {
+    padding: 8px;
+    margin: 0 2px !important;
+  }
 
-.floating-nav-tools .floating-toolbox {
-  position: absolute;
-  top: calc(-100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 28px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  padding: 8px;
-  padding-bottom: 16px;
-  width: 56px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  z-index: 1000;
-}
+  .nav-link[title]:active::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+  }
 
-.floating-nav-tools .floating-toolbox.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-}
+  /* Gear button floats bottom-right on mobile */
+  .nav-tools {
+    position: fixed !important;
+    bottom: 20px;
+    right: 15px;
+    z-index: 9999;
+  }
 
-.floating-nav-tools .toolbox-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  border-radius: 6px;
-  color: #333;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 40px;
+  .nav-tools .nav-tool-btn {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  .nav-tools .nav-tool-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nav-tools .tool-dropdown:hover .nav-tool-btn {
+    border-radius: 0;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .nav-tools .floating-toolbox {
+    bottom: calc(100% - 8px);
+    top: auto;
+    left: 0;
+    width: 40px;
+    border-radius: 16px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-bottom: 16px;
+    padding-top: 8px;
+  }
+
+  .nav-tools .toolbox-btn svg {
+    width: 20px;
+    height: 20px;
+  }
 }
+/* Floating nav tools - removed, icons always visible */
