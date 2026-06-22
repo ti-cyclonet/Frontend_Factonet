@@ -224,6 +224,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Charts section - only for adminFactonet -->
+    <div class="inner-container" *ngIf="userRol === 'adminFactonet'">
+      <div class="row g-3">
+        <!-- Monthly Invoice Totals Chart -->
+        <div class="col-12 col-lg-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas baseChart
+                  [data]="monthlyChartData"
+                  [options]="monthlyChartOptions"
+                  type="bar">
+                </canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Status Distribution Chart -->
+        <div class="col-12 col-lg-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas baseChart
+                  [data]="statusChartData"
+                  [options]="statusChartOptions"
+                  type="doughnut">
+                </canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </div>
