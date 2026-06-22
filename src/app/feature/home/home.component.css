@@ -125,3 +125,16 @@
     font-size: 1.1rem;
   }
 }
+
+/* Charts */
+.chart-container {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    height: 220px;
+  }
+}

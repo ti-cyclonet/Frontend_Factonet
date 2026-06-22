@@ -215,7 +215,7 @@
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="viewInvoiceModalLabel">
           <i class="bi bi-receipt me-2"></i>
-          Factura {{ modalFactura?.numero }}
+          Invoice {{ modalFactura?.numero }}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -225,12 +225,12 @@
           <div class="col-md-6">
             <div class="card h-100">
               <div class="card-header bg-light py-2">
-                <h6 class="mb-0 small"><i class="bi bi-info-circle me-1"></i>Información General</h6>
+                <h6 class="mb-0 small"><i class="bi bi-info-circle me-1"></i>General Information</h6>
               </div>
               <div class="card-body py-2 px-3">
-                <p class="mb-1"><strong>Número:</strong> {{ modalFactura.numero }}</p>
-                <p class="mb-1"><strong>Cliente:</strong> {{ modalFactura.cliente }}</p>
-                <p class="mb-0"><strong>Estado:</strong> 
+                <p class="mb-1"><strong>Number:</strong> {{ modalFactura.numero }}</p>
+                <p class="mb-1"><strong>Client:</strong> {{ modalFactura.cliente }}</p>
+                <p class="mb-0"><strong>Status:</strong> 
                   <span class="badge" [ngClass]="{
                     'bg-success': modalFactura.estado === 'Paid',
                     'bg-danger': modalFactura.estado === 'In arrears' || modalFactura.estado === 'Suspended',
@@ -244,11 +244,11 @@
           <div class="col-md-6">
             <div class="card h-100">
               <div class="card-header bg-light py-2">
-                <h6 class="mb-0 small"><i class="bi bi-calendar me-1"></i>Fechas</h6>
+                <h6 class="mb-0 small"><i class="bi bi-calendar me-1"></i>Dates</h6>
               </div>
               <div class="card-body py-2 px-3">
-                <p class="mb-1"><strong>Fecha de emisión:</strong> {{ modalFactura.fechaEmision }}</p>
-                <p class="mb-0"><strong>Fecha de vencimiento:</strong> {{ modalFactura.fechaVencimiento }}</p>
+                <p class="mb-1"><strong>Issue date:</strong> {{ modalFactura.fechaEmision }}</p>
+                <p class="mb-0"><strong>Due date:</strong> {{ modalFactura.fechaVencimiento }}</p>
               </div>
             </div>
           </div>
@@ -257,7 +257,7 @@
         <!-- Resumen Financiero -->
         <div class="card">
           <div class="card-header bg-light py-2">
-            <h6 class="mb-0 small"><i class="bi bi-calculator me-1"></i>Resumen Financiero</h6>
+            <h6 class="mb-0 small"><i class="bi bi-calculator me-1"></i>Financial Summary</h6>
           </div>
           <div class="card-body py-2 px-3">
             <div class="d-flex justify-content-between mb-1">
@@ -290,9 +290,9 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-primary" (click)="generateInvoicePDF(modalFactura!)">
-          <i class="bi bi-file-earmark-pdf me-2"></i>Generar PDF
+          <i class="bi bi-file-earmark-pdf me-2"></i>Generate PDF
         </button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
