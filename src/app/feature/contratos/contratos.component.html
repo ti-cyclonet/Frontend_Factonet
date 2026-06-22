@@ -19,7 +19,6 @@
               <th class="d-none d-xl-table-cell">Pay Day</th>
               <th class="d-none d-xl-table-cell">Start Date</th>
               <th class="d-none d-xl-table-cell">End Date</th>
-              <th class="d-md-none">Status</th>
               <th class="d-none d-md-table-cell">Status</th>
               <th class="text-center" style="width: 100px;">Actions</th>
             </tr>
@@ -36,13 +35,6 @@
               <td class="d-none d-xl-table-cell">{{ contrato.payday }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.startDate }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.endDate }}</td>
-              <td class="d-md-none">
-                <span class="badge status-clickable" [ngClass]="{
-                  'bg-success': contrato.status === 'ACTIVE',
-                  'bg-danger': contrato.status === 'EXPIRED',
-                  'bg-warning': contrato.status === 'PENDING'
-                }" (click)="openStatusDropdown($event, contrato.id)">{{ contrato.status }}</span>
-              </td>
               <td class="d-none d-md-table-cell">
                 <span class="badge status-clickable" [ngClass]="{
                   'bg-success': contrato.status === 'ACTIVE',
@@ -57,22 +49,11 @@
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
                     </svg>
                   </button>
-                  <button type="button" class="btn-icon" (click)="generateContractPDF(contrato)" [disabled]="generatingPDF()" [title]="contrato.pdfUrl ? 'Ver/Descargar PDF' : 'Generar contrato PDF'">
-                    <span *ngIf="generatingPDF()" class="spinner-border spinner-border-sm text-success"></span>
-                    <svg *ngIf="!generatingPDF()" width="16" height="16" fill="currentColor" [class]="contrato.pdfUrl ? 'text-primary' : 'text-success'">
-                      <use [attr.xlink:href]="contrato.pdfUrl ? './assets/icons/bootstrap-icons.svg#file-earmark-pdf-fill' : './assets/icons/bootstrap-icons.svg#file-earmark-pdf'" />
-                    </svg>
-                  </button>
-                  <button type="button" class="btn-icon" (click)="openDeleteConfirmationModal()" title="Eliminar">
-                    <svg width="16" height="16" fill="currentColor" class="text-danger">
-                      <use xlink:href="./assets/icons/bootstrap-icons.svg#trash" />
-                    </svg>
-                  </button>
                 </div>
               </td>
             </tr>
             <tr *ngIf="contratos().length === 0">
-              <td colspan="3" class="text-center d-md-none">No hay contratos disponibles</td>
+              <td colspan="2" class="text-center d-md-none">No hay contratos disponibles</td>
               <td colspan="9" class="text-center d-none d-md-table-cell">No hay contratos disponibles</td>
             </tr>
           </tbody>
@@ -211,8 +192,22 @@
 
             <!-- Botón de acción -->
             <hr class="my-3">
-            <div class="action-buttons">
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+            <div class="d-flex gap-2 justify-content-center">
+              <button type="button" class="btn btn-sm btn-outline-success flex-fill" (click)="generateContractPDF(modalContrato)" [disabled]="generatingPDF()">
+                <svg width="14" height="14" fill="currentColor"><use [attr.xlink:href]="modalContrato.pdfUrl ? './assets/icons/bootstrap-icons.svg#file-earmark-pdf-fill' : './assets/icons/bootstrap-icons.svg#file-earmark-pdf'" /></svg>
+                PDF
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-warning flex-fill" (click)="openStatusChangeFromModal(modalContrato)">
+                <svg width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#arrow-repeat" /></svg>
+                Status
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger flex-fill" (click)="openDeleteConfirmationModal()">
+                <svg width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#trash" /></svg>
+                Delete
+              </button>
+            </div>
+            <div class="mt-3">
+              <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>

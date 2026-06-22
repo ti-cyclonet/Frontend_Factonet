@@ -628,6 +628,28 @@ export class ContratosComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Opens a SweetAlert select for changing contract status from the modal
+   */
+  openStatusChangeFromModal(contrato: any) {
+    const inputOptions: Record<string, string> = {};
+    this.contractStatuses.forEach(s => { inputOptions[s] = s; });
+
+    Swal.fire({
+      title: 'Change Status',
+      input: 'select',
+      inputOptions,
+      inputValue: contrato.status,
+      showCancelButton: true,
+      confirmButtonText: 'Change',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.changeContractStatus(contrato.id, result.value);
+      }
+    });
+  }
+
+  /**
    * Cambia el estado del contrato
    */
   changeContractStatus(contractId: string, newStatus: string) {

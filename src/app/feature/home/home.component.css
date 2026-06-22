@@ -99,3 +99,29 @@
     padding: 15px;
   }
 }
+
+/* Mobile optimization */
+@media (max-width: 576px) {
+  .card-body {
+    padding: 0.6rem !important;
+  }
+  .card-body h3 {
+    font-size: 1.3rem;
+  }
+  .card-body p {
+    font-size: 0.7rem;
+  }
+  .card-body .rounded-circle {
+    padding: 0.4rem !important;
+  }
+  .card-body .rounded-circle i {
+    font-size: 1rem !important;
+  }
+  .row.g-3 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+  }
+  h4.fw-bold {
+    font-size: 1.1rem;
+  }
+}
