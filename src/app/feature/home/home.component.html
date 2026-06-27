@@ -181,22 +181,50 @@
                     <!-- Para adminInvoices -->
                     <div *ngIf="userRol === 'adminInvoices'" class="col-12 col-lg-6">
                         <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-credit-card me-2"></i>Payment Management</h5>
+                            <div class="card-header bg-info text-white py-2">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-file-earmark-text me-1"></i>My Contract</h6>
                             </div>
-                            <div class="card-body">
-                                <p class="mb-3">Your payment dashboard:</p>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>View your invoices</li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>Make payments online</li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>Download invoice PDFs</li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>Track payment history</li>
-                                </ul>
+                            <div class="card-body py-2 px-3" *ngIf="activeContract">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <small class="text-muted">Code</small>
+                                        <div class="fw-bold small">{{ activeContract.code }}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Package</small>
+                                        <div class="fw-bold small">{{ activeContract.packageName }}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Monthly Value</small>
+                                        <div class="fw-bold small">${{ activeContract.monthlyValue | number:'1.0-0' }}</div>
+                                    </div>
+                                    <div class="col-12" *ngIf="activeContract.description">
+                                        <small class="text-muted">Description</small>
+                                        <div class="small">{{ activeContract.description }}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Start</small>
+                                        <div class="small">{{ activeContract.startDate }}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">End</small>
+                                        <div class="small">{{ activeContract.endDate || 'Indefinite' }}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Status</small>
+                                        <div>
+                                            <span class="badge" style="font-size:0.7rem" [ngClass]="{
+                                                'bg-success': activeContract.status === 'ACTIVE',
+                                                'bg-warning': activeContract.status === 'PENDING',
+                                                'bg-danger': activeContract.status === 'SUSPENDED'
+                                            }">{{ activeContract.status }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body py-2" *ngIf="!activeContract">
+                                <p class="text-muted small mb-0">No active contract found.</p>
                             </div>
                         </div>
                     </div>

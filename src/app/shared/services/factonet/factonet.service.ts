@@ -40,6 +40,20 @@ export class FactonetService {
     );
   }
 
+  signContract(contractId: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/contracts/${contractId}/sign`, 
+      {}, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  issueContract(contractId: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/contracts/${contractId}/issue`, 
+      {}, 
+      { headers: this.getHeaders() }
+    );
+  }
+
   updateInvoiceStatus(invoiceId: number, status: string): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/invoices/${invoiceId}/status`, 
       { status }, 
