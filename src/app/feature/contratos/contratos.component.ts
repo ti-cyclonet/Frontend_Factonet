@@ -45,6 +45,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
   }>>([]);
   
   showOptions = true; // Controla la visibilidad del panel de opciones
+  userRol: string | null = null;
   
   private clickListener?: () => void;
 
@@ -79,6 +80,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.userRol = sessionStorage.getItem('user_rol');
     this.loadContratos();
     
     // Listener para cerrar dropdown al hacer click fuera
@@ -653,15 +655,15 @@ export class ContratosComponent implements OnInit, OnDestroy {
    * Cambia el estado del contrato
    */
   changeContractStatus(contractId: string, newStatus: string) {
-    // Si es activación, validar primero
+    // Si es activación, validar el flujo completo
     if (newStatus === 'ACTIVE') {
       const contract = this.contratos().find(c => c.id === contractId);
       if (contract) {
-        // Validar PDF
+        // Step 1: Validar PDF generado
         if (!contract.pdfUrl || contract.pdfUrl.trim() === '') {
           Swal.fire({
-            title: 'Cannot activate contract',
-            text: 'You must generate the contract PDF before activating it.',
+            title: 'Contract PDF Required',
+            text: 'You must generate the contract PDF first. Use the PDF button in the contract details.',
             icon: 'warning',
             confirmButtonText: 'Understood'
           });
@@ -669,32 +671,48 @@ export class ContratosComponent implements OnInit, OnDestroy {
           return;
         }
         
-        // Validar confirmación de contrato firmado
+        // Step 2: Validar que fue emitido (enviado al cliente)
+        if (!contract.issuedAt) {
+          Swal.fire({
+            title: 'Contract Not Issued',
+            text: 'The contract must be issued (sent to the client for review) before it can be activated. Use the "Issue" action to send it.',
+            icon: 'warning',
+            confirmButtonText: 'Understood'
+          });
+          this.closeStatusDropdown();
+          return;
+        }
+
+        // Step 3: Validar firma
+        if (!contract.signedAt) {
+          Swal.fire({
+            title: 'Contract Not Signed',
+            text: 'The contract must be signed by the client before activation. Use the "Sign" action once the client confirms.',
+            icon: 'warning',
+            confirmButtonText: 'Understood'
+          });
+          this.closeStatusDropdown();
+          return;
+        }
+        
+        // All validations passed — confirm activation
         Swal.fire({
-          title: 'Contract Confirmation',
-          text: 'Has the user reviewed, accepted and signed the contract?',
+          title: 'Activate Contract',
+          text: 'The contract has been generated, issued, and signed. Do you want to activate it now?',
           icon: 'question',
           showCancelButton: true,
-          confirmButtonText: 'Yes, signed',
-          cancelButtonText: 'No, not yet',
+          confirmButtonText: 'Yes, activate',
+          cancelButtonText: 'Cancel',
           reverseButtons: true
         }).then((result) => {
-          if (!result.isConfirmed) {
-            Swal.fire({
-              title: 'Cannot activate contract',
-              text: 'The contract cannot be activated until the user has reviewed, accepted and signed it.',
-              icon: 'warning',
-              confirmButtonText: 'Understood'
-            });
+          if (result.isConfirmed) {
+            this.proceedWithActivation(contractId, newStatus);
+          } else {
             this.closeStatusDropdown();
-            return;
           }
-          
-          // Si confirma, proceder con la activación
-          this.proceedWithActivation(contractId, newStatus);
         });
         
-        return; // Salir aquí para evitar ejecutar el código de abajo
+        return;
       }
     }
     
@@ -751,6 +769,45 @@ export class ContratosComponent implements OnInit, OnDestroy {
         });
         this.closeStatusDropdown();
         console.error('Error updating contract status:', error);
+      }
+    });
+  }
+
+  signContract(contrato: any) {
+    if (!contrato.pdfUrl) {
+      Swal.fire({
+        title: 'Cannot sign',
+        text: 'The contract PDF must be generated before signing.',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Sign Contract',
+      text: `Are you sure you want to mark contract ${contrato.code} as signed?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, sign it',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.factonetService.signContract(contrato.id).subscribe({
+          next: (response) => {
+            // Update local state
+            this.contratos.update(contracts =>
+              contracts.map(c => c.id === contrato.id ? { ...c, signedAt: new Date().toISOString() } : c)
+            );
+            if (this.modalContrato) {
+              this.modalContrato = { ...this.modalContrato, signedAt: new Date().toISOString() };
+            }
+            Swal.fire('Signed!', 'The contract has been signed successfully.', 'success');
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'Failed to sign contract.', 'error');
+          }
+        });
       }
     });
   }

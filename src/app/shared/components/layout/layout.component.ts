@@ -84,10 +84,11 @@ export default class LayoutComponent implements OnInit {
         });
         this.optionsMenu = Array.from(uniqueMenus.values());
 
-        // Si es usuario con rol adminInvoices, filtrar solo Invoices
+        // Si es usuario con rol adminInvoices, filtrar solo Invoices y Contracts
         if (userRol === 'adminInvoices') {
           this.optionsMenu = this.optionsMenu.filter(menu => 
-            menu.url === '/facturas' || menu.name.toLowerCase().includes('invoice')
+            menu.url === '/facturas' || menu.name.toLowerCase().includes('invoice') ||
+            menu.url === '/contracts' || menu.name.toLowerCase().includes('contract')
           );
         }
 

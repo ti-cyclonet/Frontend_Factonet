@@ -42,6 +42,8 @@ export class HomeComponent implements OnInit {
     averageInvoiceValue: 0
   };
 
+  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string } | null = null;
+
   // Chart: Monthly Invoice Totals (Bar)
   monthlyChartData: ChartData<'bar'> = {
     labels: [],
@@ -135,6 +137,28 @@ export class HomeComponent implements OnInit {
         error: (error) => {
           console.error('Error loading contracts:', error);
         }
+      });
+    }
+
+    // Load active contract for adminInvoices
+    if (this.userRol === 'adminInvoices') {
+      this.factonetService.getContracts().subscribe({
+        next: (contracts) => {
+          const contract = contracts[0]; // Only one contract per user
+          if (contract) {
+            const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
+            this.activeContract = {
+              code: contract.code,
+              packageName: contract.package?.name || contract.packageName || 'N/A',
+              description: contract.package?.description || '',
+              monthlyValue: contract.mode === 'MONTHLY' ? value / 12 : value,
+              startDate: contract.startDate,
+              endDate: contract.endDate,
+              status: contract.status
+            };
+          }
+        },
+        error: () => {}
       });
     }
   }

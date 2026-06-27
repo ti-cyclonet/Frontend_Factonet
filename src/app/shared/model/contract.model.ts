@@ -8,6 +8,8 @@ export interface Contract {
   endDate: string;
   status: string;
   pdfUrl?: string;
+  issuedAt?: string;
+  signedAt?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

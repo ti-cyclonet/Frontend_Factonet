@@ -40,7 +40,8 @@
                   'bg-success': contrato.status === 'ACTIVE',
                   'bg-danger': contrato.status === 'EXPIRED',
                   'bg-warning': contrato.status === 'PENDING'
-                }" (click)="openStatusDropdown($event, contrato.id)">{{ contrato.status }}</span>
+                }" (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, contrato.id) : null"
+                   [class.cursor-pointer]="userRol === 'adminFactonet'">{{ contrato.status }}</span>
               </td>
               <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
@@ -196,6 +197,14 @@
               <button type="button" class="btn btn-sm btn-outline-success flex-fill" (click)="generateContractPDF(modalContrato)" [disabled]="generatingPDF()">
                 <svg width="14" height="14" fill="currentColor"><use [attr.xlink:href]="modalContrato.pdfUrl ? './assets/icons/bootstrap-icons.svg#file-earmark-pdf-fill' : './assets/icons/bootstrap-icons.svg#file-earmark-pdf'" /></svg>
                 PDF
+              </button>
+              <button type="button" class="btn btn-sm flex-fill" 
+                [class.btn-outline-primary]="!modalContrato.signedAt"
+                [class.btn-primary]="modalContrato.signedAt"
+                [disabled]="!modalContrato.pdfUrl || modalContrato.signedAt"
+                (click)="signContract(modalContrato)">
+                <svg width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#pen" /></svg>
+                {{ modalContrato.signedAt ? 'Signed' : 'Sign' }}
               </button>
               <button type="button" class="btn btn-sm btn-outline-warning flex-fill" (click)="openStatusChangeFromModal(modalContrato)">
                 <svg width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#arrow-repeat" /></svg>
