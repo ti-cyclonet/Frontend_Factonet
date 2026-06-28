@@ -72,6 +72,7 @@ export interface ContractPackage {
   code: string;
   name: string;
   description: string;
+  isBillable?: boolean;
   configurations?: PackageConfiguration[];
 }
 
