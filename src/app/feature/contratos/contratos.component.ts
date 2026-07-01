@@ -117,6 +117,13 @@ export class ContratosComponent implements OnInit, OnDestroy {
             this.contractsWithPDF.add(contrato.id);
           }
         });
+        // Update modalContrato if it's open
+        if (this.modalContrato) {
+          const updated = contratosOrdenados.find(c => c.id === this.modalContrato!.id);
+          if (updated) {
+            this.modalContrato = updated;
+          }
+        }
         if (contratosOrdenados.length > 0) {
           this.showToast('Contratos cargados correctamente', 'success', 'A', 0);
         } else {
@@ -201,10 +208,14 @@ export class ContratosComponent implements OnInit, OnDestroy {
       this.generatingPDF.set(false);
       // Recargar contratos para obtener la URL actualizada
       this.loadContratos();
-      // Mostrar opciones con el contrato actualizado
+      // Actualizar el modalContrato con el pdfUrl para que los botones funcionen sin refrescar
       setTimeout(() => {
         const contratoActualizado = this.contratos().find(c => c.id === contrato.id);
         if (contratoActualizado) {
+          // Update the modal contract reference
+          if (this.modalContrato && this.modalContrato.id === contrato.id) {
+            this.modalContrato = { ...this.modalContrato, pdfUrl: contratoActualizado.pdfUrl };
+          }
           this.showPDFOptions(contratoActualizado);
         }
       }, 1000);

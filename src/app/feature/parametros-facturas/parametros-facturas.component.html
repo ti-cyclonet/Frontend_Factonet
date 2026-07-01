@@ -37,18 +37,19 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th width="50">
+              <th width="40">
                 <input type="checkbox" class="form-check-input" 
                        [checked]="allSelected" 
                        [indeterminate]="someSelected && !allSelected"
                        (change)="toggleAll($event)">
               </th>
               <th>Parameter</th>
-              <th>Value</th>
-              <th>Description</th>
-              <th>Type</th>
-              <th class="text-center">Status</th>
-              <th class="text-center">Show in Docs</th>
+              <th class="d-none d-md-table-cell">Value</th>
+              <th class="d-none d-lg-table-cell">Description</th>
+              <th class="d-none d-md-table-cell">Type</th>
+              <th class="d-none d-md-table-cell text-center">Status</th>
+              <th class="text-center">Docs</th>
+              <th class="d-table-cell d-md-none text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -60,18 +61,18 @@
                        (change)="onParameterChange(param)">
               </td>
               <td><strong>{{ param.globalParameter.name }}</strong></td>
-              <td>
+              <td class="d-none d-md-table-cell">
                 <span class="badge bg-primary">{{ param.value }}</span>
               </td>
-              <td>{{ param.globalParameter.description }}</td>
-              <td>
+              <td class="d-none d-lg-table-cell">{{ param.globalParameter.description }}</td>
+              <td class="d-none d-md-table-cell">
                 <span class="badge" [ngClass]="param.globalParameter.dataType === 'number' ? 'bg-info' : 'bg-secondary'">
-                  {{ param.globalParameter.dataType === 'number' ? 'NUMERIC' : 'TEXT' }}
+                  {{ param.globalParameter.dataType === 'number' ? 'NUM' : 'TXT' }}
                 </span>
               </td>
-              <td class="text-center">
+              <td class="d-none d-md-table-cell text-center">
                 <span class="badge bg-success" *ngIf="param.aplicaFacturas">APPLIED</span>
-                <span class="badge bg-secondary" *ngIf="!param.aplicaFacturas">NOT APPLIED</span>
+                <span class="badge bg-secondary" *ngIf="!param.aplicaFacturas">—</span>
               </td>
               <td class="text-center">
                 <div class="form-check form-switch d-flex justify-content-center">
@@ -80,6 +81,13 @@
                          [disabled]="!param.aplicaFacturas"
                          id="switch-{{ param.id }}">
                 </div>
+              </td>
+              <td class="d-table-cell d-md-none text-center">
+                <button type="button" class="btn p-0 border-0 bg-transparent" (click)="openParamInfo(param)" title="View">
+                  <svg width="16" height="16" fill="currentColor">
+                    <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
+                  </svg>
+                </button>
               </td>
             </tr>
             <tr *ngIf="parametrosActivos.length === 0">

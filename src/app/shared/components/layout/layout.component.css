@@ -115,3 +115,9 @@
   }
 }
 
+@media (max-width: 576px) {
+  .content-wrapper {
+    padding: 0 !important;
+  }
+}
+

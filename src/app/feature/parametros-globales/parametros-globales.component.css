@@ -153,3 +153,14 @@
   align-items: center;
   justify-content: center;
 }
+
+@media (max-width: 768px) {
+  .floating-container {
+    padding: 0;
+  }
+  .outer-container {
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 0;
+  }
+}
