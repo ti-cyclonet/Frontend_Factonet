@@ -136,18 +136,23 @@
           <table class="table table-striped">
             <thead>
               <tr>
+                <th style="width:30px;"></th>
                 <th>Parameter</th>
-                <th>Value</th>
-                <th>Description</th>
-                <th>Operation</th>
-                <th>Status</th>
+                <th class="d-none d-md-table-cell">Value</th>
+                <th class="d-none d-lg-table-cell">Description</th>
+                <th class="d-none d-md-table-cell">Operation</th>
+                <th class="d-none d-md-table-cell">Status</th>
+                <th class="d-none d-md-table-cell text-center">Show in Docs</th>
                 <th class="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let param of parametrosPaginados" [ngClass]="{'table-warning': param.editando}">
-                <td>{{ param.nombre }}</td>
                 <td>
+                  <input type="checkbox" [checked]="param.estado === 'ACTIVE'" (change)="cambiarEstadoParametro(param)">
+                </td>
+                <td>{{ param.nombre }}</td>
+                <td class="d-none d-md-table-cell">
                   <span *ngIf="!param.editando" class="badge bg-primary">{{ param.valor }}</span>
                   <input *ngIf="param.editando" type="text" class="form-control form-control-sm" 
                          [(ngModel)]="param.valor"
@@ -155,8 +160,8 @@
                          (keyup.enter)="guardarValor(param)"
                          style="min-width: 80px;">
                 </td>
-                <td>{{ param.descripcion }}</td>
-                <td>
+                <td class="d-none d-lg-table-cell">{{ param.descripcion }}</td>
+                <td class="d-none d-md-table-cell">
                   <select *ngIf="param.editando" class="form-select form-select-sm" 
                           [(ngModel)]="param.operationType" 
                           style="width: 100px;">
@@ -168,40 +173,42 @@
                     {{ param.operationType === 'add' ? '+ Add' : '- Subtract' }}
                   </span>
                 </td>
-                <td>
-                  <button type="button" 
-                          class="btn" 
-                          style="border: none; background: none; padding: 0;"
-                          [style.color]="param.estado === 'ACTIVE' ? '#198754' : '#6c757d'"
-                          [style.font-weight]="'bold'"
-                          (click)="cambiarEstadoParametro(param)"
-                          title="Click para cambiar estado">
-                    {{ param.estado === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO' }}
-                  </button>
+                <td class="d-none d-md-table-cell">
+                  <span class="badge" [ngClass]="param.estado === 'ACTIVE' ? 'bg-success' : 'bg-secondary'">
+                    {{ param.estado === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE' }}
+                  </span>
+                </td>
+                <td class="d-none d-md-table-cell text-center">
+                  <input type="checkbox" [checked]="param.showInDocs" (change)="toggleShowInDocs(param)">
                 </td>
                 <td>
-                  <div class="d-flex align-items-center justify-content-center gap-2">
-                    <!-- Botones en modo normal -->
+                  <div class="d-flex align-items-center justify-content-center gap-1">
+                    <!-- Mobile: view/edit button -->
+                    <button type="button" class="btn-icon d-md-none" (click)="openParamDetail(param)" title="View/Edit">
+                      <svg width="16" height="16" fill="currentColor">
+                        <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
+                      </svg>
+                    </button>
+                    <!-- Desktop buttons -->
                     <ng-container *ngIf="!param.editando">
-                      <button type="button" class="btn-icon" (click)="editarParametro(param)" title="Edit">
+                      <button type="button" class="btn-icon d-none d-md-inline-block" (click)="editarParametro(param)" title="Edit">
                         <svg width="16" height="16" fill="currentColor" class="text-primary">
                           <use xlink:href="./assets/icons/bootstrap-icons.svg#pencil" />
                         </svg>
                       </button>
-                      <button type="button" class="btn-icon" (click)="eliminarParametro(param)" title="Delete">
+                      <button type="button" class="btn-icon d-none d-md-inline-block" (click)="eliminarParametro(param)" title="Delete">
                         <svg width="16" height="16" fill="currentColor" class="text-danger">
                           <use xlink:href="./assets/icons/bootstrap-icons.svg#trash" />
                         </svg>
                       </button>
                     </ng-container>
-                    <!-- Botones en modo edición -->
                     <ng-container *ngIf="param.editando">
-                      <button type="button" class="btn-icon" (click)="guardarValor(param)" title="Save">
+                      <button type="button" class="btn-icon d-none d-md-inline-block" (click)="guardarValor(param)" title="Save">
                         <svg width="16" height="16" fill="currentColor" class="text-success">
                           <use xlink:href="./assets/icons/bootstrap-icons.svg#check" />
                         </svg>
                       </button>
-                      <button type="button" class="btn-icon" (click)="cancelarEdicion(param)" title="Cancel">
+                      <button type="button" class="btn-icon d-none d-md-inline-block" (click)="cancelarEdicion(param)" title="Cancel">
                         <svg width="16" height="16" fill="currentColor" class="text-secondary">
                           <use xlink:href="./assets/icons/bootstrap-icons.svg#x" />
                         </svg>
@@ -473,6 +480,58 @@
           <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
           Create Period
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ver/editar parámetro individual (móvil) -->
+<div class="modal fade" id="paramDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content" *ngIf="selectedParam">
+      <div class="modal-header bg-primary text-white py-2">
+        <h6 class="modal-title mb-0">{{ selectedParam.nombre }}</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3">
+        <div class="mb-3">
+          <label class="form-label small text-muted mb-1">Value</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="selectedParam.valor" [disabled]="!selectedParamEditing">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small text-muted mb-1">Operation</label>
+          <select class="form-select form-select-sm" [(ngModel)]="selectedParam.operationType" [disabled]="!selectedParamEditing">
+            <option value="add">+ Add</option>
+            <option value="subtract">- Subtract</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small text-muted mb-1">Description</label>
+          <p class="small mb-0">{{ selectedParam.descripcion || 'N/A' }}</p>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-muted">Status</span>
+          <span class="badge" [ngClass]="selectedParam.estado === 'ACTIVE' ? 'bg-success' : 'bg-secondary'">
+            {{ selectedParam.estado === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE' }}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small text-muted">Show in Docs</span>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="selectedParam.showInDocs" [disabled]="!selectedParamEditing">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button *ngIf="!selectedParamEditing" type="button" class="btn btn-sm btn-primary" (click)="selectedParamEditing = true">
+          <svg width="14" height="14" fill="currentColor" class="me-1"><use xlink:href="./assets/icons/bootstrap-icons.svg#pencil" /></svg>
+          Edit
+        </button>
+        <button *ngIf="selectedParamEditing" type="button" class="btn btn-sm btn-success" (click)="saveParamDetail()">
+          <svg width="14" height="14" fill="currentColor" class="me-1"><use xlink:href="./assets/icons/bootstrap-icons.svg#check" /></svg>
+          Save
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" (click)="selectedParamEditing = false">Close</button>
       </div>
     </div>
   </div>

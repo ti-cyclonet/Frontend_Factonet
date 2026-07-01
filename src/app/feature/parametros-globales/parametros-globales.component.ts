@@ -42,6 +42,10 @@ export class ParametrosGlobalesComponent implements OnInit {
   parametrosPage = 0;
   parametrosPageSize = 5;
 
+  // Param detail modal
+  selectedParam: any = null;
+  selectedParamEditing = false;
+
   constructor(private parametrosService: ParametrosGlobalesService, private fb: FormBuilder) {
     this.nuevoPeriodoForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
@@ -392,6 +396,25 @@ export class ParametrosGlobalesComponent implements OnInit {
   cancelarEdicion(param: any): void {
     param.valor = param.valorOriginal;
     param.editando = false;
+  }
+
+  openParamDetail(param: any): void {
+    this.selectedParam = param;
+    this.selectedParamEditing = false;
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('paramDetailModal'));
+    modal.show();
+  }
+
+  saveParamDetail(): void {
+    if (this.selectedParam) {
+      this.guardarValor(this.selectedParam);
+      this.selectedParamEditing = false;
+    }
+  }
+
+  toggleShowInDocs(param: any): void {
+    param.showInDocs = !param.showInDocs;
+    // TODO: Update in backend when endpoint is available
   }
   
   eliminarParametro(param: any): void {

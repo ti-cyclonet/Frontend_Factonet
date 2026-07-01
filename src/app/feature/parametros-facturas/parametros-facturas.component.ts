@@ -179,4 +179,20 @@ export class ParametrosFacturasComponent implements OnInit {
       this.loading = false;
     }
   }
+
+  openParamInfo(param: any) {
+    Swal.fire({
+      title: param.globalParameter.name,
+      html: `
+        <div style="text-align:left;font-size:14px;">
+          <div class="mb-2"><strong>Value:</strong> <span class="badge bg-primary">${param.value}</span></div>
+          <div class="mb-2"><strong>Description:</strong> ${param.globalParameter.description || 'N/A'}</div>
+          <div class="mb-2"><strong>Type:</strong> ${param.globalParameter.dataType === 'number' ? 'Numeric' : 'Text'}</div>
+          <div class="mb-2"><strong>Status:</strong> ${param.aplicaFacturas ? '✅ Applied' : '⬜ Not Applied'}</div>
+          <div class="mb-2"><strong>Show in Docs:</strong> ${param.showInDocs ? '✅ Yes' : '⬜ No'}</div>
+        </div>
+      `,
+      confirmButtonText: 'Close',
+    });
+  }
 }

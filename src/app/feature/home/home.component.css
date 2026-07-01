@@ -90,7 +90,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .floating-container {
-    padding: 10px;
+    padding: 0;
   }
   
   .inner-container {
@@ -100,6 +100,16 @@
 
 /* Mobile optimization */
 @media (max-width: 576px) {
+  .floating-container {
+    padding: 0;
+  }
+
+  .outer-container {
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 0;
+    gap: 0.5rem;
+  }
   .card-body {
     padding: 0.6rem !important;
   }
