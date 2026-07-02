@@ -733,24 +733,8 @@ export class ParametrosGlobalesComponent implements OnInit {
   }
 
   agregarParametrosSeleccionados(): void {
-    // Buscar directamente en la tabla los checkboxes marcados
-    const checkboxes = document.querySelectorAll('#addParameterModal input[type="checkbox"]:checked');
-    const seleccionados: any[] = [];
-    
-    checkboxes.forEach((checkbox: any) => {
-      const paramId = checkbox.id.replace('param-', '');
-      const param = this.parametrosDisponibles.find(p => p.id === paramId);
-      if (param) {
-        // Obtener el valor del input correspondiente
-        const valueInput = document.querySelector(`#addParameterModal tr:has(#${checkbox.id}) input[type="text"]`) as HTMLInputElement;
-        if (valueInput && valueInput.value.trim()) {
-          seleccionados.push({
-            ...param,
-            value: valueInput.value.trim()
-          });
-        }
-      }
-    });
+    // Use model data instead of DOM queries
+    const seleccionados = this.parametrosDisponibles.filter(p => p.selected && p.value && p.value.toString().trim());
     
     if (seleccionados.length === 0) {
       Swal.fire({
@@ -761,25 +745,25 @@ export class ParametrosGlobalesComponent implements OnInit {
       });
       return;
     }
-    // Mapear a formato esperado por el backend
+
+    // Map to backend format
     const parametrosConValor = seleccionados.map(p => ({
       globalParameterId: p.id,
-      value: p.value,
+      value: p.value.toString().trim(),
       operationType: p.operationType || 'add'
     }));
     
     this.parametrosService.agregarParametrosAPeriodo(this.periodoSeleccionado.id, parametrosConValor).subscribe({
       next: (response) => {
-        // Limpiar checkboxes y valores del DOM
-        checkboxes.forEach((checkbox: any) => {
-          checkbox.checked = false;
-          const valueInput = document.querySelector(`#addParameterModal tr:has(#${checkbox.id}) input[type="text"]`) as HTMLInputElement;
-          if (valueInput) valueInput.value = '';
+        // Reset selections
+        this.parametrosDisponibles.forEach(p => {
+          p.selected = false;
+          p.value = '';
+          p.operationType = 'add';
         });
         
-        // Recargar parámetros del período
+        // Reload period parameters
         this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
-        // Volver al modal anterior
         this.volverAConfigureParameters();
         Swal.fire({
           title: 'Success!',
