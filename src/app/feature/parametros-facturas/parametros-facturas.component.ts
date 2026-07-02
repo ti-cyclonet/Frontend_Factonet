@@ -162,7 +162,7 @@ export class ParametrosFacturasComponent implements OnInit {
       await this.parametrosService.guardarParametrosFacturas(parametrosSeleccionados);
       
       Swal.fire({
-        title: '¡Éxito!',
+        title: 'Success!',
         text: 'Configuration saved successfully!',
         icon: 'success',
         confirmButtonText: 'OK'
