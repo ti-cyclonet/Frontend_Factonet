@@ -198,12 +198,12 @@ export class FacturasComponent implements OnInit, OnDestroy {
   }
 
   editFactura(factura: Factura) {
-    this.showToast(`Editando factura ${factura.numero}`, 'warning', 'A', 0);
+    this.showToast(`Editing invoice ${factura.numero}`, 'warning', 'A', 0);
   }
 
   confirmDeleteFactura(factura: Factura) {
     this.facturas = this.facturas.filter(f => f.id !== factura.id);
-    this.showToast(`Factura ${factura.numero} eliminada correctamente.`, 'danger', 'A', 0);
+    this.showToast(`Invoice ${factura.numero} deleted successfully.`, 'danger', 'A', 0);
     this.selectedFactura = null;
     this.cdr.detectChanges();
   }
@@ -636,7 +636,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
     pdf.setTextColor(0, 0, 0);
 
     pdf.save('Factura_' + factura.numero + '.pdf');
-    this.showToast('PDF de factura ' + factura.numero + ' generado', 'success', 'A', 0);
+    this.showToast('Invoice PDF ' + factura.numero + ' generated', 'success', 'A', 0);
   }
 
   private formatDate(dateStr: string): string {

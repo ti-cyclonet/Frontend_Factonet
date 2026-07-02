@@ -128,20 +128,20 @@ export class LoginComponent {
           return;
         }
 
-        this.showToast('Inicio de sesión exitoso', 'success', 'A', 0);
+        this.showToast('Login successful', 'success', 'A', 0);
         setTimeout(() => {
           this.router.navigate(['/home']);
         }, 1000);
       },
       error: (error) => {
-        this.showToast('Credenciales incorrectas o error del servidor', 'danger', 'A', 0);
+        this.showToast('Invalid credentials or server error', 'danger', 'A', 0);
       }
     });
   }
 
   selectClient() {
     if (!this.selectedContractId) {
-      this.showToast('Por favor seleccione un cliente', 'warning', 'A', 0);
+      this.showToast('Please select a client', 'warning', 'A', 0);
       return;
     }
 
@@ -161,13 +161,13 @@ export class LoginComponent {
     this.authService.completeLogin(completeLoginDTO).subscribe({
       next: (response) => {
         this.showClientSelector = false;
-        this.showToast('Inicio de sesión exitoso', 'success', 'A', 0);
+        this.showToast('Login successful', 'success', 'A', 0);
         setTimeout(() => {
           this.router.navigate(['/home']);
         }, 1000);
       },
       error: (error) => {
-        this.showToast('Error al seleccionar cliente', 'danger', 'A', 0);
+        this.showToast('Error selecting client', 'danger', 'A', 0);
       }
     });
   }

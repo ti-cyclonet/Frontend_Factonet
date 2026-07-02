@@ -125,14 +125,14 @@ export class ContratosComponent implements OnInit, OnDestroy {
           }
         }
         if (contratosOrdenados.length > 0) {
-          this.showToast('Contratos cargados correctamente', 'success', 'A', 0);
+          this.showToast('Contracts loaded successfully', 'success', 'A', 0);
         } else {
-          this.showToast('No hay contratos disponibles', 'primary', 'A', 0);
+          this.showToast('No contracts available', 'primary', 'A', 0);
         }
       },
       error: (error) => {
         this.contratos.set([]);
-        this.showToast('Error conectando con el servidor de contratos', 'danger', 'A', 0);
+        this.showToast('Error connecting to contracts server', 'danger', 'A', 0);
       }
     });
   }
@@ -766,7 +766,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
             confirmButtonText: 'OK'
           });
         } else {
-          this.showToast(`Estado actualizado a ${newStatus}`, 'success', 'A', 0);
+          this.showToast(`Status updated to ${newStatus}`, 'success', 'A', 0);
         }
         this.closeStatusDropdown();
       },
