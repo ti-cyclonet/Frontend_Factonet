@@ -42,12 +42,11 @@
               <td class="d-none d-xl-table-cell">{{ contrato.startDate }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.endDate }}</td>
               <td class="d-none d-md-table-cell">
-                <span class="badge status-clickable" [ngClass]="{
+                <span class="badge" [ngClass]="{
                   'bg-success': contrato.status === 'ACTIVE',
                   'bg-danger': contrato.status === 'EXPIRED',
                   'bg-warning': contrato.status === 'PENDING'
-                }" (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, contrato.id) : null"
-                   [class.cursor-pointer]="userRol === 'adminFactonet'">{{ contrato.status }}</span>
+                }">{{ contrato.status }}</span>
               </td>
               <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
@@ -55,6 +54,12 @@
                     <svg width="16" height="16" fill="currentColor" class="text-primary">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
                     </svg>
+                  </button>
+                  <button *ngIf="userRol !== 'adminFactonet' && contrato.issuedAt && !contrato.clientSignedAt"
+                          type="button" class="btn btn-sm btn-outline-success" style="font-size: 0.7rem; padding: 2px 8px;"
+                          (click)="signContractAsClient(contrato)" title="Firmar contrato">
+                    <svg width="12" height="12" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#pen" /></svg>
+                    Firmar
                   </button>
                 </div>
               </td>
@@ -69,21 +74,6 @@
     </div>
   </div>
 </div>
-
-<!-- Dropdown flotante para cambiar estado -->
-<div *ngIf="statusDropdownOpen()" class="status-dropdown" 
-     [style.top.px]="statusDropdownPosition().top" 
-     [style.left.px]="statusDropdownPosition().left"
-     (click)="$event.stopPropagation()">
-  <div *ngFor="let status of contractStatuses" 
-       class="dropdown-item" 
-       (click)="changeContractStatus(statusDropdownOpen()!, status)">
-    {{ status }}
-  </div>
-</div>
-
-<!-- Overlay para cerrar dropdown -->
-<div *ngIf="statusDropdownOpen()" class="dropdown-overlay" (click)="closeStatusDropdown()"></div>
 
 <!-- Modal para ver detalles del contrato -->
 <div class="modal fade" id="viewContractModal" tabindex="-1" aria-labelledby="viewContractModalLabel" aria-hidden="true">
@@ -221,6 +211,44 @@
                 Delete
               </button>
             </div>
+
+            <!-- Signatures Section -->
+            <div class="signatures-section mt-3" *ngIf="modalContrato.issuedAt">
+              <h6 class="fw-bold mb-2" style="font-size: 0.85rem;">
+                <svg width="14" height="14" fill="currentColor" class="me-1"><use xlink:href="./assets/icons/bootstrap-icons.svg#pen" /></svg>
+                Firmas del Contrato
+              </h6>
+              <div class="d-flex flex-column gap-2">
+                <!-- Client signature -->
+                <div class="signature-item" [class.signed]="modalContrato.clientSignedAt">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold" style="font-size: 0.8rem;">Cliente</span>
+                    <span *ngIf="modalContrato.clientSignedAt" class="badge bg-success" style="font-size: 0.65rem;">Firmado</span>
+                    <span *ngIf="!modalContrato.clientSignedAt" class="badge bg-secondary" style="font-size: 0.65rem;">Pendiente</span>
+                  </div>
+                  <small *ngIf="modalContrato.clientSignedAt" class="text-muted d-block">
+                    {{ modalContrato.clientSignedBy }} · {{ modalContrato.clientSignedAt | date:'dd/MM/yyyy HH:mm' }}
+                  </small>
+                </div>
+                <!-- Admin signature -->
+                <div class="signature-item" [class.signed]="modalContrato.adminSignedAt">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold" style="font-size: 0.8rem;">Administrador</span>
+                    <span *ngIf="modalContrato.adminSignedAt" class="badge bg-success" style="font-size: 0.65rem;">Firmado</span>
+                    <button *ngIf="!modalContrato.adminSignedAt && userRol === 'adminFactonet'" 
+                            class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 2px 8px;"
+                            (click)="signContractAsAdmin(modalContrato)">
+                      Firmar como Admin
+                    </button>
+                    <span *ngIf="!modalContrato.adminSignedAt && userRol !== 'adminFactonet'" class="badge bg-secondary" style="font-size: 0.65rem;">Pendiente</span>
+                  </div>
+                  <small *ngIf="modalContrato.adminSignedAt" class="text-muted d-block">
+                    {{ modalContrato.adminSignedBy }} · {{ modalContrato.adminSignedAt | date:'dd/MM/yyyy HH:mm' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+
             <div class="mt-3">
               <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Close</button>
             </div>
