@@ -47,6 +47,26 @@ export class FactonetService {
     );
   }
 
+  signAsClient(contractId: string, signedBy: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/contracts/${contractId}/sign-client`,
+      { signedBy },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  signAsAdmin(contractId: string, signedBy: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/contracts/${contractId}/sign-admin`,
+      { signedBy },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getSignatures(contractId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/contracts/${contractId}/signatures`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   issueContract(contractId: string): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/contracts/${contractId}/issue`, 
       {}, 
@@ -57,6 +77,13 @@ export class FactonetService {
   updateInvoiceStatus(invoiceId: number, status: string): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/invoices/${invoiceId}/status`, 
       { status }, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  registerPayment(invoiceId: number, paymentDate: string, paidAmount: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/invoices/${invoiceId}/register-payment`,
+      { paymentDate, paidAmount },
       { headers: this.getHeaders() }
     );
   }

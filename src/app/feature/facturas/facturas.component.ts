@@ -702,11 +702,98 @@ export class FacturasComponent implements OnInit, OnDestroy {
   }
 
   payInvoice(factura: Factura) {
+    // Calculate the current total (value + dynamic parameters)
+    const baseValue = factura.total || 0;
+    const lateFee = factura['late_fee_penalty'] || 0;
+    const suggestedTotal = baseValue;
+
     Swal.fire({
-      title: 'Feature Under Construction',
-      text: 'The payment functionality is currently under development.',
-      icon: 'info',
-      confirmButtonText: 'OK'
+      title: 'Registrar Pago',
+      html: `
+        <div style="text-align: left; font-size: 14px;">
+          <div style="margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>Factura:</span>
+              <strong>${factura.numero || ''}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>Cliente:</span>
+              <strong>${factura.cliente || ''}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span>Valor base:</span>
+              <span>$${Number(factura.total || 0).toLocaleString('es-CO')}</span>
+            </div>
+            ${lateFee > 0 ? `<div style="display: flex; justify-content: space-between; color: #dc2626;">
+              <span>Penalización por mora:</span>
+              <span>$${Number(lateFee).toLocaleString('es-CO')}</span>
+            </div>` : ''}
+            <hr style="margin: 8px 0;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px;">
+              <span>Total sugerido:</span>
+              <span>$${Number(suggestedTotal + lateFee).toLocaleString('es-CO')}</span>
+            </div>
+          </div>
+          <label style="display: block; margin-bottom: 4px; font-weight: 600;">Fecha de pago *</label>
+          <input type="date" id="swal-payment-date" class="swal2-input" value="${new Date().toISOString().split('T')[0]}" style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 4px; font-weight: 600;">Monto pagado *</label>
+          <input type="number" id="swal-paid-amount" class="swal2-input" value="${suggestedTotal + lateFee}" step="0.01" min="0" placeholder="Monto pagado por el cliente">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Registrar Pago',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#198754',
+      width: '480px',
+      preConfirm: () => {
+        const paymentDate = (document.getElementById('swal-payment-date') as HTMLInputElement).value;
+        const paidAmount = parseFloat((document.getElementById('swal-paid-amount') as HTMLInputElement).value);
+
+        if (!paymentDate) {
+          Swal.showValidationMessage('La fecha de pago es obligatoria');
+          return false;
+        }
+        if (!paidAmount || paidAmount <= 0) {
+          Swal.showValidationMessage('El monto pagado debe ser mayor a 0');
+          return false;
+        }
+
+        return { paymentDate, paidAmount };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { paymentDate, paidAmount } = result.value;
+
+        this.factonetService.registerPayment(factura.id, paymentDate, paidAmount).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: '¡Pago registrado!',
+              html: `
+                <div style="font-size: 14px;">
+                  <p>Factura <strong>${factura.numero}</strong> marcada como pagada.</p>
+                  <p>Monto: <strong>$${paidAmount.toLocaleString('es-CO')}</strong></p>
+                  <p>Fecha: <strong>${paymentDate}</strong></p>
+                  ${lateFee > 0 ? `<p style="color: #dc2626;">Penalización congelada: <strong>$${Number(lateFee).toLocaleString('es-CO')}</strong></p>` : ''}
+                </div>
+              `,
+              confirmButtonColor: '#0d6efd',
+              timer: 4000,
+              showConfirmButton: true,
+            });
+            this.loadFacturas();
+            this.invoiceRefreshService.triggerRefresh();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al registrar pago',
+              text: error.error?.message || 'No se pudo registrar el pago',
+              confirmButtonColor: '#0d6efd',
+            });
+          }
+        });
+      }
     });
   }
 

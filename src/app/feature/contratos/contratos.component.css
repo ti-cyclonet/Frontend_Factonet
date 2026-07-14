@@ -346,3 +346,24 @@
     padding: 6px;
   }
 }
+
+
+/* Signatures Section */
+.signatures-section {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.signature-item {
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.signature-item.signed {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}

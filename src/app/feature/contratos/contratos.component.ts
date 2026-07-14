@@ -822,4 +822,108 @@ export class ContratosComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  signContractAsAdmin(contrato: any) {
+    const adminName = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || 'Admin';
+
+    Swal.fire({
+      title: 'Firmar como Administrador',
+      html: `
+        <p style="font-size: 14px;">¿Confirmas la firma del contrato <strong>${contrato.code}</strong> como administrador?</p>
+        <p style="font-size: 12px; color: #6c757d;">Esta acción registra tu firma digital con fecha, hora e IP.</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Firmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#198754',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.factonetService.signAsAdmin(contrato.id, adminName).subscribe({
+          next: (response) => {
+            this.contratos.update(contracts =>
+              contracts.map(c => c.id === contrato.id ? { ...c, ...response } : c)
+            );
+            if (this.modalContrato) {
+              this.modalContrato = { ...this.modalContrato, ...response };
+            }
+            const msg = response.status === 'ACTIVE' 
+              ? '¡Contrato firmado y activado automáticamente!' 
+              : '¡Firma registrada exitosamente!';
+            Swal.fire({
+              icon: 'success',
+              title: msg,
+              html: response.status === 'ACTIVE' 
+                ? '<p style="font-size:13px;">Ambas partes han firmado. El contrato está activo.</p>' 
+                : '<p style="font-size:13px;">Pendiente firma del cliente para activación.</p>',
+              confirmButtonColor: '#0d6efd',
+            });
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo registrar la firma.', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  signContractAsClient(contrato: any) {
+    const clientName = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || 'Cliente';
+
+    Swal.fire({
+      title: 'Firmar Contrato',
+      html: `
+        <p style="font-size: 14px;">Al firmar, aceptas los términos del contrato <strong>${contrato.code}</strong>.</p>
+        <div style="margin: 16px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; font-size: 12px; text-align: left;">
+          <p style="margin:0;"><strong>Paquete:</strong> ${contrato.package?.name || 'N/A'}</p>
+          <p style="margin:4px 0 0;"><strong>Valor:</strong> $${Number(contrato.value || 0).toLocaleString('es-CO')} COP</p>
+          <p style="margin:4px 0 0;"><strong>Modo:</strong> ${contrato.mode}</p>
+        </div>
+        <label style="font-size: 13px; cursor: pointer;">
+          <input type="checkbox" id="swal-accept-terms" style="margin-right: 6px;">
+          Acepto los términos y condiciones del contrato
+        </label>
+      `,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Firmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#198754',
+      preConfirm: () => {
+        const accepted = (document.getElementById('swal-accept-terms') as HTMLInputElement)?.checked;
+        if (!accepted) {
+          Swal.showValidationMessage('Debes aceptar los términos para firmar');
+          return false;
+        }
+        return true;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.factonetService.signAsClient(contrato.id, clientName).subscribe({
+          next: (response) => {
+            this.contratos.update(contracts =>
+              contracts.map(c => c.id === contrato.id ? { ...c, ...response } : c)
+            );
+            if (this.modalContrato) {
+              this.modalContrato = { ...this.modalContrato, ...response };
+            }
+            const msg = response.status === 'ACTIVE' 
+              ? '¡Contrato firmado y activado!' 
+              : '¡Firma registrada!';
+            Swal.fire({
+              icon: 'success',
+              title: msg,
+              html: response.status === 'ACTIVE' 
+                ? '<p style="font-size:13px;">Ambas partes han firmado. Tu cuenta está activa.</p>' 
+                : '<p style="font-size:13px;">Tu firma fue registrada. Pendiente firma del administrador.</p>',
+              confirmButtonColor: '#0d6efd',
+            });
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo registrar la firma.', 'error');
+          }
+        });
+      }
+    });
+  }
 }

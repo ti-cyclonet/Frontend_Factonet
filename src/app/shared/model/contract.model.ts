@@ -10,6 +10,12 @@ export interface Contract {
   pdfUrl?: string;
   issuedAt?: string;
   signedAt?: string;
+  clientSignedAt?: string;
+  clientSignedBy?: string;
+  clientSignedIp?: string;
+  adminSignedAt?: string;
+  adminSignedBy?: string;
+  adminSignedIp?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
