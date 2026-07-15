@@ -5,6 +5,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { Chart, registerables } from 'chart.js';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
+import Swal from 'sweetalert2';
 
 Chart.register(...registerables);
 
@@ -42,7 +43,10 @@ export class HomeComponent implements OnInit {
     averageInvoiceValue: 0
   };
 
-  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string } | null = null;
+  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string } | null = null;
+
+  // Pending actions for admin
+  pendingActions: { type: string; icon: string; title: string; description: string; route: string }[] = [];
 
   // Chart: Monthly Invoice Totals (Bar)
   monthlyChartData: ChartData<'bar'> = {
@@ -98,6 +102,9 @@ export class HomeComponent implements OnInit {
     this.userRol = sessionStorage.getItem('user_rol');
     this.userName = sessionStorage.getItem('user_name');
     this.loadDashboardData();
+    if (this.userRol === 'adminFactonet') {
+      this.loadPendingActions();
+    }
   }
 
   loadDashboardData(): void {
@@ -148,13 +155,15 @@ export class HomeComponent implements OnInit {
           if (contract) {
             const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
             this.activeContract = {
+              id: contract.id,
               code: contract.code,
               packageName: contract.package?.name || contract.packageName || 'N/A',
               description: contract.package?.description || '',
               monthlyValue: contract.mode === 'MONTHLY' ? value / 12 : value,
               startDate: contract.startDate,
               endDate: contract.endDate,
-              status: contract.status
+              status: contract.status,
+              clientSignedAt: contract.clientSignedAt || null
             };
           }
         },
@@ -218,5 +227,145 @@ export class HomeComponent implements OnInit {
         borderWidth: 2
       }]
     };
+  }
+
+  loadPendingActions(): void {
+    this.pendingActions = [];
+
+    // 1. Contracts pending admin signature
+    this.factonetService.getContracts().subscribe({
+      next: (contracts) => {
+        const pendingSignature = contracts.filter(
+          (c: any) => c.clientSignedAt && !c.adminSignedAt && c.status !== 'ACTIVE'
+        );
+        pendingSignature.forEach((c: any) => {
+          this.pendingActions.push({
+            type: 'signature',
+            icon: 'pen',
+            title: `Contract ${c.code} pending your signature`,
+            description: `Client already signed. Requires your signature to activate.`,
+            route: '/contracts'
+          });
+        });
+
+        // 2. Contracts PENDING that need PDF generation
+        const needsPdf = contracts.filter(
+          (c: any) => c.status === 'PENDING' && !c.pdfUrl
+        );
+        needsPdf.forEach((c: any) => {
+          this.pendingActions.push({
+            type: 'contract',
+            icon: 'file-earmark-pdf',
+            title: `Contract ${c.code} without PDF`,
+            description: `Generate the PDF to issue and sign.`,
+            route: '/contracts'
+          });
+        });
+
+        // 3. Contracts PENDING that need to be issued
+        const needsIssue = contracts.filter(
+          (c: any) => c.status === 'PENDING' && c.pdfUrl && !c.issuedAt
+        );
+        needsIssue.forEach((c: any) => {
+          this.pendingActions.push({
+            type: 'contract',
+            icon: 'send',
+            title: `Contract ${c.code} pending issuance`,
+            description: `PDF is ready. Issue it to send to the client.`,
+            route: '/contracts'
+          });
+        });
+      },
+      error: () => {}
+    });
+
+    // 4. Invoices that need to be issued (Unconfirmed)
+    this.factonetService.getInvoices().subscribe({
+      next: (invoices) => {
+        const unconfirmed = invoices.filter((inv: any) => inv.estado === 'Unconfirmed');
+        if (unconfirmed.length > 0) {
+          this.pendingActions.push({
+            type: 'invoice',
+            icon: 'receipt',
+            title: `${unconfirmed.length} invoice${unconfirmed.length > 1 ? 's' : ''} to confirm`,
+            description: `Generated invoices pending issuance.`,
+            route: '/facturas'
+          });
+        }
+
+        const overdue = invoices.filter((inv: any) => inv.estado === 'In arrears' || inv.estado === 'Suspended');
+        if (overdue.length > 0) {
+          this.pendingActions.push({
+            type: 'invoice',
+            icon: 'exclamation-triangle',
+            title: `${overdue.length} overdue invoice${overdue.length > 1 ? 's' : ''}`,
+            description: `Require collection follow-up.`,
+            route: '/facturas'
+          });
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  signMyContract(): void {
+    if (!this.activeContract?.id) return;
+
+    const clientName = sessionStorage.getItem('user_name') || sessionStorage.getItem('user_email') || 'Cliente';
+
+    Swal.fire({
+      title: 'Firmar Contrato',
+      html: `
+        <div style="text-align: left; font-size: 14px;">
+          <p>Al firmar, aceptas los términos del contrato <strong>${this.activeContract.code}</strong>.</p>
+          <div style="padding: 12px; background: #f8f9fa; border-radius: 8px; font-size: 13px; margin-bottom: 12px;">
+            <p style="margin:0;"><strong>Paquete:</strong> ${this.activeContract.packageName}</p>
+            <p style="margin:4px 0 0;"><strong>Valor:</strong> $${this.activeContract.monthlyValue.toLocaleString('es-CO')} COP/mes</p>
+          </div>
+          <label style="font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="swal-accept-terms" style="margin-right: 6px;">
+            Acepto los términos y condiciones del contrato
+          </label>
+        </div>
+      `,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Firmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#198754',
+      preConfirm: () => {
+        const accepted = (document.getElementById('swal-accept-terms') as HTMLInputElement)?.checked;
+        if (!accepted) {
+          Swal.showValidationMessage('Debes aceptar los términos para firmar');
+          return false;
+        }
+        return true;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.factonetService.signAsClient(this.activeContract!.id!, clientName).subscribe({
+          next: (response) => {
+            if (this.activeContract) {
+              this.activeContract.clientSignedAt = new Date().toISOString();
+              this.activeContract.status = response.status || this.activeContract.status;
+            }
+            const msg = response.status === 'ACTIVE'
+              ? '¡Contrato firmado y activado!'
+              : '¡Firma registrada!';
+            Swal.fire({
+              icon: 'success',
+              title: msg,
+              html: response.status === 'ACTIVE'
+                ? '<p>Ambas partes han firmado. Tu cuenta está activa.</p>'
+                : '<p>Tu firma fue registrada. Pendiente firma del administrador.</p>',
+              confirmButtonColor: '#0d6efd',
+            });
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo registrar la firma.', 'error');
+          }
+        });
+      }
+    });
   }
 }

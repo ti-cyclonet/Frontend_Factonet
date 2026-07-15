@@ -89,6 +89,9 @@ export class FacturasComponent implements OnInit, OnDestroy {
   statusDropdownOpen = signal<string | null>(null);
   statusDropdownPosition = signal<{top: number, left: number}>({top: 0, left: 0});
 
+  // Loading state
+  loading = false;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private factonetService: FactonetService,
@@ -112,6 +115,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
   }
 
   loadFacturas(): void {
+    this.loading = true;
     this.factonetService.getInvoices().subscribe({
       next: (facturas) => {
         console.log('Facturas recibidas:', facturas);
@@ -129,11 +133,13 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.filteredFacturas = [...this.facturas];
         this.detectDynamicColumns();
         this.updatePagination();
+        this.loading = false;
       },
       error: (error) => {
         console.error('Error cargando facturas:', error);
         this.facturas = [];
         this.dynamicColumns = [];
+        this.loading = false;
         this.showToast('Error connecting to Authoriza Backend', 'danger', 'A', 0);
       }
     });
@@ -474,18 +480,27 @@ export class FacturasComponent implements OnInit, OnDestroy {
     pdf.setFont('helvetica', 'bold');
     pdf.text('Periodo de servicio:', margin, y);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(this.formatDate(factura.periodoInicio || '') + ' a ' + this.formatDate(factura.periodoFin || ''), margin + 40, y);
+    const periodoTexto = this.formatDate(factura.periodoInicio || '') + ' a ' + this.formatDate(factura.periodoFin || '');
+    pdf.text(periodoTexto, margin + 40, y);
     const estadoLabel: Record<string, string> = { 'Unconfirmed': 'Sin confirmar', 'Issued': 'Emitida', 'In arrears': 'En mora', 'Paid': 'Pagada', 'Suspended': 'Suspendida', 'Notification1': 'Notificación 1', 'Notification2': 'Notificación 2' };
     pdf.setFont('helvetica', 'bold');
     pdf.text('Estado:', col2X, y);
     pdf.setFont('helvetica', 'normal');
     pdf.text(estadoLabel[factura.estado] || factura.estado, col2X + 16, y);
 
+    y += 5;
+    const diasCobrados = this.calculateDaysBetween(factura.periodoInicio, factura.periodoFin);
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(7);
+    pdf.text(`(${diasCobrados} días facturados)`, margin + 40, y);
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+
     // ===== DATOS DEL CLIENTE =====
-    y += 10;
+    y += 12;
     pdf.setDrawColor(200, 200, 200);
     pdf.setFillColor(240, 240, 250);
-    pdf.rect(margin, y, pageW - margin * 2, 24, 'FD');
+    pdf.rect(margin, y, pageW - margin * 2, 30, 'FD');
     y += 6;
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'bold');
@@ -509,10 +524,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
     pdf.text('Tel:', col2X, y);
     pdf.setFont('helvetica', 'normal');
     pdf.text(factura.clienteTelefono || 'N/A', col2X + 10, y);
+    y += 6;
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Email:', col2X + 40, y);
+    pdf.text('Email:', margin + 3, y);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(factura.clienteEmailContacto || factura.clienteEmail || 'N/A', col2X + 54, y);
+    pdf.text(factura.clienteEmailContacto || factura.clienteEmail || 'N/A', margin + 18, y);
 
     // ===== TABLA DE DETALLE =====
     y += 12;
@@ -643,6 +659,13 @@ export class FacturasComponent implements OnInit, OnDestroy {
     if (!dateStr) return 'N/A';
     const d = new Date(dateStr + 'T12:00:00');
     return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  private calculateDaysBetween(startDate?: string, endDate?: string): number {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate + 'T12:00:00');
+    const end = new Date(endDate + 'T12:00:00');
+    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   }
 
   private generatePDFWithoutLogo(pdf: jsPDF, factura: Factura): void {
