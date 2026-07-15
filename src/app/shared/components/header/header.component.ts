@@ -225,6 +225,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.notifications = [];
       }
     });
+
+    // Check contracts pending admin signature (only for adminFactonet)
+    const userRol = sessionStorage.getItem('user_rol');
+    if (userRol === 'adminFactonet') {
+      this.factonetService.getContracts().subscribe({
+        next: (contracts) => {
+          const pendingSignature = contracts.filter(
+            (c: any) => c.clientSignedAt && !c.adminSignedAt && c.status !== 'ACTIVE'
+          );
+          if (pendingSignature.length > 0) {
+            this.notifications.push({
+              container: 0,
+              title: `${pendingSignature.length} contrato${pendingSignature.length > 1 ? 's' : ''} pendiente${pendingSignature.length > 1 ? 's' : ''} de tu firma`,
+              type: 'primary',
+              visible: true
+            });
+          }
+        },
+        error: () => {}
+      });
+    }
   }
 
   toggleToolbox(event: Event) {

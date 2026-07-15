@@ -48,21 +48,21 @@ export class FactonetService {
   }
 
   signAsClient(contractId: string, signedBy: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/contracts/${contractId}/sign-client`,
+    return this.http.post<any>(`${this.authorizaUrl}/contracts/${contractId}/sign-client`,
       { signedBy },
       { headers: this.getHeaders() }
     );
   }
 
   signAsAdmin(contractId: string, signedBy: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/contracts/${contractId}/sign-admin`,
+    return this.http.post<any>(`${this.authorizaUrl}/contracts/${contractId}/sign-admin`,
       { signedBy },
       { headers: this.getHeaders() }
     );
   }
 
   getSignatures(contractId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/contracts/${contractId}/signatures`,
+    return this.http.get<any>(`${this.authorizaUrl}/contracts/${contractId}/signatures`,
       { headers: this.getHeaders() }
     );
   }
