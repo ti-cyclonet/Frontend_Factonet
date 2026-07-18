@@ -194,3 +194,14 @@
   }
 }
 /* Floating nav tools - removed, icons always visible */
+
+/* Notification badge on nav tabs - dot indicator */
+.nav-badge {
+  display: inline-block;
+  background: #212121;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 4px;
+  vertical-align: super;
+}

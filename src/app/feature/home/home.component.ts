@@ -31,6 +31,7 @@ interface DashboardStats {
 export class HomeComponent implements OnInit {
   userRol: string | null = null;
   userName: string | null = null;
+  isAuthorizedSigner = false;
   stats: DashboardStats = {
     totalInvoices: 0,
     totalAmount: 0,
@@ -101,6 +102,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
     this.userName = sessionStorage.getItem('user_name');
+    this.isAuthorizedSigner = sessionStorage.getItem('user_isAuthorizedSigner') === 'true';
     this.loadDashboardData();
     if (this.userRol === 'adminFactonet') {
       this.loadPendingActions();
@@ -275,6 +277,26 @@ export class HomeComponent implements OnInit {
             route: '/contracts'
           });
         });
+
+        // 4. Contracts PENDING that are issued and awaiting signatures
+        const awaitingSignatures = contracts.filter(
+          (c: any) => c.status === 'PENDING' && c.issuedAt && (!c.clientSignedAt || !c.adminSignedAt)
+        );
+        awaitingSignatures.forEach((c: any) => {
+          if (!pendingSignature.includes(c)) { // Avoid duplicates
+            this.pendingActions.push({
+              type: 'signature',
+              icon: 'pen',
+              title: `Contract ${c.code} pending signatures`,
+              description: !c.clientSignedAt && !c.adminSignedAt 
+                ? 'Awaiting client and admin signatures.' 
+                : !c.adminSignedAt 
+                  ? 'Awaiting your signature.'
+                  : 'Awaiting client signature.',
+              route: '/contracts'
+            });
+          }
+        });
       },
       error: () => {}
     });
@@ -289,7 +311,7 @@ export class HomeComponent implements OnInit {
             icon: 'receipt',
             title: `${unconfirmed.length} invoice${unconfirmed.length > 1 ? 's' : ''} to confirm`,
             description: `Generated invoices pending issuance.`,
-            route: '/facturas'
+            route: '/invoices'
           });
         }
 
@@ -300,7 +322,18 @@ export class HomeComponent implements OnInit {
             icon: 'exclamation-triangle',
             title: `${overdue.length} overdue invoice${overdue.length > 1 ? 's' : ''}`,
             description: `Require collection follow-up.`,
-            route: '/facturas'
+            route: '/invoices'
+          });
+        }
+
+        const paymentReported = invoices.filter((inv: any) => inv.estado === 'Payment Reported');
+        if (paymentReported.length > 0) {
+          this.pendingActions.push({
+            type: 'payment',
+            icon: 'file-earmark-check',
+            title: `${paymentReported.length} payment${paymentReported.length > 1 ? 's' : ''} to verify`,
+            description: `Clients uploaded payment proof pending review.`,
+            route: '/invoices'
           });
         }
       },

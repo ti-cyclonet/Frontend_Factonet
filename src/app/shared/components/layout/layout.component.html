@@ -1,6 +1,11 @@
 <div class="main-layout-container d-flex flex-column" 
      [class.logged-in]="isUserLoggedIn()" 
      style="min-height: 100vh;">
+
+  <!-- Global Loading Spinner -->
+  <div *ngIf="isLoading" class="global-spinner-overlay">
+    <div class="global-spinner"></div>
+  </div>
   
   <header class="p-0">
     <app-header [optionsMenu]="optionsMenu"></app-header>

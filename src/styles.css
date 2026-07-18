@@ -3,3 +3,18 @@ footer {
     position: fixed;
     width: 100%;
 }
+
+
+/* Unified page titles across all tabs */
+.card-title {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 28px !important;
+}
+
+@media (max-width: 768px) {
+  h3.card-title,
+  .card-title {
+    font-size: 1.15rem !important;
+  }
+}

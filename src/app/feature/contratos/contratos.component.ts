@@ -45,7 +45,18 @@ export class ContratosComponent implements OnInit, OnDestroy {
   }>>([]);
   
   showOptions = true; // Controla la visibilidad del panel de opciones
+  showFilters = false; // Controla la visibilidad de los filtros
   userRol: string | null = null;
+  isAuthorizedSigner = false;
+  
+  // Filters
+  filters = {
+    status: '',
+    code: '',
+    user: '',
+    billable: ''
+  };
+  filteredContratos = signal<Contract[]>([]);
   
   private clickListener?: () => void;
 
@@ -81,6 +92,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
+    this.isAuthorizedSigner = sessionStorage.getItem('user_isAuthorizedSigner') === 'true';
     this.loadContratos();
     
     // Listener para cerrar dropdown al hacer click fuera
@@ -110,6 +122,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
         });
         
         this.contratos.set(contratosOrdenados);
+        this.applyFilters();
         // Limpiar y actualizar contratos con PDF
         this.contractsWithPDF.clear();
         contratosOrdenados.forEach(contrato => {
@@ -205,20 +218,36 @@ export class ContratosComponent implements OnInit, OnDestroy {
     
     // Generar PDF y subirlo al servidor
     this.generateAndUploadPDF(contrato).then(() => {
-      this.generatingPDF.set(false);
-      // Recargar contratos para obtener la URL actualizada
-      this.loadContratos();
-      // Actualizar el modalContrato con el pdfUrl para que los botones funcionen sin refrescar
-      setTimeout(() => {
-        const contratoActualizado = this.contratos().find(c => c.id === contrato.id);
-        if (contratoActualizado) {
-          // Update the modal contract reference
-          if (this.modalContrato && this.modalContrato.id === contrato.id) {
-            this.modalContrato = { ...this.modalContrato, pdfUrl: contratoActualizado.pdfUrl };
-          }
-          this.showPDFOptions(contratoActualizado);
+      // Auto-issue the contract after PDF generation
+      this.factonetService.issueContract(contrato.id).subscribe({
+        next: () => {
+          this.generatingPDF.set(false);
+          this.loadContratos();
+          setTimeout(() => {
+            const contratoActualizado = this.contratos().find(c => c.id === contrato.id);
+            if (contratoActualizado) {
+              if (this.modalContrato && this.modalContrato.id === contrato.id) {
+                this.modalContrato = { ...this.modalContrato, pdfUrl: contratoActualizado.pdfUrl, issuedAt: contratoActualizado.issuedAt };
+              }
+              this.showPDFOptions(contratoActualizado);
+            }
+          }, 1000);
+        },
+        error: () => {
+          // If issue fails, still show PDF options
+          this.generatingPDF.set(false);
+          this.loadContratos();
+          setTimeout(() => {
+            const contratoActualizado = this.contratos().find(c => c.id === contrato.id);
+            if (contratoActualizado) {
+              if (this.modalContrato && this.modalContrato.id === contrato.id) {
+                this.modalContrato = { ...this.modalContrato, pdfUrl: contratoActualizado.pdfUrl };
+              }
+              this.showPDFOptions(contratoActualizado);
+            }
+          }, 1000);
         }
-      }, 1000);
+      });
     }).catch(error => {
       this.generatingPDF.set(false);
       Swal.fire({
@@ -520,6 +549,38 @@ export class ContratosComponent implements OnInit, OnDestroy {
       pdf.text(anexosLines[i], marginL, y);
       y += 2.2;
     }
+  }
+
+  /**
+   * Applies filters to the contracts list
+   */
+  applyFilters(): void {
+    let result = [...this.contratos()];
+
+    if (this.filters.status) {
+      result = result.filter(c => c.status === this.filters.status);
+    }
+    if (this.filters.code) {
+      result = result.filter(c => 
+        (c.code || c.id || '').toLowerCase().includes(this.filters.code.toLowerCase())
+      );
+    }
+    if (this.filters.user) {
+      result = result.filter(c => 
+        (c.user?.strUserName || '').toLowerCase().includes(this.filters.user.toLowerCase())
+      );
+    }
+    if (this.filters.billable) {
+      const isBillable = this.filters.billable === 'yes';
+      result = result.filter(c => (c.package?.isBillable !== false) === isBillable);
+    }
+
+    this.filteredContratos.set(result);
+  }
+
+  clearFilters(): void {
+    this.filters = { status: '', code: '', user: '', billable: '' };
+    this.applyFilters();
   }
 
   /**

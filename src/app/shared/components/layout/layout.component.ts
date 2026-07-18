@@ -7,6 +7,9 @@ import { FooterComponent } from '../footer/footer.component';
 import { Application } from '../../model/application.model';
 import { ApplicationsService } from '../../services/applications/applications.service';
 import { ParametrosGlobalesService } from '../../services/parametros-globales/parametros-globales.service';
+import { FactonetService } from '../../services/factonet/factonet.service';
+import { InvoiceRefreshService } from '../../services/invoice-refresh.service';
+import { LoadingService } from '../../services/loading.service';
 import { NAME_APP_SHORT } from '../../../config/config';
 import Swal from 'sweetalert2';
 
@@ -27,20 +30,96 @@ export default class LayoutComponent implements OnInit {
   optionsMenu: OptionMenu[] = [];
   isLargeScreen = false;
   application: Application | undefined;
+  isLoading = false;
 
   constructor(
     private applicationsService: ApplicationsService,
     private parametrosService: ParametrosGlobalesService,
+    private factonetService: FactonetService,
+    private invoiceRefreshService: InvoiceRefreshService,
+    private loadingService: LoadingService,
     private router: Router
   ) {
     if (typeof window !== 'undefined') {
       this.isLargeScreen = window.innerWidth >= 992;
     }
+    this.loadingService.loading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
   }
 
   ngOnInit(): void {
     this.fetchApplication(NAME_APP_SHORT);
     this.checkActivePeriod();
+
+    // Update badge when invoices are refreshed
+    this.invoiceRefreshService.refresh$.subscribe(() => {
+      this.updateInvoiceBadge();
+    });
+  }
+
+  private updateInvoiceBadge(): void {
+    if (!this.isUserLoggedIn()) return;
+
+    const userRol = sessionStorage.getItem('user_rol');
+
+    this.factonetService.getInvoices().subscribe({
+      next: (invoices) => {
+        let hasNovelties = false;
+
+        if (userRol === 'adminFactonet') {
+          // Admin: badge when there are invoices to confirm or payments to verify
+          const adminStatuses = ['Unconfirmed', 'Payment Reported'];
+          hasNovelties = (invoices || []).some(inv => 
+            adminStatuses.includes(inv.estado || inv.status)
+          );
+        } else {
+          // Client (adminInvoices): badge when there are invoices pending payment or rejected
+          const clientStatuses = ['Issued', 'In arrears', 'Notification1', 'Notification2', 'Suspended'];
+          hasNovelties = (invoices || []).some(inv => 
+            clientStatuses.includes(inv.estado || inv.status) || inv.rejectionReason
+          );
+        }
+
+        // Set badge on Invoices tab
+        const invoiceMenu = this.optionsMenu.find(m => 
+          m.url === '/facturas' || m.url === '/invoices' || 
+          (m.description || '').toLowerCase() === 'invoices'
+        );
+        if (invoiceMenu) {
+          invoiceMenu.badge = hasNovelties ? -1 : undefined;
+        }
+
+        // Force change detection by reassigning array
+        this.optionsMenu = [...this.optionsMenu];
+
+        // For adminFactonet: check contracts needing action
+        if (userRol === 'adminFactonet') {
+          this.updateContractsBadge();
+        }
+      }
+    });
+  }
+
+  private updateContractsBadge(): void {
+    this.factonetService.getContracts().subscribe({
+      next: (contracts) => {
+        const actionableStatuses = ['PENDING', 'PENDING_SIGNATURE', 'PENDING_ADMIN_SIGNATURE', 'DRAFT'];
+        const hasNovelties = (contracts || []).some(c => 
+          actionableStatuses.includes(c.status)
+        );
+
+        const contractMenu = this.optionsMenu.find(m => 
+          m.url === '/contracts' || (m.description || '').toLowerCase() === 'contracts'
+        );
+        if (contractMenu) {
+          contractMenu.badge = hasNovelties ? -1 : undefined;
+        }
+
+        // Force change detection
+        this.optionsMenu = [...this.optionsMenu];
+      }
+    });
   }
 
   fetchApplication(name: string): void {
@@ -99,6 +178,9 @@ export default class LayoutComponent implements OnInit {
           // Si no hay opciones del backend, no cargar menú estático
           this.optionsMenu = [];
         }
+
+        // Update badges after menu is loaded
+        this.updateInvoiceBadge();
       },
       error: (err) => {
         // En caso de error, no cargar menú estático

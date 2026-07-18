@@ -8,4 +8,5 @@ export interface OptionMenu {
     idMPather: string | null;
     order: string;
     idApplication: string;
+    badge?: number;
   }

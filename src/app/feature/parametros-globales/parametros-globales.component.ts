@@ -30,6 +30,7 @@ export class ParametrosGlobalesComponent implements OnInit {
   filtroTipo: string = '';
   
   // Filtros para períodos
+  showPeriodFilters = false;
   filtroNombrePeriodo = '';
   filtroFecha = '';
   periodosFiltrados: any[] = [];

@@ -13,6 +13,7 @@
             <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + option.icon" />
         </svg>
         <span class="nav-text">{{ option.description || option.name }}</span>
+        <span *ngIf="option.badge" class="nav-badge"></span>
     </a>
 </div>
 

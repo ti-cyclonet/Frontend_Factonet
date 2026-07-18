@@ -1,33 +1,42 @@
 <div class="floating-container">
   <div class="outer-container">
-    <div class="inner-container">
-      <h3 class="card-title mb-0 fw-bold">Invoice Parameters Configuration</h3>
-      <p class="text-muted">Select which global parameters from the active period should apply to invoices</p>
+    <div class="inner-container d-flex justify-content-between align-items-start" style="border-bottom: 4px solid #2782d8; padding-bottom: 10px;">
+      <div>
+        <h3 class="card-title mb-0 fw-bold">Invoice Parameters Configuration</h3>
+        <p class="text-muted" style="font-size: 0.78rem; margin-top: 4px;">Select which global parameters from the active period should apply to invoices</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn-icon-circle" (click)="showFilters = !showFilters" [title]="showFilters ? 'Hide filters' : 'Show filters'" [attr.aria-label]="showFilters ? 'Hide filters' : 'Show filters'">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <use [attr.xlink:href]="showFilters ? './assets/icons/bootstrap-icons.svg#funnel-fill' : './assets/icons/bootstrap-icons.svg#funnel'" />
+          </svg>
+        </button>
+      </div>
     </div>
     
     <div class="inner-container">
       <!-- Filtros -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <input type="text" class="form-control" [(ngModel)]="filtroNombre" 
+      <div class="row mb-3 g-2 filters-section" *ngIf="showFilters">
+        <div class="col-6 col-md-4">
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="filtroNombre" 
                  placeholder="Search by name..." (input)="aplicarFiltros()">
         </div>
-        <div class="col-md-3">
-          <select class="form-select" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+        <div class="col-6 col-md-3">
+          <select class="form-select form-select-sm" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
             <option value="">All types</option>
             <option value="number">Numeric</option>
             <option value="string">Text</option>
           </select>
         </div>
-        <div class="col-md-3">
-          <select class="form-select" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+        <div class="col-6 col-md-3">
+          <select class="form-select form-select-sm" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
             <option value="">All status</option>
             <option value="applied">Applied</option>
             <option value="not-applied">Not Applied</option>
           </select>
         </div>
-        <div class="col-md-2">
-          <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+        <div class="col-6 col-md-2">
+          <button class="btn btn-outline-secondary btn-sm w-100" (click)="limpiarFiltros()">
             Clear
           </button>
         </div>

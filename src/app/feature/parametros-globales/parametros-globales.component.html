@@ -1,32 +1,36 @@
 <div class="floating-container">
   <div class="outer-container">
-    <!-- Lista de Períodos -->
-    <div class="inner-container" [class.disabled]="showParametros">
+    <!-- Title + Action Icons -->
+    <div class="inner-container d-flex justify-content-between align-items-center" [class.disabled]="showParametros" style="border-bottom: 4px solid #2782d8; padding-bottom: 10px;">
       <h3 class="card-title mb-0">Period Management</h3>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn-icon-circle" (click)="showPeriodFilters = !showPeriodFilters" [title]="showPeriodFilters ? 'Hide filters' : 'Show filters'" [attr.aria-label]="showPeriodFilters ? 'Hide filters' : 'Show filters'">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <use [attr.xlink:href]="showPeriodFilters ? './assets/icons/bootstrap-icons.svg#funnel-fill' : './assets/icons/bootstrap-icons.svg#funnel'" />
+          </svg>
+        </button>
+        <button class="btn-icon-circle" data-bs-toggle="modal" data-bs-target="#createPeriodModal" title="New Period" aria-label="New Period">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <use xlink:href="./assets/icons/bootstrap-icons.svg#plus" />
+          </svg>
+        </button>
+      </div>
     </div>
     
     <div class="inner-container" [class.disabled]="showParametros">
       <!-- Filtros -->
-      <div class="row mb-3">
-        <div class="col-md-4 mb-2 mb-md-0">
-          <input type="text" class="form-control" [(ngModel)]="filtroNombrePeriodo" 
+      <div class="row mb-3 g-2" *ngIf="showPeriodFilters">
+        <div class="col-6 col-md-4">
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="filtroNombrePeriodo" 
                  placeholder="Search by name..." (input)="aplicarFiltrosPeriodos()">
         </div>
-        <div class="col-md-3 mb-2 mb-md-0">
-          <input type="date" class="form-control" [(ngModel)]="filtroFecha" 
+        <div class="col-6 col-md-3">
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="filtroFecha" 
                  placeholder="Date within period" (change)="aplicarFiltrosPeriodos()">
         </div>
-        <div class="col-md-2 mb-2 mb-md-0">
-          <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltrosPeriodos()">
+        <div class="col-12 col-md-2">
+          <button class="btn btn-outline-secondary btn-sm w-100" (click)="limpiarFiltrosPeriodos()">
             Clear
-          </button>
-        </div>
-        <div class="col-md-3">
-          <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
-            <svg width="16" height="16" fill="currentColor" class="me-2">
-              <use xlink:href="./assets/icons/bootstrap-icons.svg#plus-circle" />
-            </svg>
-            New Period
           </button>
         </div>
       </div>
