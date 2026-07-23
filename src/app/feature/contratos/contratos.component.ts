@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal } from '@angula
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { ContractPdfService } from '../../shared/services/contract-pdf.service';
+import { InvoiceRefreshService } from '../../shared/services/invoice-refresh.service';
 import { Contract } from '../../shared/model/contract.model';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
@@ -85,7 +86,8 @@ export class ContratosComponent implements OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private factonetService: FactonetService,
-    private contractPdfService: ContractPdfService
+    private contractPdfService: ContractPdfService,
+    private invoiceRefreshService: InvoiceRefreshService
   ) { 
     // Las signals reemplazan la necesidad de inicializar arrays vacíos aquí
   }
@@ -156,6 +158,14 @@ export class ContratosComponent implements OnInit, OnDestroy {
   openContratoModal() { 
     this.isModalOpen.set(true);
     this.showToast('SYSTEM: Opening Contract Creation Interface...', 'primary', 'A', 0);
+  }
+
+  /**
+   * Closes the modal and refreshes all data/badges.
+   */
+  closeModal(): void {
+    this.loadContratos();
+    this.invoiceRefreshService.triggerRefresh();
   }
 
   /**
