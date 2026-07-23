@@ -189,7 +189,7 @@
   overflow: hidden;
 }
 .fieldsForm .input-group {
-  border: 2px solid #1a237e;
+  border: 2px solid #c0c0c0;
   border-radius: 25px;
   background-color: rgba(255, 255, 255, 0.85);
   align-items: center;
@@ -208,7 +208,7 @@
   background-color: transparent !important;
   padding: 10px 15px 10px 8px;
   box-shadow: none !important;
-  color: #1a237e;
+  color: #333333;
   font-weight: 500;
   flex: 1 1 auto;
   min-width: 0;
@@ -218,8 +218,8 @@
   outline: none;
 }
 .fieldsForm .input-group .form-control::placeholder {
-  color: #1a237e;
-  opacity: 0.6;
+  color: #555555;
+  opacity: 0.8;
 }
 
 .notification-container {
