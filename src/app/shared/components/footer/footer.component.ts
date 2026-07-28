@@ -66,10 +66,10 @@ export class FooterComponent implements OnInit, OnDestroy {
     // Cargar estadísticas de facturas
     this.factonetService.getInvoices().subscribe({
       next: (facturas) => {
-        this.invoiceStats.unconfirmed = facturas.filter(f => f.status === 'Unconfirmed').length;
-        this.invoiceStats.issued = facturas.filter(f => f.status === 'Issued').length;
-        this.invoiceStats.paid = facturas.filter(f => f.status === 'Paid').length;
-        this.pendingInvoices = facturas.filter(f => f.estado === 'Pendiente').length;
+        this.invoiceStats.unconfirmed = facturas.filter(f => f.estado === 'Unconfirmed').length;
+        this.invoiceStats.issued = facturas.filter(f => f.estado === 'Issued' || f.estado === 'Notification1' || f.estado === 'Notification2').length;
+        this.invoiceStats.paid = facturas.filter(f => f.estado === 'Paid').length;
+        this.pendingInvoices = facturas.filter(f => f.estado !== 'Paid' && f.estado !== 'Unconfirmed').length;
       },
       error: (error) => {
         this.invoiceStats = { unconfirmed: 0, issued: 0, paid: 0 };

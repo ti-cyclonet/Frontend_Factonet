@@ -14,31 +14,26 @@
   </div>
   
   <div class="outer-container">
-    <!-- Título -->
-    <div class="inner-container" id="cuadro1">
+    <!-- Título + Action Icons -->
+    <div class="inner-container d-flex justify-content-between align-items-center" id="cuadro1" style="border-bottom: 4px solid #2782d8 !important; padding-bottom: 10px;">
       <h3 class="card-title mb-0">Invoices List</h3>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn-icon-circle" (click)="showFilters = !showFilters" [title]="showFilters ? 'Hide filters' : 'Show filters'" [attr.aria-label]="showFilters ? 'Hide filters' : 'Show filters'">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <use [attr.xlink:href]="showFilters ? './assets/icons/bootstrap-icons.svg#funnel-fill' : './assets/icons/bootstrap-icons.svg#funnel'" />
+          </svg>
+        </button>
+        <button *ngIf="userRol === 'adminFactonet'" class="btn-icon-circle" (click)="sweepInvoices()" title="Generate pending invoices" aria-label="Generate pending invoices" [disabled]="loading">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <use xlink:href="./assets/icons/bootstrap-icons.svg#lightning-charge" />
+          </svg>
+        </button>
+      </div>
     </div>
     
-    <!-- Botón para mostrar/ocultar filtros y generar facturas -->
-    <div class="inner-container mb-2">
-      <div class="p-3 border rounded">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <i class="bi bi-funnel me-2"></i>
-            <span class="fw-semibold">Search filters</span>
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-link text-decoration-none" (click)="showFilters = !showFilters">
-              {{ showFilters ? 'Hide filters' : 'Show filters' }}
-            </button>
-            <button *ngIf="userRol === 'adminFactonet'" class="btn btn-link text-decoration-none" (click)="sweepInvoices()" title="Generate pending invoices">
-              Generate invoices
-            </button>
-          </div>
-        </div>
-        
-        <!-- Filtros -->
-        <div *ngIf="showFilters" class="bg-warning bg-opacity-10 rounded p-3 border border-primary border-opacity-25">
+    <!-- Search Filters (hidden by default, toggled by filter icon) -->
+    <div *ngIf="showFilters" class="inner-container mb-2">
+      <div class="bg-warning bg-opacity-10 rounded p-3 border border-primary border-opacity-25">
           <div class="row g-3">
             <div class="col-12 col-md-6 col-lg-3 col-xl-2">
               <label class="form-label">Status</label>
@@ -50,6 +45,7 @@
                 <option value="Notification1">Notification1</option>
                 <option value="Notification2">Notification2</option>
                 <option value="Suspended">Suspended</option>
+                <option value="Payment Reported">Payment Reported</option>
                 <option value="Paid">Paid</option>
               </select>
             </div>
@@ -74,7 +70,6 @@
               <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
             </div>
           </div>
-        </div>
       </div>
     </div>
     
@@ -98,7 +93,7 @@
           <table class="table table-striped mb-0">
             <thead style="background-color: white;">
               <tr>
-                <th class="text-center" style="width: 120px;">Status</th>
+                <th class="text-center" style="width: 145px;">Status</th>
                 <th class="text-center" style="width: 100px;">Number</th>
                 <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Issue Date</th>
                 <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Due Date</th>
@@ -121,7 +116,7 @@
               <tr *ngFor="let factura of paginatedFacturas; trackBy: trackById" 
                    [class.selected]="selectedFactura === factura"
                    (click)="setSelectedFactura(factura)">
-                <td class="text-center" style="width: 120px;">
+                <td class="text-center" style="width: 145px;">
                   <div class="position-relative">
                     <span class="badge" 
                           [class.cursor-pointer]="userRol === 'adminFactonet'"
@@ -129,9 +124,10 @@
                       'bg-success': factura.estado === 'Paid',
                       'bg-danger': factura.estado === 'In arrears' || factura.estado === 'Suspended',
                       'bg-warning': factura.estado === 'Issued' || factura.estado === 'Notification1' || factura.estado === 'Notification2',
+                      'bg-info': factura.estado === 'Payment Reported',
                       'bg-secondary': factura.estado === 'Unconfirmed'
                     }" 
-                          (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, factura.id) : null">{{ factura.estado.toUpperCase() }}</span>
+                          (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, factura.id) : null" style="font-size: 10px; white-space: nowrap;">{{ factura.estado === 'Payment Reported' ? 'PAY REPORTED' : factura.estado.toUpperCase() }}</span>
                   </div>
                 </td>
                 <td class="text-center" style="width: 100px;">{{ factura.numero }}</td>
@@ -169,6 +165,16 @@
                           (click)="payInvoice(factura)">
                     <svg width="16" height="16" fill="currentColor">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#credit-card" />
+                    </svg>
+                  </button>
+                  <button *ngIf="factura.estado === 'Paid' || factura.estado === 'Payment Reported'" 
+                          type="button" 
+                          class="btn p-0 border-0 bg-transparent ms-2" 
+                          [title]="factura.estado === 'Payment Reported' ? 'Verify payment proof' : 'View payment proof'"
+                          [attr.aria-label]="factura.estado === 'Payment Reported' ? 'Verify payment proof' : 'View payment proof'"
+                          (click)="viewPaymentVoucher(factura)">
+                    <svg width="16" height="16" fill="currentColor" [style.color]="factura.estado === 'Payment Reported' ? '#ffc107' : '#198754'">
+                      <use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-check" />
                     </svg>
                   </button>
                 </td>
@@ -247,6 +253,7 @@
                     'bg-success': modalFactura.estado === 'Paid',
                     'bg-danger': modalFactura.estado === 'In arrears' || modalFactura.estado === 'Suspended',
                     'bg-warning': modalFactura.estado === 'Issued' || modalFactura.estado === 'Notification1' || modalFactura.estado === 'Notification2',
+                    'bg-info': modalFactura.estado === 'Payment Reported',
                     'bg-secondary': modalFactura.estado === 'Unconfirmed'
                   }">{{ modalFactura.estado.toUpperCase() }}</span>
                 </p>

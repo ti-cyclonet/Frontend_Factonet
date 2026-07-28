@@ -54,8 +54,7 @@
   font-weight: 700;
   color: #374151;
   margin: 0;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
+  padding-bottom: 0;
 }
 
 .form-label {
@@ -163,4 +162,25 @@
     padding: 0.5rem;
     border-radius: 0;
   }
+}
+
+/* Icon circle buttons */
+.btn-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #1565c0;
+  background: transparent;
+  color: #1565c0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.btn-icon-circle:hover {
+  background: #1565c0;
+  color: white;
 }

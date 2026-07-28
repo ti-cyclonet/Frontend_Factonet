@@ -52,8 +52,36 @@
 .card-title {
   color: #2c3e50;
   font-weight: 600;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
+  font-size: 1.6rem;
+}
+
+#cuadro1 {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+}
+
+/* Icon circle buttons */
+.btn-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #1565c0;
+  background: transparent;
+  color: #1565c0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.btn-icon-circle:hover {
+  background: #1565c0;
+  color: white;
 }
 
 .form-label {

@@ -32,8 +32,6 @@
 .card-title {
   color: #2c3e50;
   font-weight: 600;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
 }
 
 .table th {
@@ -49,10 +47,57 @@
 @media (max-width: 768px) {
   .floating-container {
     padding: 0;
+    height: auto;
+    min-height: calc(100vh - 200px);
   }
   .outer-container {
     margin: 0;
     padding: 0.5rem;
     border-radius: 0;
   }
+  .inner-container {
+    padding: 12px;
+  }
+  .card-title {
+    font-size: 1.1rem;
+  }
+  .table th,
+  .table td {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.8rem;
+  }
+  .filters-section .row {
+    gap: 0.25rem;
+  }
+  .filters-section .form-control,
+  .filters-section .form-select {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+  }
+  .filters-section .btn {
+    font-size: 0.8rem;
+    padding: 0.35rem;
+  }
+}
+
+/* Icon circle buttons */
+.btn-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #1565c0;
+  background: transparent;
+  color: #1565c0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.btn-icon-circle:hover {
+  background: #1565c0;
+  color: white;
 }

@@ -35,6 +35,7 @@ export class ParametrosFacturasComponent implements OnInit {
   pageSize = 8;
   
   // Filtros
+  showFilters = false;
   filtroNombre = '';
   filtroTipo = '';
   filtroEstado = '';

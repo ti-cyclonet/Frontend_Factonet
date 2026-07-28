@@ -81,11 +81,35 @@ export class FactonetService {
     );
   }
 
-  registerPayment(invoiceId: number, paymentDate: string, paidAmount: number): Observable<any> {
+  registerPayment(invoiceId: number, paymentDate: string, paidAmount: number, voucherFile?: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('paymentDate', paymentDate);
+    formData.append('paidAmount', paidAmount.toString());
+    if (voucherFile) {
+      formData.append('voucher', voucherFile);
+    }
+
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
     return this.http.post<any>(`${this.apiUrl}/invoices/${invoiceId}/register-payment`,
-      { paymentDate, paidAmount },
-      { headers: this.getHeaders() }
+      formData,
+      { headers }
     );
+  }
+
+  getPaymentVoucher(invoiceId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/invoices/${invoiceId}/voucher`, { headers: this.getHeaders() });
+  }
+
+  confirmPayment(invoiceId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/invoices/${invoiceId}/confirm-payment`, {}, { headers: this.getHeaders() });
+  }
+
+  rejectPayment(invoiceId: number, reason?: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/invoices/${invoiceId}/reject-payment`, { reason }, { headers: this.getHeaders() });
   }
 
   // Métodos de Reportes
