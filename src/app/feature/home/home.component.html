@@ -262,7 +262,23 @@
                                             }">{{ activeContract.status }}</span>
                                         </div>
                                     </div>
-                                    <!-- Sign Contract Button -->
+                                    <!-- View/Download PDF Button -->
+                                    <div class="col-12 mt-2" *ngIf="activeContract.pdfUrl">
+                                      <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-primary btn-sm flex-fill" (click)="openPdfModal()" type="button">
+                                          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" style="margin-right: 4px;">
+                                            <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
+                                          </svg>
+                                          Ver PDF
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm flex-fill" (click)="downloadPdf()" type="button">
+                                          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" style="margin-right: 4px;">
+                                            <use xlink:href="./assets/icons/bootstrap-icons.svg#download" />
+                                          </svg>
+                                          Descargar
+                                        </button>
+                                      </div>
+                                    </div>
                                     <div class="col-12 mt-2" *ngIf="activeContract.status !== 'ACTIVE' && !activeContract.clientSignedAt && isAuthorizedSigner">
                                       <button class="btn btn-success btn-sm w-100" (click)="signMyContract()">
                                         <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" style="margin-right: 6px;">
@@ -357,3 +373,21 @@
         </div>
 
     </div>
+
+<!-- PDF Viewer Modal -->
+<div class="pdf-modal-overlay" *ngIf="showPdfModal" (click)="showPdfModal = false">
+  <div class="pdf-modal-content" (click)="$event.stopPropagation()">
+    <div class="pdf-modal-header">
+      <h6 class="mb-0 text-white">Contrato {{ activeContract?.code }}</h6>
+      <div class="d-flex gap-2 align-items-center">
+        <a [href]="activeContract?.pdfUrl" target="_blank" class="btn btn-sm btn-outline-light" title="Descargar">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#download" /></svg>
+        </a>
+        <button class="btn btn-sm btn-outline-light" (click)="showPdfModal = false" type="button" title="Cerrar">✕</button>
+      </div>
+    </div>
+    <div class="pdf-modal-body">
+      <iframe [src]="safePdfUrl" width="100%" height="100%"></iframe>
+    </div>
+  </div>
+</div>

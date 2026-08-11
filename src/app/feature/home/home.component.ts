@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { Chart, registerables } from 'chart.js';
@@ -44,7 +45,7 @@ export class HomeComponent implements OnInit {
     averageInvoiceValue: 0
   };
 
-  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string } | null = null;
+  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string; pdfUrl?: string } | null = null;
 
   // Pending actions for admin
   pendingActions: { type: string; icon: string; title: string; description: string; route: string }[] = [];
@@ -97,7 +98,13 @@ export class HomeComponent implements OnInit {
     }
   };
 
-  constructor(private factonetService: FactonetService) {}
+  showPdfModal = false;
+  safePdfUrl: SafeResourceUrl = '';
+
+  constructor(
+    private factonetService: FactonetService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
@@ -165,7 +172,8 @@ export class HomeComponent implements OnInit {
               startDate: contract.startDate,
               endDate: contract.endDate,
               status: contract.status,
-              clientSignedAt: contract.clientSignedAt || null
+              clientSignedAt: contract.clientSignedAt || null,
+              pdfUrl: contract.pdfUrl || null
             };
           }
         },
@@ -339,6 +347,23 @@ export class HomeComponent implements OnInit {
       },
       error: () => {}
     });
+  }
+
+  openPdfModal(): void {
+    if (!this.activeContract?.id) return;
+    // Use backend proxy endpoint which fetches from Cloudinary server-side
+    const pdfProxyUrl = this.factonetService.getContractPdfUrl(this.activeContract.id);
+    window.open(pdfProxyUrl, '_blank');
+  }
+
+  downloadPdf(): void {
+    if (!this.activeContract?.id) return;
+    const pdfProxyUrl = this.factonetService.getContractPdfUrl(this.activeContract.id);
+    const a = document.createElement('a');
+    a.href = pdfProxyUrl;
+    a.download = `Contrato_${this.activeContract.code}.pdf`;
+    a.target = '_blank';
+    a.click();
   }
 
   signMyContract(): void {
