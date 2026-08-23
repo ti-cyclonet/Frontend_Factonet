@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { Chart, registerables } from 'chart.js';
@@ -44,7 +45,7 @@ export class HomeComponent implements OnInit {
     averageInvoiceValue: 0
   };
 
-  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string } | null = null;
+  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string | null; adminSignedAt?: string | null; pdfUrl?: string | null } | null = null;
 
   // Pending actions for admin
   pendingActions: { type: string; icon: string; title: string; description: string; route: string }[] = [];
@@ -97,7 +98,13 @@ export class HomeComponent implements OnInit {
     }
   };
 
-  constructor(private factonetService: FactonetService) {}
+  showPdfModal = false;
+  safePdfUrl: SafeResourceUrl = '';
+
+  constructor(
+    private factonetService: FactonetService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
@@ -151,27 +158,38 @@ export class HomeComponent implements OnInit {
 
     // Load active contract for adminInvoices
     if (this.userRol === 'adminInvoices') {
-      this.factonetService.getContracts().subscribe({
-        next: (contracts) => {
-          const contract = contracts[0]; // Only one contract per user
-          if (contract) {
-            const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
-            this.activeContract = {
-              id: contract.id,
-              code: contract.code,
-              packageName: contract.package?.name || contract.packageName || 'N/A',
-              description: contract.package?.description || '',
-              monthlyValue: contract.mode === 'MONTHLY' ? value / 12 : value,
-              startDate: contract.startDate,
-              endDate: contract.endDate,
-              status: contract.status,
-              clientSignedAt: contract.clientSignedAt || null
-            };
-          }
-        },
-        error: () => {}
-      });
+      this.loadActiveContract();
     }
+  }
+
+  /**
+   * Loads (or reloads) the current user's contract from the server.
+   * Called on init and after signing so the view reflects the real state
+   * (status, signatures) and avoids acting on stale data.
+   */
+  private loadActiveContract(): void {
+    this.factonetService.getContracts().subscribe({
+      next: (contracts) => {
+        const contract = contracts[0]; // Only one contract per user
+        if (contract) {
+          const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
+          this.activeContract = {
+            id: contract.id,
+            code: contract.code,
+            packageName: contract.package?.name || contract.packageName || 'N/A',
+            description: contract.package?.description || '',
+            monthlyValue: contract.mode === 'MONTHLY' ? value / 12 : value,
+            startDate: contract.startDate,
+            endDate: contract.endDate,
+            status: contract.status,
+            clientSignedAt: contract.clientSignedAt || null,
+            adminSignedAt: contract.adminSignedAt || null,
+            pdfUrl: contract.pdfUrl || null
+          };
+        }
+      },
+      error: () => {}
+    });
   }
 
   private buildMonthlyChart(invoices: any[]): void {
@@ -341,6 +359,23 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  openPdfModal(): void {
+    if (!this.activeContract?.id) return;
+    // Use backend proxy endpoint which fetches from Cloudinary server-side
+    const pdfProxyUrl = this.factonetService.getContractPdfUrl(this.activeContract.id);
+    window.open(pdfProxyUrl, '_blank');
+  }
+
+  downloadPdf(): void {
+    if (!this.activeContract?.id) return;
+    const pdfProxyUrl = this.factonetService.getContractPdfUrl(this.activeContract.id);
+    const a = document.createElement('a');
+    a.href = pdfProxyUrl;
+    a.download = `Contrato_${this.activeContract.code}.pdf`;
+    a.target = '_blank';
+    a.click();
+  }
+
   signMyContract(): void {
     if (!this.activeContract?.id) return;
 
@@ -378,10 +413,9 @@ export class HomeComponent implements OnInit {
       if (result.isConfirmed) {
         this.factonetService.signAsClient(this.activeContract!.id!, clientName).subscribe({
           next: (response) => {
-            if (this.activeContract) {
-              this.activeContract.clientSignedAt = new Date().toISOString();
-              this.activeContract.status = response.status || this.activeContract.status;
-            }
+            // Refresh from server so status/signatures reflect the real state
+            // (avoids the "cliente ya ha firmado" error from stale data on re-click)
+            this.loadActiveContract();
             const msg = response.status === 'ACTIVE'
               ? '¡Contrato firmado y activado!'
               : '¡Firma registrada!';
@@ -395,7 +429,12 @@ export class HomeComponent implements OnInit {
             });
           },
           error: (error) => {
-            Swal.fire('Error', error.error?.message || 'No se pudo registrar la firma.', 'error');
+            // If it failed because it was already signed, refresh to sync the view
+            const msg = error.error?.message || 'No se pudo registrar la firma.';
+            if (msg.includes('ya ha firmado')) {
+              this.loadActiveContract();
+            }
+            Swal.fire('Error', msg, 'error');
           }
         });
       }

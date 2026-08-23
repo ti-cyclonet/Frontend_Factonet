@@ -67,6 +67,10 @@ export class FactonetService {
     );
   }
 
+  getContractPdfUrl(contractId: string): string {
+    return `${this.authorizaUrl}/contracts/${contractId}/pdf/download`;
+  }
+
   issueContract(contractId: string): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/contracts/${contractId}/issue`, 
       {}, 
