@@ -45,7 +45,7 @@ export class HomeComponent implements OnInit {
     averageInvoiceValue: 0
   };
 
-  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string; pdfUrl?: string } | null = null;
+  activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string | null; adminSignedAt?: string | null; pdfUrl?: string | null } | null = null;
 
   // Pending actions for admin
   pendingActions: { type: string; icon: string; title: string; description: string; route: string }[] = [];
@@ -158,28 +158,38 @@ export class HomeComponent implements OnInit {
 
     // Load active contract for adminInvoices
     if (this.userRol === 'adminInvoices') {
-      this.factonetService.getContracts().subscribe({
-        next: (contracts) => {
-          const contract = contracts[0]; // Only one contract per user
-          if (contract) {
-            const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
-            this.activeContract = {
-              id: contract.id,
-              code: contract.code,
-              packageName: contract.package?.name || contract.packageName || 'N/A',
-              description: contract.package?.description || '',
-              monthlyValue: contract.mode === 'MONTHLY' ? value / 12 : value,
-              startDate: contract.startDate,
-              endDate: contract.endDate,
-              status: contract.status,
-              clientSignedAt: contract.clientSignedAt || null,
-              pdfUrl: contract.pdfUrl || null
-            };
-          }
-        },
-        error: () => {}
-      });
+      this.loadActiveContract();
     }
+  }
+
+  /**
+   * Loads (or reloads) the current user's contract from the server.
+   * Called on init and after signing so the view reflects the real state
+   * (status, signatures) and avoids acting on stale data.
+   */
+  private loadActiveContract(): void {
+    this.factonetService.getContracts().subscribe({
+      next: (contracts) => {
+        const contract = contracts[0]; // Only one contract per user
+        if (contract) {
+          const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
+          this.activeContract = {
+            id: contract.id,
+            code: contract.code,
+            packageName: contract.package?.name || contract.packageName || 'N/A',
+            description: contract.package?.description || '',
+            monthlyValue: contract.mode === 'MONTHLY' ? value / 12 : value,
+            startDate: contract.startDate,
+            endDate: contract.endDate,
+            status: contract.status,
+            clientSignedAt: contract.clientSignedAt || null,
+            adminSignedAt: contract.adminSignedAt || null,
+            pdfUrl: contract.pdfUrl || null
+          };
+        }
+      },
+      error: () => {}
+    });
   }
 
   private buildMonthlyChart(invoices: any[]): void {
@@ -403,10 +413,9 @@ export class HomeComponent implements OnInit {
       if (result.isConfirmed) {
         this.factonetService.signAsClient(this.activeContract!.id!, clientName).subscribe({
           next: (response) => {
-            if (this.activeContract) {
-              this.activeContract.clientSignedAt = new Date().toISOString();
-              this.activeContract.status = response.status || this.activeContract.status;
-            }
+            // Refresh from server so status/signatures reflect the real state
+            // (avoids the "cliente ya ha firmado" error from stale data on re-click)
+            this.loadActiveContract();
             const msg = response.status === 'ACTIVE'
               ? '¡Contrato firmado y activado!'
               : '¡Firma registrada!';
@@ -420,7 +429,12 @@ export class HomeComponent implements OnInit {
             });
           },
           error: (error) => {
-            Swal.fire('Error', error.error?.message || 'No se pudo registrar la firma.', 'error');
+            // If it failed because it was already signed, refresh to sync the view
+            const msg = error.error?.message || 'No se pudo registrar la firma.';
+            if (msg.includes('ya ha firmado')) {
+              this.loadActiveContract();
+            }
+            Swal.fire('Error', msg, 'error');
           }
         });
       }
