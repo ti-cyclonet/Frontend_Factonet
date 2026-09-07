@@ -480,6 +480,24 @@ export class ContratosComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Garantiza que el contrato tenga PDF generado y esté emitido (issuedAt),
+   * requisito del backend para poder firmarlo. Si ya tiene PDF, no hace nada.
+   * Genera el PDF (jsPDF), lo sube y emite el contrato. Idempotente.
+   */
+  private async ensurePdfIssued(contrato: Contract): Promise<void> {
+    if (contrato.pdfUrl) return;
+    await this.generateAndUploadPDF(contrato);
+    await new Promise<void>((resolve, reject) => {
+      this.factonetService.issueContract(contrato.id).subscribe({
+        next: () => resolve(),
+        // Si el emitir falla pero el PDF ya subió, dejamos que el backend
+        // valide; propagamos el error para no firmar a ciegas.
+        error: (err) => reject(err),
+      });
+    });
+  }
+
   private downloadContractPDF(contrato: Contract) {
     const pdf = new jsPDF();
     this.writeContractToPDF(pdf, contrato);
@@ -908,8 +926,25 @@ export class ContratosComponent implements OnInit, OnDestroy {
       confirmButtonText: 'Firmar',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#198754',
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
+        // Opción B': si el contrato aún no tiene PDF (ej. contratos de upgrade
+        // Kiri PLUS), lo generamos y emitimos automáticamente antes de firmar.
+        try {
+          if (!contrato.pdfUrl) {
+            Swal.fire({
+              title: 'Preparando contrato...',
+              html: '<p style="font-size:13px;">Generando el documento antes de firmar.</p>',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading(),
+            });
+            await this.ensurePdfIssued(contrato);
+          }
+        } catch (e: any) {
+          Swal.fire('Error', 'No se pudo preparar el contrato para la firma. Intenta de nuevo.', 'error');
+          return;
+        }
+
         this.factonetService.signAsAdmin(contrato.id, adminName).subscribe({
           next: (response) => {
             this.contratos.update(contracts =>
@@ -926,9 +961,10 @@ export class ContratosComponent implements OnInit, OnDestroy {
               title: msg,
               html: response.status === 'ACTIVE' 
                 ? '<p style="font-size:13px;">Ambas partes han firmado. El contrato está activo.</p>' 
-                : '<p style="font-size:13px;">Pendiente firma del cliente para activación.</p>',
+                : '<p style="font-size:13px;">Se notificó al cliente para que firme y se active el contrato.</p>',
               confirmButtonColor: '#0d6efd',
             });
+            this.loadContratos();
           },
           error: (error) => {
             Swal.fire('Error', error.error?.message || 'No se pudo registrar la firma.', 'error');
