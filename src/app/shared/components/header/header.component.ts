@@ -10,6 +10,8 @@ import { FactonetService } from '../../services/factonet/factonet.service';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { InvoiceRefreshService } from '../../services/invoice-refresh.service';
 import { ChangePasswordComponent } from '../change-password/change-password.component';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 import { Subscription } from 'rxjs'; 
 
 @Component({
@@ -60,6 +62,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   
   // Facturas pendientes para móvil
   pendingInvoices: number = 0; 
+  uploadingAvatar: boolean = false;
 
   constructor(
     private router: Router,
@@ -67,8 +70,44 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private userDataService: UserDataService,
     private dashboardService: DashboardService,
     private factonetService: FactonetService,
-    private invoiceRefreshService: InvoiceRefreshService
+    private invoiceRefreshService: InvoiceRefreshService,
+    private http: HttpClient
   ) { }
+
+  triggerAvatarInput(): void {
+    document.getElementById('avatarFileInput')?.click();
+  }
+
+  /**
+   * Sube la foto de perfil al endpoint CENTRAL de Authoriza (avatar compartido
+   * por todas las apps). El interceptor agrega el Bearer. Base normalizada
+   * (quita '/auth' final de prod) para construir '.../api/users/me/avatar'.
+   */
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !file.type.startsWith('image/')) return;
+    const base = environment.BASE_URL_AUTHORIZA.replace(/\/auth\/?$/, '');
+    const form = new FormData();
+    form.append('file', file);
+    this.uploadingAvatar = true;
+    this.http.post<{ url: string }>(`${base}/users/me/avatar`, form).subscribe({
+      next: (res) => {
+        this.uploadingAvatar = false;
+        if (res?.url) {
+          this.userImage = res.url;
+          sessionStorage.setItem('user_image', res.url);
+          // Refrescar el header vía el stream reactivo.
+          const current = this.userDataService.getCurrentUser();
+          if (current) this.userDataService.updateUserData({ ...current, image: res.url });
+        }
+      },
+      error: () => {
+        this.uploadingAvatar = false;
+      },
+    });
+  }
 
   ngOnInit(): void {
     this.checkScreenSize();

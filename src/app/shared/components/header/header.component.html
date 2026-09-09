@@ -120,6 +120,17 @@
               Change password
             </a>
           </li>
+          <li>
+            <a class="dropdown-item" href="#" (click)="triggerAvatarInput(); $event.preventDefault()">
+              <svg class="dropdown-icon" width="16" height="16" fill="currentColor">
+                <use xlink:href="./assets/icons/bootstrap-icons.svg#camera" />
+              </svg>
+              {{ uploadingAvatar ? 'Subiendo foto…' : 'Cambiar foto' }}
+            </a>
+          </li>
+          <li>
+            <input type="file" id="avatarFileInput" accept="image/*" style="display:none" (change)="onAvatarSelected($event)" />
+          </li>
           <li><hr class="dropdown-divider" /></li>
           <li>
             <a class="dropdown-item logout-btn" href="#" (click)="logout()">
