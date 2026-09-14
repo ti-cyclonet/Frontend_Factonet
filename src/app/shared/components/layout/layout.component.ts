@@ -200,9 +200,8 @@ export default class LayoutComponent implements OnInit {
       return;
     }
     
-    this.parametrosService.getPeriodos().subscribe({
-      next: (periodos) => {
-        const periodoActivo = periodos.find(p => p.status === 'ACTIVE');
+    this.parametrosService.getPeriodoActivo().subscribe({
+      next: (periodoActivo) => {
         if (!periodoActivo) {
           Swal.fire({
             title: 'No Active Period',

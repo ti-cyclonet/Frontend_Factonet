@@ -17,13 +17,11 @@ export class ActivePeriodGuard implements CanActivate {
 
   canActivate(): Observable<boolean> {
     return forkJoin({
-      periodos: this.parametrosService.getPeriodos(),
+      periodoActivo: this.parametrosService.getPeriodoActivo(),
       parametrosGlobales: this.parametrosService.getParametrosActivosPeriodo(),
       parametrosFacturas: this.parametrosService.getParametrosFacturas()
     }).pipe(
-      map(({ periodos, parametrosGlobales, parametrosFacturas }) => {
-        const periodoActivo = periodos.find(p => p.status === 'ACTIVE');
-        
+      map(({ periodoActivo, parametrosGlobales, parametrosFacturas }) => {
         if (!periodoActivo) {
           this.showError('No Active Period', 'You must have an active period to access this module.');
           return false;

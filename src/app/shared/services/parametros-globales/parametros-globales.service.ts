@@ -26,10 +26,12 @@ export class ParametrosGlobalesService {
   }
 
   // Métodos temporales para evitar errores de compilación
-  getPeriodos(): Observable<any[]> { 
+  getPeriodos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.authorizaUrl}/periods`);
   }
-  getPeriodoActivo(): Observable<any> { return of(null); }
+  getPeriodoActivo(): Observable<any> {
+    return this.http.get<any>(`${this.authorizaUrl}/periods/active/current`);
+  }
   getParametrosGlobales(): Observable<any[]> { return of([]); }
   guardarParametros(params: any): Observable<any> { return of(null); }
   validateParameterName(name: string): Observable<boolean> { return of(false); }
