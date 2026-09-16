@@ -58,6 +58,22 @@ export class ActivePeriodGuard implements CanActivate {
   }
 
   private showError(title: string, text: string): void {
+    // Solo adminFactonet puede configurar periodos/parámetros — el resto de
+    // clientes se rige por lo que él configure y no puede resolver esto por
+    // su cuenta (el backend además ya les bloquea el módulo de Configuración).
+    const isAdmin = (typeof window !== 'undefined' && sessionStorage.getItem('user_rol')) === 'adminFactonet';
+
+    if (!isAdmin) {
+      Swal.fire({
+        title,
+        text: `${text} Contacta al administrador de FactoNet para que lo configure.`,
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        allowOutsideClick: false
+      });
+      return;
+    }
+
     Swal.fire({
       title,
       text,
