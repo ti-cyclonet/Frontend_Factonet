@@ -166,12 +166,13 @@
     <div class="modal-content">
       <div class="modal-header justify-content-between modal-header-custom">
         <h1 class="modal-title fs-5" id="staticBackdropLabel">
+          <svg width="18" height="18" fill="currentColor" class="me-2"><use xlink:href="./assets/icons/bootstrap-icons.svg#shield-lock" /></svg>
           Password Change Form
         </h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button *ngIf="!forcedPasswordChange" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <app-change-password></app-change-password>
+        <app-change-password [forced]="forcedPasswordChange" (changed)="onPasswordChanged()"></app-change-password>
       </div>
     </div>
   </div>
