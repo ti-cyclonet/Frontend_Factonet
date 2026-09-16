@@ -55,6 +55,7 @@ export class AuthService {
       sessionStorage.setItem('user_rolDescription', userData.user?.rolDescription || '');
       sessionStorage.setItem('user_image', userData.user?.image || '');
       sessionStorage.setItem('user_isAuthorizedSigner', userData.user?.isAuthorizedSigner ? 'true' : 'false');
+      sessionStorage.setItem('must_change_password', userData.user?.mustChangePassword ? 'true' : 'false');
       
       if (userData.user?.tenantId) {
         localStorage.setItem('tenantId', userData.user.tenantId);

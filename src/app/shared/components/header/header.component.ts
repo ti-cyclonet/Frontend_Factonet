@@ -1,8 +1,7 @@
 import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common'; 
-import { Router, RouterModule } from '@angular/router'; 
-import { OptionMenu } from '../../model/option_menu'; 
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { OptionMenu } from '../../model/option_menu';
 import { AuthService } from '../../services/auth/auth.service';
 import { UserDataService, UserData } from '../../services/user/user-data.service';
 import { DashboardService, DashboardMetrics } from '../../services/dashboard/dashboard.service';
@@ -18,10 +17,8 @@ import { Subscription } from 'rxjs';
   selector: 'app-header',
   standalone: true,
   imports: [
-    CommonModule,     
-    RouterModule,     
-    FormsModule,      
-    ReactiveFormsModule,
+    CommonModule,
+    RouterModule,
     NavbarComponent,
     ChangePasswordComponent
   ],
@@ -40,10 +37,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   
   // PROPIEDADES 
   nombreApp: string = 'FactoNET'; 
-  userImage: string | undefined = undefined; 
-  userRolDescription: string = ''; 
-  userEmail: string = ''; 
-  form: any; 
+  userImage: string | undefined = undefined;
+  userRolDescription: string = '';
+  userEmail: string = '';
+  forcedPasswordChange: boolean = false;
   notifications: Array<{
     title: string;
     type: 'success' | 'warning' | 'danger' | 'primary';
@@ -192,10 +189,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
-  onSubmit() {
-
-  }
-
   removeNotification(index: number) {
     this.notifications.splice(index, 1);
   }
@@ -246,6 +239,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
       // Nombre del cliente/tenant seleccionado (diferente del usuario logueado)
       this.selectedClientName = sessionStorage.getItem('selected_client_name') || '';
       this.packageName = sessionStorage.getItem('selected_package_name') || '';
+
+      // Obligar el cambio de contraseña temporal (asignada en registro/creación
+      // de usuario) antes de dejar usar el resto de la aplicación.
+      if (sessionStorage.getItem('must_change_password') === 'true' && !this.forcedPasswordChange) {
+        this.forcedPasswordChange = true;
+        setTimeout(() => this.openChangePasswordModal(true), 0);
+      }
     }
   }
 
@@ -307,17 +307,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Funcionalidad de configuración
   }
 
-  async openChangePasswordModal(): Promise<void> {
+  async openChangePasswordModal(forced: boolean = false): Promise<void> {
     // Cerrar el dropdown de usuario antes de abrir el modal
     this.userDropdownOpen = false;
-    
+
     if (typeof window !== 'undefined') {
       const modalElement = document.getElementById('changePasswordModal');
       if (modalElement) {
         const bootstrap = await import('bootstrap');
-        const modal = new bootstrap.Modal(modalElement);
-        
-        // Limpiar estado cuando se cierre el modal
+        const modal = bootstrap.Modal.getOrCreateInstance(
+          modalElement,
+          forced ? { backdrop: 'static', keyboard: false } : {}
+        );
+
+        // Limpiar estado cuando se cierre el modal (solo si no es forzado;
+        // si es forzado el usuario no puede cerrarlo hasta cambiar la clave)
         modalElement.addEventListener('hidden.bs.modal', () => {
           document.body.classList.remove('modal-open');
           const backdrop = document.querySelector('.modal-backdrop');
@@ -325,10 +329,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
             backdrop.remove();
           }
         }, { once: true });
-        
+
         modal.show();
       }
     }
+  }
+
+  /** Se dispara cuando el usuario cambia su contraseña exitosamente. */
+  async onPasswordChanged(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    const modalElement = document.getElementById('changePasswordModal');
+    if (modalElement) {
+      const bootstrap = await import('bootstrap');
+      const instance = bootstrap.Modal.getInstance(modalElement);
+      instance?.hide();
+      // Sin esto, la instancia queda "pegada" con backdrop estatico y sin
+      // teclado (config forzada) para futuras aperturas voluntarias.
+      instance?.dispose();
+    }
+    this.forcedPasswordChange = false;
   }
 
   trackByOptionId(index: number, option: OptionMenu): string {
