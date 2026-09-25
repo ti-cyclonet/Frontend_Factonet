@@ -33,6 +33,8 @@ export class LoginComponent {
   // Selector de cliente
   showClientSelector: boolean = false;
   availableContracts: ClientContract[] = [];
+  /** Token de un solo uso que devuelve /auth/login con varios contratos; login/complete lo exige. */
+  private selectionToken: string | null = null;
   selectedContractId: string = '';
 
   // configuración notificaciones tipo toast
@@ -124,6 +126,7 @@ export class LoginComponent {
         // Caso multi-contrato: el backend retorna contracts[] sin token
         if (response.contracts && response.contracts.length > 1) {
           this.availableContracts = response.contracts;
+          this.selectionToken = response.selectionToken || null;
           this.showClientSelector = true;
           this.cdr.detectChanges();
           return;
@@ -156,7 +159,8 @@ export class LoginComponent {
     const completeLoginDTO = {
       email: this.loginForm.get('username')?.value,
       applicationName: NAME_APP_SHORT,
-      contractId: this.selectedContractId
+      contractId: this.selectedContractId,
+      selectionToken: this.selectionToken || undefined
     };
 
     this.authService.completeLogin(completeLoginDTO).subscribe({
