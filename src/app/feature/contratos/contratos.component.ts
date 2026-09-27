@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { ContractPdfService } from '../../shared/services/contract-pdf.service';
@@ -55,9 +55,15 @@ export class ContratosComponent implements OnInit, OnDestroy {
     status: '',
     code: '',
     user: '',
+    package: '',
     billable: ''
   };
   filteredContratos = signal<Contract[]>([]);
+  /** Paquetes presentes en los contratos cargados, para el filtro. */
+  packageOptions = computed(() =>
+    [...new Set(this.contratos().map(c => c.package?.name).filter((n): n is string => !!n))]
+      .sort((a, b) => a.localeCompare(b))
+  );
   
   private clickListener?: () => void;
 
@@ -598,6 +604,9 @@ export class ContratosComponent implements OnInit, OnDestroy {
         (c.user?.strUserName || '').toLowerCase().includes(this.filters.user.toLowerCase())
       );
     }
+    if (this.filters.package) {
+      result = result.filter(c => c.package?.name === this.filters.package);
+    }
     if (this.filters.billable) {
       const isBillable = this.filters.billable === 'yes';
       result = result.filter(c => (c.package?.isBillable !== false) === isBillable);
@@ -607,7 +616,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.filters = { status: '', code: '', user: '', billable: '' };
+    this.filters = { status: '', code: '', user: '', package: '', billable: '' };
     this.applyFilters();
   }
 
