@@ -16,7 +16,7 @@
     <div *ngIf="showFilters" class="inner-container mb-2">
       <div class="bg-warning bg-opacity-10 rounded p-3 border border-primary border-opacity-25">
         <div class="row g-3">
-          <div class="col-12 col-md-6 col-lg-3">
+          <div class="col-12 col-md-6 col-lg-2">
             <label class="form-label">Status</label>
             <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
               <option value="">All</option>
@@ -31,9 +31,16 @@
             <label class="form-label">Code</label>
             <input type="text" class="form-control" [value]="filters.code" (input)="filters.code = $any($event.target).value; applyFilters()" placeholder="DC00001">
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
+          <div class="col-12 col-md-6 col-lg-2">
             <label class="form-label">User</label>
             <input type="text" class="form-control" [value]="filters.user" (input)="filters.user = $any($event.target).value; applyFilters()" placeholder="Search user">
+          </div>
+          <div class="col-12 col-md-6 col-lg-2">
+            <label class="form-label">Package</label>
+            <select class="form-select" [value]="filters.package" (change)="filters.package = $any($event.target).value; applyFilters()">
+              <option value="">All</option>
+              <option *ngFor="let name of packageOptions()" [value]="name" [selected]="filters.package === name">{{ name }}</option>
+            </select>
           </div>
           <div class="col-12 col-md-6 col-lg-2">
             <label class="form-label">Billable</label>
