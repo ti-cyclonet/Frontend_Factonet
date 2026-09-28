@@ -189,6 +189,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
+  /**
+   * El avatar de sessionStorage viene del login y no se entera si la foto se
+   * cambió en otra app: se consulta la vigente en Authoriza al cargar y al
+   * volver a la pestaña.
+   */
+  @HostListener('window:focus')
+  refreshAvatar(): void {
+    if (typeof window === 'undefined' || !sessionStorage.getItem('user_email')) return;
+    const base = environment.BASE_URL_AUTHORIZA.replace(/\/auth\/?$/, '');
+    this.http.get<{ url: string | null }>(`${base}/users/me/avatar`).subscribe({
+      next: (res) => {
+        if (!res?.url || res.url === this.userImage) return;
+        this.userImage = res.url;
+        sessionStorage.setItem('user_image', res.url);
+        const current = this.userDataService.getCurrentUser();
+        if (current) this.userDataService.updateUserData({ ...current, image: res.url });
+      },
+      error: () => { /* se conserva el avatar del login */ },
+    });
+  }
+
   removeNotification(index: number) {
     this.notifications.splice(index, 1);
   }
@@ -196,6 +217,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   loadUserData(): void {
     // Cargar datos inmediatamente desde sessionStorage
     this.loadUserFromSession();
+    this.refreshAvatar();
     
     // Suscribirse a cambios futuros
     this.userDataService.userData$.subscribe((userData: UserData | null) => {
