@@ -364,8 +364,8 @@
               <td>{{ contract.clientName }}</td>
               <td>{{ contract.packageName }}</td>
               <td>{{ formatCurrency(contract.value) }}</td>
-              <td>{{ contract.mode }}</td>
-              <td><span [class]="getStatusClass(contract.status)">{{ contract.status }}</span></td>
+              <td>{{ contract.mode | es }}</td>
+              <td><span [class]="getStatusClass(contract.status)">{{ contract.status | es }}</span></td>
               <td>{{ contract.startDate | date:'dd/MM/yyyy' }}</td>
               <td>{{ contract.endDate ? (contract.endDate | date:'dd/MM/yyyy') : 'N/A' }}</td>
             </tr>
@@ -413,7 +413,7 @@
               <td>{{ formatCurrency(invoice.value) }}</td>
               <td>{{ invoice.issueDate | date:'dd/MM/yyyy' }}</td>
               <td>{{ invoice.expirationDate | date:'dd/MM/yyyy' }}</td>
-              <td><span [class]="getStatusClass(invoice.status)">{{ invoice.status }}</span></td>
+              <td><span [class]="getStatusClass(invoice.status)">{{ invoice.status | es }}</span></td>
             </tr>
           </tbody>
         </table>

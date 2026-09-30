@@ -41,7 +41,7 @@
             <span class="badge me-2 bg-warning text-dark">
                 {{ pendingInvoices }}
             </span>
-            Pending invoices
+            Facturas pendientes
         </span>
     </li>
 </ul>
@@ -65,7 +65,7 @@
         >
             <img 
                 [src]="userImage ? userImage : './assets/img/foto_perfil.png'" 
-                alt="Profile Picture" 
+                alt="Foto de perfil" 
                 class="user-img rounded-circle" 
                 width="40" 
                 height="40" 
@@ -117,7 +117,7 @@
               >
                 <use xlink:href="./assets/icons/bootstrap-icons.svg#key" />
               </svg>
-              Change password
+              Cambiar contraseña
             </a>
           </li>
           <li>
@@ -139,7 +139,7 @@
                   xlink:href="./assets/icons/bootstrap-icons.svg#box-arrow-right"
                 />
               </svg>
-              Logout
+              Cerrar sesión
             </a>
           </li>
         </ul>
@@ -167,9 +167,9 @@
       <div class="modal-header justify-content-between modal-header-custom">
         <h1 class="modal-title fs-5" id="staticBackdropLabel">
           <svg width="18" height="18" fill="currentColor" class="me-2"><use xlink:href="./assets/icons/bootstrap-icons.svg#shield-lock" /></svg>
-          Password Change Form
+          Cambiar contraseña
         </h1>
-        <button *ngIf="!forcedPasswordChange" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button *ngIf="!forcedPasswordChange" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <app-change-password [forced]="forcedPasswordChange" (changed)="onPasswordChanged()"></app-change-password>

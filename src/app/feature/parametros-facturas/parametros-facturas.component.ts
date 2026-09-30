@@ -163,18 +163,18 @@ export class ParametrosFacturasComponent implements OnInit {
       await this.parametrosService.guardarParametrosFacturas(parametrosSeleccionados);
       
       Swal.fire({
-        title: 'Success!',
-        text: 'Configuration saved successfully!',
+        title: '¡Listo!',
+        text: 'Configuración guardada.',
         icon: 'success',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
     } catch (error) {
       console.error('Error saving configuration:', error);
       Swal.fire({
         title: 'Error',
-        text: 'Error saving configuration. Please try again.',
+        text: 'No se pudo guardar la configuración. Intenta de nuevo.',
         icon: 'error',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
     } finally {
       this.loading = false;
@@ -186,14 +186,14 @@ export class ParametrosFacturasComponent implements OnInit {
       title: param.globalParameter.name,
       html: `
         <div style="text-align:left;font-size:14px;">
-          <div class="mb-2"><strong>Value:</strong> <span class="badge bg-primary">${param.value}</span></div>
-          <div class="mb-2"><strong>Description:</strong> ${param.globalParameter.description || 'N/A'}</div>
-          <div class="mb-2"><strong>Type:</strong> ${param.globalParameter.dataType === 'number' ? 'Numeric' : 'Text'}</div>
-          <div class="mb-2"><strong>Status:</strong> ${param.aplicaFacturas ? '✅ Applied' : '⬜ Not Applied'}</div>
-          <div class="mb-2"><strong>Show in Docs:</strong> ${param.showInDocs ? '✅ Yes' : '⬜ No'}</div>
+          <div class="mb-2"><strong>Valor:</strong> <span class="badge bg-primary">${param.value}</span></div>
+          <div class="mb-2"><strong>Descripción:</strong> ${param.globalParameter.description || 'N/A'}</div>
+          <div class="mb-2"><strong>Tipo:</strong> ${param.globalParameter.dataType === 'number' ? 'Numeric' : 'Text'}</div>
+          <div class="mb-2"><strong>Estado:</strong> ${param.aplicaFacturas ? '✅ Aplicado' : '⬜ No aplicado'}</div>
+          <div class="mb-2"><strong>Mostrar en documentos:</strong> ${param.showInDocs ? '✅ Sí' : '⬜ No'}</div>
         </div>
       `,
-      confirmButtonText: 'Close',
+      confirmButtonText: 'Cerrar',
     });
   }
 }

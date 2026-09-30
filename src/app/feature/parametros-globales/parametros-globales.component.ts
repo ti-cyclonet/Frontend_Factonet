@@ -134,10 +134,10 @@ export class ParametrosGlobalesComponent implements OnInit {
           if (bootstrapModal) bootstrapModal.hide();
         }
         Swal.fire({
-          title: 'Success!',
-          text: 'Parameters saved successfully',
+          title: '¡Listo!',
+          text: 'Parámetros guardados',
           icon: 'success',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       },
       error: (error: any) => {
@@ -145,9 +145,9 @@ export class ParametrosGlobalesComponent implements OnInit {
 
         Swal.fire({
           title: 'Error',
-          text: 'Could not save parameters',
+          text: 'No se pudieron guardar los parámetros',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -208,20 +208,20 @@ export class ParametrosGlobalesComponent implements OnInit {
     // Validaciones
     if (fechaFin <= fechaInicio) {
       Swal.fire({
-        title: 'Validation Error',
-        text: 'End date must be after start date',
+        title: 'Revisa los datos',
+        text: 'La fecha de fin debe ser posterior a la de inicio',
         icon: 'error',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
     
     if (fechaInicio < periodoInicio || fechaFin > periodoFin) {
       Swal.fire({
-        title: 'Validation Error',
-        text: 'Subperiod must be within the parent period dates',
+        title: 'Revisa los datos',
+        text: 'El subperiodo debe quedar dentro de las fechas del periodo',
         icon: 'error',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
@@ -246,19 +246,19 @@ export class ParametrosGlobalesComponent implements OnInit {
           if (bootstrapModal) bootstrapModal.hide();
         }
         Swal.fire({
-          title: 'Success!',
-          text: 'Subperiod created successfully',
+          title: '¡Listo!',
+          text: 'Subperiodo creado',
           icon: 'success',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       },
       error: (error: any) => {
         this.loading = false;
         Swal.fire({
           title: 'Error',
-          text: 'Could not create subperiod',
+          text: 'No se pudo crear el subperiodo',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -291,19 +291,19 @@ export class ParametrosGlobalesComponent implements OnInit {
           this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
         }
         Swal.fire({
-          title: 'Success!',
-          text: 'Global parameter created successfully',
+          title: '¡Listo!',
+          text: 'Parámetro global creado',
           icon: 'success',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       },
       error: (error: any) => {
         this.loading = false;
         Swal.fire({
           title: 'Error',
-          text: 'Could not create global parameter',
+          text: 'No se pudo crear el parámetro global',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -320,10 +320,10 @@ export class ParametrosGlobalesComponent implements OnInit {
     
     if (fechaFin <= fechaInicio) {
       Swal.fire({
-        title: 'Validation Error',
-        text: 'End date must be after start date',
+        title: 'Revisa los datos',
+        text: 'La fecha de fin debe ser posterior a la de inicio',
         icon: 'error',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
@@ -347,19 +347,19 @@ export class ParametrosGlobalesComponent implements OnInit {
           if (bootstrapModal) bootstrapModal.hide();
         }
         Swal.fire({
-          title: 'Success!',
-          text: 'Period created successfully',
+          title: '¡Listo!',
+          text: 'Periodo creado',
           icon: 'success',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       },
       error: (error: any) => {
         this.loading = false;
         Swal.fire({
           title: 'Error',
-          text: 'Could not create period',
+          text: 'No se pudo crear el periodo',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -420,14 +420,14 @@ export class ParametrosGlobalesComponent implements OnInit {
   
   eliminarParametro(param: any): void {
     Swal.fire({
-      title: 'Are you sure?',
-      text: `Do you want to delete parameter "${param.nombre}" from the selected period?`,
+      title: '¿Estás seguro?',
+      text: `¿Quieres quitar el parámetro "${param.nombre}" del periodo seleccionado?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
     }).then((result: any) => {
       if (result.isConfirmed) {
         this.loading = true;
@@ -437,19 +437,19 @@ export class ParametrosGlobalesComponent implements OnInit {
             // Recargar parámetros del período
             this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
             Swal.fire({
-              title: 'Deleted!',
-              text: `Parameter "${param.nombre}" deleted successfully from period`,
+              title: 'Eliminado',
+              text: `Se quitó el parámetro "${param.nombre}" del periodo`,
               icon: 'success',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           },
           error: (error: any) => {
             this.loading = false;
             Swal.fire({
               title: 'Error',
-              text: 'Could not delete parameter from period',
+              text: 'No se pudo quitar el parámetro del periodo',
               icon: 'error',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           }
         });
@@ -461,10 +461,10 @@ export class ParametrosGlobalesComponent implements OnInit {
     // Validar si el período está activo
     if (periodo.activo) {
       Swal.fire({
-        title: 'Cannot delete',
-        text: 'Cannot delete an active period',
+        title: 'No se puede eliminar',
+        text: 'No se puede eliminar un periodo activo',
         icon: 'warning',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
@@ -477,10 +477,10 @@ export class ParametrosGlobalesComponent implements OnInit {
       
       if (fechaActual >= fechaInicio && fechaActual <= fechaFin) {
         Swal.fire({
-          title: 'Cannot delete',
-          text: 'Cannot delete the current active period',
+          title: 'No se puede eliminar',
+          text: 'No se puede eliminar el periodo activo actual',
           icon: 'warning',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
         return;
       }
@@ -492,23 +492,23 @@ export class ParametrosGlobalesComponent implements OnInit {
     
     if (fechaFin < fechaActual) {
       Swal.fire({
-        title: 'Cannot delete',
-        text: 'Cannot delete past periods',
+        title: 'No se puede eliminar',
+        text: 'No se pueden eliminar periodos pasados',
         icon: 'warning',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
 
     Swal.fire({
-      title: 'Are you sure?',
-      text: `Do you want to delete period "${periodo.nombre}"?`,
+      title: '¿Estás seguro?',
+      text: `¿Quieres eliminar el periodo "${periodo.nombre}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
     }).then((result: any) => {
       if (result.isConfirmed) {
         this.loading = true;
@@ -517,19 +517,19 @@ export class ParametrosGlobalesComponent implements OnInit {
             this.loading = false;
             this.loadPeriodos();
             Swal.fire({
-              title: 'Deleted!',
-              text: 'Period deleted successfully',
+              title: 'Eliminado',
+              text: 'Periodo eliminado',
               icon: 'success',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           },
           error: (error: any) => {
             this.loading = false;
             Swal.fire({
               title: 'Error',
-              text: 'Could not delete period',
+              text: 'No se pudo eliminar el periodo',
               icon: 'error',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           }
         });
@@ -546,20 +546,20 @@ export class ParametrosGlobalesComponent implements OnInit {
     if (!periodo.parentPeriodId) {
       if (fechaInicio > fechaActual) {
         Swal.fire({
-          title: 'Cannot activate',
-          text: 'Cannot activate a future period',
+          title: 'No se puede activar',
+          text: 'No se puede activar un periodo futuro',
           icon: 'warning',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
         return;
       }
       
       if (fechaFin < fechaActual) {
         Swal.fire({
-          title: 'Cannot activate',
-          text: 'Cannot activate a past period',
+          title: 'No se puede activar',
+          text: 'No se puede activar un periodo pasado',
           icon: 'warning',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
         return;
       }
@@ -568,23 +568,23 @@ export class ParametrosGlobalesComponent implements OnInit {
     // Para subperíodos, permitir activación si es futuro o actual
     if (periodo.parentPeriodId && fechaInicio >= fechaActual && fechaFin < fechaActual) {
       Swal.fire({
-        title: 'Cannot activate',
-        text: 'Cannot activate an expired subperiod',
+        title: 'No se puede activar',
+        text: 'No se puede activar un subperiodo vencido',
         icon: 'warning',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
 
     Swal.fire({
-      title: 'Are you sure?',
-      text: `Do you want to activate ${periodo.parentPeriodId ? 'subperiod' : 'period'} "${periodo.nombre}"?`,
+      title: '¿Estás seguro?',
+      text: `¿Quieres activar el ${periodo.parentPeriodId ? 'subperiodo' : 'periodo'} "${periodo.nombre}"?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#28a745',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, activate',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: 'Sí, activar',
+      cancelButtonText: 'Cancelar'
     }).then((result: any) => {
       if (result.isConfirmed) {
         this.loading = true;
@@ -597,19 +597,19 @@ export class ParametrosGlobalesComponent implements OnInit {
               this.monitorearExpiracionSubperiodo(periodo);
             }
             Swal.fire({
-              title: 'Activated!',
-              text: `${periodo.parentPeriodId ? 'Subperiod' : 'Period'} activated successfully`,
+              title: 'Activado',
+              text: `${periodo.parentPeriodId ? 'Subperiodo' : 'Periodo'} activado`,
               icon: 'success',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           },
           error: (error: any) => {
             this.loading = false;
             Swal.fire({
               title: 'Error',
-              text: `Could not activate ${periodo.parentPeriodId ? 'subperiod' : 'period'}`,
+              text: `No se pudo activar el ${periodo.parentPeriodId ? 'subperiodo' : 'periodo'}`,
               icon: 'error',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           }
         });
@@ -739,10 +739,10 @@ export class ParametrosGlobalesComponent implements OnInit {
     
     if (seleccionados.length === 0) {
       Swal.fire({
-        title: 'Warning',
-        text: 'You must select at least one parameter with value',
+        title: 'Atención',
+        text: 'Selecciona al menos un parámetro con valor',
         icon: 'warning',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
@@ -767,19 +767,19 @@ export class ParametrosGlobalesComponent implements OnInit {
         this.loadParametrosPorPeriodo(this.periodoSeleccionado.id);
         this.volverAConfigureParameters();
         Swal.fire({
-          title: 'Success!',
-          text: `${seleccionados.length} parameters added successfully`,
+          title: '¡Listo!',
+          text: `Se agregaron ${seleccionados.length} parámetro(s)`,
           icon: 'success',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       },
       error: (error: any) => {
         console.log('Error del backend:', error);
         Swal.fire({
           title: 'Error',
-          text: 'Could not add parameters',
+          text: 'No se pudieron agregar los parámetros',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -821,8 +821,8 @@ export class ParametrosGlobalesComponent implements OnInit {
       next: (response) => {
 
         Swal.fire({
-          title: 'Success!',
-          text: `Parameter status updated to ${nuevoEstado === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'}`,
+          title: '¡Listo!',
+          text: `El parámetro quedó ${nuevoEstado === 'ACTIVE' ? 'activo' : 'inactivo'}`,
           icon: 'success',
           timer: 2000,
           showConfirmButton: false
@@ -834,9 +834,9 @@ export class ParametrosGlobalesComponent implements OnInit {
         param.estado = nuevoEstado === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
         Swal.fire({
           title: 'Error',
-          text: 'Could not update parameter status',
+          text: 'No se pudo actualizar el estado del parámetro',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -872,12 +872,12 @@ export class ParametrosGlobalesComponent implements OnInit {
           next: () => {
             this.loadPeriodos();
             Swal.fire({
-              title: 'Subperiod Expired',
+              title: 'Subperiodo vencido',
               text: `Subperiod "${subperiodo.nombre}" has been automatically deactivated`,
               icon: 'info',
               timer: 5000,
               showConfirmButton: true,
-              confirmButtonText: 'OK'
+              confirmButtonText: 'Aceptar'
             });
           },
           error: () => {
@@ -897,8 +897,8 @@ export class ParametrosGlobalesComponent implements OnInit {
     this.parametrosService.actualizarValorParametro(param.id, param.valor).subscribe({
       next: () => {
         Swal.fire({
-          title: 'Success!',
-          text: 'Value updated successfully',
+          title: '¡Listo!',
+          text: 'Valor actualizado',
           icon: 'success',
           timer: 1500,
           showConfirmButton: false
@@ -908,9 +908,9 @@ export class ParametrosGlobalesComponent implements OnInit {
 
         Swal.fire({
           title: 'Error',
-          text: 'Could not update value',
+          text: 'No se pudo actualizar el valor',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });
@@ -924,9 +924,9 @@ export class ParametrosGlobalesComponent implements OnInit {
       error: (error: any) => {
         Swal.fire({
           title: 'Error',
-          text: 'Could not update operation type',
+          text: 'No se pudo actualizar el tipo de operación',
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
       }
     });

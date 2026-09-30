@@ -276,10 +276,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       next: (metrics: DashboardMetrics) => {
         this.notifications = [];
         if (metrics.pendingInvoices > 0) {
-          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} Pending invoices`, type: 'warning', visible: true });
+          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} factura(s) pendiente(s)`, type: 'warning', visible: true });
         }
         if (metrics.paidInvoices > 0) {
-          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} Paid invoices`, type: 'success', visible: true });
+          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} factura(s) pagada(s)`, type: 'success', visible: true });
         }
       },
       error: (error) => {

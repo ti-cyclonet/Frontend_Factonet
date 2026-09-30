@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { EsLabelPipe } from '../../shared/pipes/es-label.pipe';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
@@ -14,7 +15,7 @@ interface ReportFilters {
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EsLabelPipe],
   templateUrl: './reportes.component.html',
   styleUrls: ['./reportes.component.css']
 })

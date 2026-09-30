@@ -2,8 +2,8 @@
   <div class="outer-container">
     <div class="inner-container d-flex justify-content-between align-items-start" style="border-bottom: 4px solid #2782d8; padding-bottom: 10px;">
       <div>
-        <h3 class="card-title mb-0 fw-bold">Invoice Parameters Configuration</h3>
-        <p class="text-muted" style="font-size: 0.78rem; margin-top: 4px;">Select which global parameters from the active period should apply to invoices</p>
+        <h3 class="card-title mb-0 fw-bold">Parámetros de facturas</h3>
+        <p class="text-muted" style="font-size: 0.78rem; margin-top: 4px;">Elige qué parámetros globales del periodo activo se aplican a las facturas</p>
       </div>
       <div class="d-flex gap-2 align-items-center">
         <button class="btn-icon-circle" (click)="showFilters = !showFilters" [title]="showFilters ? 'Hide filters' : 'Show filters'" [attr.aria-label]="showFilters ? 'Hide filters' : 'Show filters'">
@@ -19,25 +19,25 @@
       <div class="row mb-3 g-2 filters-section" *ngIf="showFilters">
         <div class="col-6 col-md-4">
           <input type="text" class="form-control form-control-sm" [(ngModel)]="filtroNombre" 
-                 placeholder="Search by name..." (input)="aplicarFiltros()">
+                 placeholder="Buscar por nombre…" (input)="aplicarFiltros()">
         </div>
         <div class="col-6 col-md-3">
           <select class="form-select form-select-sm" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
-            <option value="">All types</option>
-            <option value="number">Numeric</option>
-            <option value="string">Text</option>
+            <option value="">Todos los tipos</option>
+            <option value="number">Numérico</option>
+            <option value="string">Texto</option>
           </select>
         </div>
         <div class="col-6 col-md-3">
           <select class="form-select form-select-sm" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
-            <option value="">All status</option>
-            <option value="applied">Applied</option>
-            <option value="not-applied">Not Applied</option>
+            <option value="">Todos los estados</option>
+            <option value="applied">Aplicado</option>
+            <option value="not-applied">No aplicado</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
           <button class="btn btn-outline-secondary btn-sm w-100" (click)="limpiarFiltros()">
-            Clear
+            Limpiar
           </button>
         </div>
       </div>
@@ -52,13 +52,13 @@
                        [indeterminate]="someSelected && !allSelected"
                        (change)="toggleAll($event)">
               </th>
-              <th>Parameter</th>
-              <th class="d-none d-md-table-cell">Value</th>
-              <th class="d-none d-lg-table-cell">Description</th>
-              <th class="d-none d-md-table-cell">Type</th>
-              <th class="d-none d-md-table-cell text-center">Status</th>
-              <th class="text-center">Docs</th>
-              <th class="d-table-cell d-md-none text-center">Actions</th>
+              <th>Parámetro</th>
+              <th class="d-none d-md-table-cell">Valor</th>
+              <th class="d-none d-lg-table-cell">Descripción</th>
+              <th class="d-none d-md-table-cell">Tipo</th>
+              <th class="d-none d-md-table-cell text-center">Estado</th>
+              <th class="text-center">Documentos</th>
+              <th class="d-table-cell d-md-none text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -80,7 +80,7 @@
                 </span>
               </td>
               <td class="d-none d-md-table-cell text-center">
-                <span class="badge bg-success" *ngIf="param.aplicaFacturas">APPLIED</span>
+                <span class="badge bg-success" *ngIf="param.aplicaFacturas">APLICADO</span>
                 <span class="badge bg-secondary" *ngIf="!param.aplicaFacturas">—</span>
               </td>
               <td class="text-center">
@@ -92,7 +92,7 @@
                 </div>
               </td>
               <td class="d-table-cell d-md-none text-center">
-                <button type="button" class="btn p-0 border-0 bg-transparent" (click)="openParamInfo(param)" title="View">
+                <button type="button" class="btn p-0 border-0 bg-transparent" (click)="openParamInfo(param)" title="Ver">
                   <svg width="16" height="16" fill="currentColor">
                     <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
                   </svg>
@@ -100,7 +100,7 @@
               </td>
             </tr>
             <tr *ngIf="parametrosActivos.length === 0">
-              <td colspan="7" class="text-center">No active parameters found in current period</td>
+              <td colspan="7" class="text-center">No hay parámetros activos en el periodo actual</td>
             </tr>
           </tbody>
         </table>
@@ -129,7 +129,7 @@
           <svg width="16" height="16" fill="currentColor" class="me-1">
             <use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle" />
           </svg>
-          Save Configuration
+          Guardar configuración
         </button>
       </div>
     </div>

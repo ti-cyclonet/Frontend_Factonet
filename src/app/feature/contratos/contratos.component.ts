@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
 import { CommonModule } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { ContractPdfService } from '../../shared/services/contract-pdf.service';
@@ -21,7 +22,7 @@ export class ReplacePipe implements PipeTransform {
 @Component({
   selector: 'app-contratos', 
   standalone: true,
-  imports: [CommonModule, ReplacePipe],
+  imports: [CommonModule, ReplacePipe, EsLabelPipe],
   templateUrl: './contratos.component.html', 
   styleUrls: ['./contratos.component.css'] 
 })
@@ -146,14 +147,14 @@ export class ContratosComponent implements OnInit, OnDestroy {
           }
         }
         if (contratosOrdenados.length > 0) {
-          this.showToast('Contracts loaded successfully', 'success', 'A', 0);
+          this.showToast('Contratos cargados', 'success', 'A', 0);
         } else {
-          this.showToast('No contracts available', 'primary', 'A', 0);
+          this.showToast('No hay contratos', 'primary', 'A', 0);
         }
       },
       error: (error) => {
         this.contratos.set([]);
-        this.showToast('Error connecting to contracts server', 'danger', 'A', 0);
+        this.showToast('No se pudo conectar con el servidor de contratos', 'danger', 'A', 0);
       }
     });
   }
@@ -163,7 +164,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
    */
   openContratoModal() { 
     this.isModalOpen.set(true);
-    this.showToast('SYSTEM: Opening Contract Creation Interface...', 'primary', 'A', 0);
+    this.showToast('Abriendo la creación de contratos…', 'primary', 'A', 0);
   }
 
   /**
@@ -182,7 +183,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
     this.selectedContrato.set(contrato);
     this.showUserDetails.set(false); // Resetear al abrir modal
     this.showPackageDetails.set(false); // Resetear al abrir modal
-    this.showToast(`Viewing contract: ${contrato.code || contrato.id}`, 'primary', 'A', 0);
+    this.showToast(`Viendo el contrato ${contrato.code || contrato.id}`, 'primary', 'A', 0);
     
     // Abrir modal programáticamente
     setTimeout(() => {
@@ -279,14 +280,14 @@ export class ContratosComponent implements OnInit, OnDestroy {
    */
   private showPDFOptions(contrato: Contract) {
     Swal.fire({
-      title: 'PDF Available!',
-      text: `Contract ${contrato.code || contrato.id} ready`,
+      title: 'PDF listo',
+      text: `El contrato ${contrato.code || contrato.id} está listo`,
       icon: 'success',
       showCancelButton: true,
       showDenyButton: true,
-      confirmButtonText: 'View PDF',
-      denyButtonText: 'Download',
-      cancelButtonText: 'Close'
+      confirmButtonText: 'Ver PDF',
+      denyButtonText: 'Descargar',
+      cancelButtonText: 'Cerrar'
     }).then((result) => {
       if (result.isConfirmed) {
         // Siempre usar modal HTML local
@@ -628,7 +629,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
         this.selectedContrato.set(null);
     } else {
       this.selectedContrato.set(contrato);
-      this.showToast(`RECORD SELECTED: ${contrato.id}`, 'success', 'A', 0);
+      this.showToast(`Registro seleccionado: ${contrato.id}`, 'success', 'A', 0);
     }
   }
 
@@ -640,7 +641,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
     if (this.selectedContrato()) {
         this.isDeleteConfirmationModalOpen.set(true);
     } else {
-        this.showToast('ERROR: No record selected for deletion.', 'warning', 'A', 0);
+        this.showToast('No hay ningún registro seleccionado para eliminar.', 'warning', 'A', 0);
     }
   }
 
@@ -665,11 +666,11 @@ export class ContratosComponent implements OnInit, OnDestroy {
           currentContratos.filter(c => c.id !== idToDelete)
         );
         
-        this.showToast(`RECORD ${idToDelete} DELETED successfully (Local Simulation).`, 'danger', 'A', 0);
+        this.showToast(`Registro ${idToDelete} eliminado (simulación local).`, 'danger', 'A', 0);
         this.selectedContrato.set(null);
         this.isDeleteConfirmationModalOpen.set(false); // Cierra el modal
     } else {
-      this.showToast('ERROR: No record selected for deletion.', 'warning', 'A', 0);
+      this.showToast('No hay ningún registro seleccionado para eliminar.', 'warning', 'A', 0);
     }
   }
 
@@ -743,16 +744,16 @@ export class ContratosComponent implements OnInit, OnDestroy {
    */
   openStatusChangeFromModal(contrato: any) {
     const inputOptions: Record<string, string> = {};
-    this.contractStatuses.forEach(s => { inputOptions[s] = s; });
+    this.contractStatuses.forEach(s => { inputOptions[s] = esLabel(s); });
 
     Swal.fire({
-      title: 'Change Status',
+      title: 'Cambiar estado',
       input: 'select',
       inputOptions,
       inputValue: contrato.status,
       showCancelButton: true,
-      confirmButtonText: 'Change',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: 'Cambiar',
+      cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         this.changeContractStatus(contrato.id, result.value);
@@ -771,10 +772,10 @@ export class ContratosComponent implements OnInit, OnDestroy {
         // Step 1: Validar PDF generado
         if (!contract.pdfUrl || contract.pdfUrl.trim() === '') {
           Swal.fire({
-            title: 'Contract PDF Required',
-            text: 'You must generate the contract PDF first. Use the PDF button in the contract details.',
+            title: 'Falta el PDF del contrato',
+            text: 'Primero genera el PDF del contrato con el botón PDF en el detalle del contrato.',
             icon: 'warning',
-            confirmButtonText: 'Understood'
+            confirmButtonText: 'Entendido'
           });
           this.closeStatusDropdown();
           return;
@@ -783,10 +784,10 @@ export class ContratosComponent implements OnInit, OnDestroy {
         // Step 2: Validar que fue emitido (enviado al cliente)
         if (!contract.issuedAt) {
           Swal.fire({
-            title: 'Contract Not Issued',
-            text: 'The contract must be issued (sent to the client for review) before it can be activated. Use the "Issue" action to send it.',
+            title: 'Contrato sin emitir',
+            text: 'El contrato debe emitirse (enviarse al cliente para revisión) antes de activarlo. Usa la acción "Emitir".',
             icon: 'warning',
-            confirmButtonText: 'Understood'
+            confirmButtonText: 'Entendido'
           });
           this.closeStatusDropdown();
           return;
@@ -795,10 +796,10 @@ export class ContratosComponent implements OnInit, OnDestroy {
         // Step 3: Validar firma
         if (!contract.signedAt) {
           Swal.fire({
-            title: 'Contract Not Signed',
-            text: 'The contract must be signed by the client before activation. Use the "Sign" action once the client confirms.',
+            title: 'Contrato sin firmar',
+            text: 'El cliente debe firmar el contrato antes de activarlo. Usa la acción "Firmar" cuando el cliente confirme.',
             icon: 'warning',
-            confirmButtonText: 'Understood'
+            confirmButtonText: 'Entendido'
           });
           this.closeStatusDropdown();
           return;
@@ -806,12 +807,12 @@ export class ContratosComponent implements OnInit, OnDestroy {
         
         // All validations passed — confirm activation
         Swal.fire({
-          title: 'Activate Contract',
-          text: 'The contract has been generated, issued, and signed. Do you want to activate it now?',
+          title: 'Activar contrato',
+          text: 'El contrato ya está generado, emitido y firmado. ¿Quieres activarlo ahora?',
           icon: 'question',
           showCancelButton: true,
-          confirmButtonText: 'Yes, activate',
-          cancelButtonText: 'Cancel',
+          confirmButtonText: 'Sí, activar',
+          cancelButtonText: 'Cancelar',
           reverseButtons: true
         }).then((result) => {
           if (result.isConfirmed) {
@@ -836,8 +837,8 @@ export class ContratosComponent implements OnInit, OnDestroy {
     // Mostrar spinner solo para activación
     if (newStatus === 'ACTIVE') {
       Swal.fire({
-        title: 'Activating contract...',
-        text: 'Validating requirements and activating the contract',
+        title: 'Activando contrato…',
+        text: 'Validando requisitos y activando el contrato',
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
@@ -858,13 +859,13 @@ export class ContratosComponent implements OnInit, OnDestroy {
         
         if (newStatus === 'ACTIVE') {
           Swal.fire({
-            title: 'Activated!',
-            text: 'The contract has been successfully activated.',
+            title: 'Activado',
+            text: 'El contrato quedó activo.',
             icon: 'success',
-            confirmButtonText: 'OK'
+            confirmButtonText: 'Aceptar'
           });
         } else {
-          this.showToast(`Status updated to ${newStatus}`, 'success', 'A', 0);
+          this.showToast(`Estado actualizado: ${esLabel(newStatus)}`, 'success', 'A', 0);
         }
         this.closeStatusDropdown();
       },
@@ -874,7 +875,7 @@ export class ContratosComponent implements OnInit, OnDestroy {
           title: 'Error',
           text: errorMsg,
           icon: 'error',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'Aceptar'
         });
         this.closeStatusDropdown();
         console.error('Error updating contract status:', error);
@@ -885,21 +886,21 @@ export class ContratosComponent implements OnInit, OnDestroy {
   signContract(contrato: any) {
     if (!contrato.pdfUrl) {
       Swal.fire({
-        title: 'Cannot sign',
-        text: 'The contract PDF must be generated before signing.',
+        title: 'No se puede firmar',
+        text: 'Genera el PDF del contrato antes de firmarlo.',
         icon: 'warning',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Aceptar'
       });
       return;
     }
 
     Swal.fire({
-      title: 'Sign Contract',
-      text: `Are you sure you want to mark contract ${contrato.code} as signed?`,
+      title: 'Firmar contrato',
+      text: `¿Seguro que quieres marcar como firmado el contrato ${contrato.code}?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Yes, sign it',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: 'Sí, firmar',
+      cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
         this.factonetService.signContract(contrato.id).subscribe({
@@ -911,10 +912,10 @@ export class ContratosComponent implements OnInit, OnDestroy {
             if (this.modalContrato) {
               this.modalContrato = { ...this.modalContrato, signedAt: new Date().toISOString() };
             }
-            Swal.fire('Signed!', 'The contract has been signed successfully.', 'success');
+            Swal.fire('Firmado', 'El contrato quedó firmado.', 'success');
           },
           error: (error) => {
-            Swal.fire('Error', error.error?.message || 'Failed to sign contract.', 'error');
+            Swal.fire('Error', error.error?.message || 'No se pudo firmar el contrato.', 'error');
           }
         });
       }
