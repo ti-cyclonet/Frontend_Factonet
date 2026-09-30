@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { EsLabelPipe } from '../../pipes/es-label.pipe';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { OptionMenu } from '../../model/option_menu';
@@ -16,7 +17,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
+  imports: [EsLabelPipe, 
     CommonModule,
     RouterModule,
     NavbarComponent,

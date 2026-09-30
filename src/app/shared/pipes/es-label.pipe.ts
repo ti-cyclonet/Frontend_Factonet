@@ -21,6 +21,7 @@ export const ES_LABELS: Record<string, string> = {
   Home: 'Inicio', Dashboard: 'Panel', Contracts: 'Contratos', Invoices: 'Facturas', Periods: 'Periodos',
   'Invoice Parameters': 'Parámetros de facturas', Reports: 'Reportes', Settings: 'Configuración',
   Administrator: 'Administrador', 'Invoice Administrator': 'Administrador de facturas',
+  adminFactonet: 'Administrador de FactoNet', adminInvoices: 'Cliente',
   'Full access': 'Acceso total', 'Access only to invoices': 'Acceso solo a facturas',
 };
 

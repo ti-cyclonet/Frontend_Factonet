@@ -23,6 +23,11 @@ export class FactonetService {
     // Asegurar que solo obtenemos facturas, no contratos
     return this.http.get<any[]>(`${this.apiUrl}/invoices`, { headers: this.getHeaders() });
   }
+  /** Resumen del Dashboard (admin: todo el ecosistema; cliente: lo suyo). */
+  getDashboardOverview(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/dashboard/overview`);
+  }
+
 
   getContracts(): Observable<any[]> {
     // Contratos vienen de FactoNet
