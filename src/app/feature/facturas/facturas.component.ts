@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
 import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { InvoiceRefreshService } from '../../shared/services/invoice-refresh.service';
@@ -46,7 +47,7 @@ interface NotificationItem {
 @Component({
   selector: 'app-facturas',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, UpperCasePipe],
+  imports: [CommonModule, CurrencyPipe, UpperCasePipe, EsLabelPipe],
   templateUrl: './facturas.component.html',
   styleUrls: ['./facturas.component.css']
 })
@@ -147,7 +148,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.facturas = [];
         this.dynamicColumns = [];
         this.loading = false;
-        this.showToast('Error connecting to Authoriza Backend', 'danger', 'A', 0);
+        this.showToast('No se pudo conectar con Authoriza', 'danger', 'A', 0);
       }
     });
   }
@@ -198,14 +199,14 @@ export class FacturasComponent implements OnInit, OnDestroy {
 
     this.factonetService.sweepInvoices().subscribe({
       next: (result) => {
-        this.showToast(`Sweep completed: ${result.generated} invoices generated`, 'success', 'A', 0);
+        this.showToast(`Listo: se generaron ${result.generated} factura(s)`, 'success', 'A', 0);
         this.loadFacturas(); // Recargar la lista
         this.invoiceRefreshService.triggerRefresh(); // Notificar a header y footer
         this.loading = false;
       },
       error: (error) => {
         this.loading = false;
-        this.showToast('Error executing invoice sweep', 'danger', 'A', 0);
+        this.showToast('No se pudieron generar las facturas pendientes', 'danger', 'A', 0);
       }
     });
   }
@@ -219,12 +220,12 @@ export class FacturasComponent implements OnInit, OnDestroy {
   }
 
   editFactura(factura: Factura) {
-    this.showToast(`Editing invoice ${factura.numero}`, 'warning', 'A', 0);
+    this.showToast(`Editando la factura ${factura.numero}`, 'warning', 'A', 0);
   }
 
   confirmDeleteFactura(factura: Factura) {
     this.facturas = this.facturas.filter(f => f.id !== factura.id);
-    this.showToast(`Invoice ${factura.numero} deleted successfully.`, 'danger', 'A', 0);
+    this.showToast(`Factura ${factura.numero} eliminada.`, 'danger', 'A', 0);
     this.selectedFactura = null;
     this.cdr.detectChanges();
   }
@@ -667,7 +668,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
     pdf.setTextColor(0, 0, 0);
 
     pdf.save('Factura_' + factura.numero + '.pdf');
-    this.showToast('Invoice PDF ' + factura.numero + ' generated', 'success', 'A', 0);
+    this.showToast('PDF de la factura ' + factura.numero + ' generado', 'success', 'A', 0);
   }
 
   private formatDate(dateStr: string): string {
@@ -729,11 +730,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
         );
         
         this.updatePagination();
-        this.showToast(`Status updated to ${newStatus}`, 'success', 'A', 0);
+        this.showToast(`Estado actualizado: ${esLabel(newStatus)}`, 'success', 'A', 0);
         this.closeStatusDropdown();
       },
       error: (error) => {
-        this.showToast('Error updating invoice status', 'danger', 'A', 0);
+        this.showToast('No se pudo actualizar el estado de la factura', 'danger', 'A', 0);
         this.closeStatusDropdown();
       }
     });
@@ -769,8 +770,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
                 </svg>
               </div>
               <div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 700;">Report Payment</h3>
-                <p style="margin: 0; font-size: 12px; opacity: 0.85;">Attach proof of payment for verification</p>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 700;">Reportar pago</h3>
+                <p style="margin: 0; font-size: 12px; opacity: 0.85;">Adjunta el comprobante de pago para verificarlo</p>
               </div>
             </div>
           </div>
@@ -780,24 +781,24 @@ export class FacturasComponent implements OnInit, OnDestroy {
           <!-- Invoice summary -->
           <div class="swal-payment-summary" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-radius: 10px; padding: 16px; margin-bottom: 18px; border: 1px solid #bbdefb;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
-              <span style="color: #5c6bc0; font-weight: 500;">📄 Invoice</span>
+              <span style="color: #5c6bc0; font-weight: 500;">📄 Factura</span>
               <strong style="color: #1a237e; font-size: 15px;">${factura.numero || ''}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
-              <span style="color: #5c6bc0; font-weight: 500;">🏢 Client</span>
+              <span style="color: #5c6bc0; font-weight: 500;">🏢 Cliente</span>
               <strong style="color: #1a237e;">${factura.cliente || ''}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center;">
-              <span style="color: #5c6bc0; font-weight: 500;">💰 Base Amount</span>
+              <span style="color: #5c6bc0; font-weight: 500;">💰 Valor base</span>
               <span style="color: #1a237e; font-weight: 600;">$${Number(factura.total || 0).toLocaleString('es-CO')}</span>
             </div>
             ${lateFee > 0 ? `
             <div style="display: flex; justify-content: space-between; align-items: center; background: #fff3e0; padding: 6px 10px; border-radius: 6px; margin: 6px 0;">
-              <span style="color: #e65100; font-weight: 500;">⚠️ Late Fee Penalty</span>
+              <span style="color: #e65100; font-weight: 500;">⚠️ Interés de mora</span>
               <span style="color: #e65100; font-weight: 700;">$${Number(lateFee).toLocaleString('es-CO')}</span>
             </div>` : ''}
             <div style="border-top: 2px dashed #90caf9; margin: 10px 0; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-              <span style="color: #0d1b4a; font-weight: 700; font-size: 15px;">Suggested Total</span>
+              <span style="color: #0d1b4a; font-weight: 700; font-size: 15px;">Total sugerido</span>
               <span style="color: #0d1b4a; font-weight: 800; font-size: 18px; background: linear-gradient(135deg, #e8eaf6, #c5cae9); padding: 5px 14px; border-radius: 6px; border: 1px solid #7986cb;">$${Number(suggestedTotal + lateFee).toLocaleString('es-CO')}</span>
             </div>
           </div>
@@ -805,11 +806,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
           <!-- Form fields -->
           <div class="swal-payment-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
             <div>
-              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">📅 Payment Date <span style="color: #e53935;">*</span></label>
+              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">📅 Fecha de pago <span style="color: #e53935;">*</span></label>
               <input type="date" id="swal-payment-date" value="${new Date().toISOString().split('T')[0]}" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
             </div>
             <div>
-              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Amount Paid <span style="color: #e53935;">*</span></label>
+              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado <span style="color: #e53935;">*</span></label>
               <input type="number" id="swal-paid-amount" value="${suggestedTotal + lateFee}" step="0.01" min="0" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
             </div>
           </div>
@@ -822,16 +823,16 @@ export class FacturasComponent implements OnInit, OnDestroy {
                 <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
               </svg>
             </div>
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2e7d32; font-size: 13px;">Payment Proof <span style="color: #e53935;">*</span></label>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2e7d32; font-size: 13px;">Comprobante de pago <span style="color: #e53935;">*</span></label>
             <input type="file" id="swal-voucher-file" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width: 100%; padding: 8px; border: none; background: white; border-radius: 6px; font-size: 13px; cursor: pointer;">
-            <small style="color: #558b2f; display: block; margin-top: 6px; font-size: 11px;">PDF, JPG, PNG, WEBP — Max 5MB • <strong style="color: #c62828;">Required</strong></small>
+            <small style="color: #558b2f; display: block; margin-top: 6px; font-size: 11px;">PDF, JPG, PNG, WEBP — Máx. 5 MB • <strong style="color: #c62828;">Obligatorio</strong></small>
           </div>
           </div>
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: '✓ Report Payment',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: '✓ Reportar pago',
+      cancelButtonText: 'Cancelar',
       confirmButtonColor: '#2e7d32',
       cancelButtonColor: '#78909c',
       width: '520px',
@@ -845,19 +846,19 @@ export class FacturasComponent implements OnInit, OnDestroy {
         const voucherFile = fileInput.files?.[0] || null;
 
         if (!paymentDate) {
-          Swal.showValidationMessage('Payment date is required');
+          Swal.showValidationMessage('La fecha de pago es obligatoria');
           return false;
         }
         if (!paidAmount || paidAmount <= 0) {
-          Swal.showValidationMessage('Amount paid must be greater than 0');
+          Swal.showValidationMessage('El valor pagado debe ser mayor a 0');
           return false;
         }
         if (!voucherFile) {
-          Swal.showValidationMessage('Payment proof is required');
+          Swal.showValidationMessage('El comprobante de pago es obligatorio');
           return false;
         }
         if (voucherFile.size > 5 * 1024 * 1024) {
-          Swal.showValidationMessage('File cannot exceed 5MB');
+          Swal.showValidationMessage('El archivo no puede superar 5 MB');
           return false;
         }
 
@@ -871,16 +872,16 @@ export class FacturasComponent implements OnInit, OnDestroy {
           next: () => {
             Swal.fire({
               icon: 'success',
-              title: 'Payment Reported!',
+              title: 'Pago reportado',
               html: `
                 <div style="font-size: 14px; text-align: center;">
                   <div style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 10px; padding: 16px; margin-bottom: 12px;">
-                    <p style="margin: 0 0 6px 0; color: #2e7d32; font-weight: 600;">Invoice <strong>${factura.numero}</strong></p>
-                    <p style="margin: 0 0 6px 0; color: #1b5e20;">Amount: <strong>$${paidAmount.toLocaleString('es-CO')}</strong></p>
-                    <p style="margin: 0; color: #1b5e20;">Date: <strong>${paymentDate}</strong></p>
+                    <p style="margin: 0 0 6px 0; color: #2e7d32; font-weight: 600;">Factura <strong>${factura.numero}</strong></p>
+                    <p style="margin: 0 0 6px 0; color: #1b5e20;">Valor: <strong>$${paidAmount.toLocaleString('es-CO')}</strong></p>
+                    <p style="margin: 0; color: #1b5e20;">Fecha: <strong>${paymentDate}</strong></p>
                   </div>
                   <div style="background: #e3f2fd; padding: 10px 16px; border-radius: 8px; border-left: 4px solid #1976d2;">
-                    <p style="margin: 0; color: #1565c0; font-size: 12px;">⏳ <em>Pending verification by administrator.</em></p>
+                    <p style="margin: 0; color: #1565c0; font-size: 12px;">⏳ <em>Pendiente de verificación por el administrador.</em></p>
                   </div>
                 </div>
               `,
@@ -894,8 +895,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
           error: (error) => {
             Swal.fire({
               icon: 'error',
-              title: 'Payment Registration Error',
-              text: error.error?.message || 'Could not register the payment',
+              title: 'No se pudo reportar el pago',
+              text: error.error?.message || 'No se pudo registrar el pago',
               confirmButtonColor: '#0d6efd',
             });
           }
@@ -914,8 +915,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
         if (!data.voucherUrl) {
           Swal.fire({
             icon: 'info',
-            title: 'No Proof Attached',
-            text: `Invoice ${factura.numero} does not have a payment proof attached.`,
+            title: 'Sin comprobante',
+            text: `La factura ${factura.numero} no tiene comprobante de pago adjunto.`,
             confirmButtonColor: '#0d6efd',
           });
           return;
@@ -930,29 +931,29 @@ export class FacturasComponent implements OnInit, OnDestroy {
         const downloadUrl = voucherUrl;
         
         Swal.fire({
-          title: 'Payment Proof',
+          title: 'Comprobante de pago',
           html: `
             <div style="text-align: left; font-size: 14px;">
               <div style="margin-bottom: 12px; padding: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #ede7f6 100%); border-radius: 8px; border: 1px solid #bbdefb;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                  <span style="color: #5c6bc0;">Invoice:</span>
+                  <span style="color: #5c6bc0;">Factura:</span>
                   <strong style="color: #1a237e;">${factura.numero}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                  <span style="color: #5c6bc0;">Client:</span>
+                  <span style="color: #5c6bc0;">Cliente:</span>
                   <strong style="color: #1a237e;">${factura.cliente}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                  <span style="color: #5c6bc0;">Amount Paid:</span>
+                  <span style="color: #5c6bc0;">Valor pagado:</span>
                   <strong style="color: #1b5e20;">$${Number(data.paidAmount || 0).toLocaleString('es-CO')}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                  <span style="color: #5c6bc0;">Payment Date:</span>
+                  <span style="color: #5c6bc0;">Fecha de pago:</span>
                   <strong style="color: #1a237e;">${data.paymentDate ? new Date(data.paymentDate + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</strong>
                 </div>
                 ${isPendingVerification ? `
                 <div style="margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #fff8e1, #fff3e0); border-radius: 6px; color: #e65100; font-weight: 600; text-align: center; border: 1px solid #ffcc80;">
-                  ⏳ Pending Verification
+                  ⏳ Pendiente de verificación
                 </div>` : ''}
               </div>
               ${!isPdf ? `
@@ -964,28 +965,28 @@ export class FacturasComponent implements OnInit, OnDestroy {
                   <svg width="48" height="48" fill="#2e7d32" viewBox="0 0 16 16">
                     <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
                   </svg>
-                  <p style="margin-top: 8px; color: #2e7d32; font-weight: 600;">PDF Document Attached</p>
+                  <p style="margin-top: 8px; color: #2e7d32; font-weight: 600;">Documento PDF adjunto</p>
                 </div>
               `}
               <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px;">
                 <a href="${voucherUrl}" target="_blank" rel="noopener" style="padding: 8px 18px; text-decoration: none; border-radius: 6px; background: #e3f2fd; color: #1565c0; font-size: 13px; font-weight: 500;">
-                  🔍 View Full Screen
+                  🔍 Ver en pantalla completa
                 </a>
                 <a href="${downloadUrl}" target="_blank" style="padding: 8px 18px; text-decoration: none; border-radius: 6px; background: #e8f5e9; color: #2e7d32; font-size: 13px; font-weight: 500;">
-                  ⬇️ Download
+                  ⬇️ Descargar
                 </a>
               </div>
             </div>
           `,
           width: '550px',
           showConfirmButton: isAdmin && isPendingVerification,
-          confirmButtonText: '✓ Approve Payment',
+          confirmButtonText: '✓ Aprobar pago',
           confirmButtonColor: '#2e7d32',
           showDenyButton: isAdmin && isPendingVerification,
-          denyButtonText: '✗ Reject Payment',
+          denyButtonText: '✗ Rechazar pago',
           denyButtonColor: '#c62828',
           showCancelButton: true,
-          cancelButtonText: 'Close',
+          cancelButtonText: 'Cerrar',
         }).then((result) => {
           if (result.isConfirmed) {
             this.confirmPayment(factura);
@@ -998,7 +999,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Could not retrieve the payment proof.',
+          text: 'No se pudo obtener el comprobante de pago.',
           confirmButtonColor: '#0d6efd',
         });
       }
@@ -1010,12 +1011,12 @@ export class FacturasComponent implements OnInit, OnDestroy {
    */
   private confirmPayment(factura: Factura) {
     Swal.fire({
-      title: 'Confirm Payment?',
-      html: `<p>Approve payment for invoice <strong>${factura.numero}</strong>?</p><p>The invoice will be marked as <strong>Paid</strong>.</p>`,
+      title: '¿Confirmar el pago?',
+      html: `<p>¿Aprobar el pago de la factura <strong>${factura.numero}</strong>?</p><p>La factura quedará <strong>Pagada</strong>.</p>`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Approve',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: 'Sí, aprobar',
+      cancelButtonText: 'Cancelar',
       confirmButtonColor: '#2e7d32',
     }).then((result) => {
       if (result.isConfirmed) {
@@ -1023,8 +1024,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
           next: () => {
             Swal.fire({
               icon: 'success',
-              title: 'Payment Approved!',
-              text: `Invoice ${factura.numero} marked as paid.`,
+              title: 'Pago aprobado',
+              text: `La factura ${factura.numero} quedó pagada.`,
               confirmButtonColor: '#1a237e',
               timer: 3000,
             });
@@ -1035,7 +1036,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: error.error?.message || 'Could not confirm the payment.',
+              text: error.error?.message || 'No se pudo confirmar el pago.',
               confirmButtonColor: '#0d6efd',
             });
           }
@@ -1049,15 +1050,15 @@ export class FacturasComponent implements OnInit, OnDestroy {
    */
   private rejectPayment(factura: Factura) {
     Swal.fire({
-      title: 'Reject Payment',
-      html: `<p>Reject payment for invoice <strong>${factura.numero}</strong>?</p><p>The invoice will revert to <strong>Issued</strong> and the client may retry.</p>`,
+      title: 'Rechazar pago',
+      html: `<p>¿Rechazar el pago de la factura <strong>${factura.numero}</strong>?</p><p>La factura vuelve a <strong>Emitida</strong> y el cliente podrá intentarlo de nuevo.</p>`,
       input: 'textarea',
       inputLabel: 'Rejection reason (optional)',
-      inputPlaceholder: 'E.g.: Proof does not match, incorrect amount...',
+      inputPlaceholder: 'Ej.: el comprobante no coincide, el valor es incorrecto…',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Reject',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: 'Rechazar',
+      cancelButtonText: 'Cancelar',
       confirmButtonColor: '#c62828',
     }).then((result) => {
       if (result.isConfirmed) {
@@ -1066,8 +1067,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
           next: () => {
             Swal.fire({
               icon: 'info',
-              title: 'Payment Rejected',
-              text: `Payment for invoice ${factura.numero} has been rejected.`,
+              title: 'Pago rechazado',
+              text: `Se rechazó el pago de la factura ${factura.numero}.`,
               confirmButtonColor: '#1a237e',
               timer: 3000,
             });
@@ -1078,7 +1079,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: error.error?.message || 'Could not reject the payment.',
+              text: error.error?.message || 'No se pudo rechazar el pago.',
               confirmButtonColor: '#0d6efd',
             });
           }
@@ -1102,14 +1103,14 @@ export class FacturasComponent implements OnInit, OnDestroy {
 
       Swal.fire({
         icon: 'warning',
-        title: 'Payment Rejected',
+        title: 'Pago rechazado',
         html: `
           <div style="font-size: 14px;">
-            <p style="color: #333; margin-bottom: 12px;">The following invoice(s) had their payment rejected. Please submit a new payment with valid proof.</p>
+            <p style="color: #333; margin-bottom: 12px;">Se rechazó el pago de las siguientes facturas. Reporta de nuevo el pago con un comprobante válido.</p>
             ${invoiceList}
           </div>
         `,
-        confirmButtonText: 'Understood',
+        confirmButtonText: 'Entendido',
         confirmButtonColor: '#1a237e',
         width: '500px',
       });

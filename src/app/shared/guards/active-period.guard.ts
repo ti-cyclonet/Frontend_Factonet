@@ -23,7 +23,7 @@ export class ActivePeriodGuard implements CanActivate {
     }).pipe(
       map(({ periodoActivo, parametrosGlobales, parametrosFacturas }) => {
         if (!periodoActivo) {
-          this.showError('No Active Period', 'You must have an active period to access this module.');
+          this.showError('No hay periodo activo', 'Necesitas un periodo activo para entrar a este módulo.');
           return false;
         }
 
@@ -32,26 +32,26 @@ export class ActivePeriodGuard implements CanActivate {
         const fechaFin = new Date(periodoActivo.endDate);
         
         if (fechaFin < fechaActual) {
-          this.showError('Expired Period', `The active period "${periodoActivo.name}" has expired. You must activate a valid period to continue.`);
+          this.showError('Periodo vencido', `El periodo activo "${periodoActivo.name}" ya venció. Activa un periodo vigente para continuar.`);
           return false;
         }
 
         // Validar parámetros globales configurados
         if (!parametrosGlobales || parametrosGlobales.length === 0) {
-          this.showError('Global Parameters Not Configured', 'You must configure global parameters for the active period to access this module.');
+          this.showError('Faltan los parámetros globales', 'Configura los parámetros globales del periodo activo para entrar a este módulo.');
           return false;
         }
 
         // Validar parámetros de facturas configurados
         if (!parametrosFacturas || parametrosFacturas.length === 0) {
-          this.showError('Invoice Parameters Not Configured', 'You must configure invoice parameters to access this module.');
+          this.showError('Faltan los parámetros de facturas', 'Configura los parámetros de facturas para entrar a este módulo.');
           return false;
         }
         
         return true;
       }),
       catchError(() => {
-        this.showError('Configuration Error', 'Unable to verify system configuration. Please check your setup.');
+        this.showError('Error de configuración', 'No se pudo verificar la configuración del sistema. Revisa la configuración.');
         return of(false);
       })
     );
@@ -78,7 +78,7 @@ export class ActivePeriodGuard implements CanActivate {
       title,
       text,
       icon: 'warning',
-      confirmButtonText: 'Go to Configuration',
+      confirmButtonText: 'Ir a Configuración',
       allowOutsideClick: false
     }).then(() => {
       this.router.navigate(['/parametros-globales']);

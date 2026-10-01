@@ -204,10 +204,10 @@ export default class LayoutComponent implements OnInit {
       next: (periodoActivo) => {
         if (!periodoActivo) {
           Swal.fire({
-            title: 'No Active Period',
-            text: 'No active period exists. You must create and activate a period to continue.',
+            title: 'No hay periodo activo',
+            text: 'No hay un periodo activo. Crea y activa un periodo para continuar.',
             icon: 'warning',
-            confirmButtonText: 'Go to Periods',
+            confirmButtonText: 'Ir a Periodos',
             allowOutsideClick: false
           }).then(() => {
             this.router.navigate(['/parametros-globales']);
@@ -217,10 +217,10 @@ export default class LayoutComponent implements OnInit {
       error: () => {
         // Si hay error, asumir que no hay períodos
         Swal.fire({
-          title: 'No Periods Configured',
-          text: 'You must create and activate a period to continue.',
+          title: 'No hay periodos configurados',
+          text: 'Crea y activa un periodo para continuar.',
           icon: 'warning',
-          confirmButtonText: 'Go to Periods',
+          confirmButtonText: 'Ir a Periodos',
           allowOutsideClick: false
         }).then(() => {
           this.router.navigate(['/parametros-globales']);

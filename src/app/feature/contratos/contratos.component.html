@@ -2,7 +2,7 @@
   <div class="outer-container">
     <!-- Title + Action Icons -->
     <div class="inner-container d-flex justify-content-between align-items-center" id="cuadro1" style="border-bottom: 4px solid #2782d8; padding-bottom: 10px;">
-      <h3 class="card-title mb-0 fw-bold">Contracts List</h3>
+      <h3 class="card-title mb-0 fw-bold">Lista de contratos</h3>
       <div class="d-flex gap-2 align-items-center">
         <button class="btn-icon-circle" (click)="showFilters = !showFilters" [title]="showFilters ? 'Hide filters' : 'Show filters'" [attr.aria-label]="showFilters ? 'Hide filters' : 'Show filters'">
           <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
@@ -17,42 +17,42 @@
       <div class="bg-warning bg-opacity-10 rounded p-3 border border-primary border-opacity-25">
         <div class="row g-3">
           <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label">Status</label>
+            <label class="form-label">Estado</label>
             <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
-              <option value="">All</option>
-              <option value="PENDING">Pending</option>
-              <option value="ACTIVE">Active</option>
-              <option value="SUSPENDED">Suspended</option>
-              <option value="CANCELLED">Cancelled</option>
-              <option value="EXPIRED">Expired</option>
+              <option value="">Todos</option>
+              <option value="PENDING">Pendiente</option>
+              <option value="ACTIVE">Activo</option>
+              <option value="SUSPENDED">Suspendido</option>
+              <option value="CANCELLED">Cancelado</option>
+              <option value="EXPIRED">Vencido</option>
             </select>
           </div>
           <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label">Code</label>
+            <label class="form-label">Código</label>
             <input type="text" class="form-control" [value]="filters.code" (input)="filters.code = $any($event.target).value; applyFilters()" placeholder="DC00001">
           </div>
           <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label">User</label>
-            <input type="text" class="form-control" [value]="filters.user" (input)="filters.user = $any($event.target).value; applyFilters()" placeholder="Search user">
+            <label class="form-label">Usuario</label>
+            <input type="text" class="form-control" [value]="filters.user" (input)="filters.user = $any($event.target).value; applyFilters()" placeholder="Buscar usuario">
           </div>
           <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label">Package</label>
+            <label class="form-label">Paquete</label>
             <select class="form-select" [value]="filters.package" (change)="filters.package = $any($event.target).value; applyFilters()">
-              <option value="">All</option>
+              <option value="">Todos</option>
               <option *ngFor="let name of packageOptions()" [value]="name" [selected]="filters.package === name">{{ name }}</option>
             </select>
           </div>
           <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label">Billable</label>
+            <label class="form-label">Facturable</label>
             <select class="form-select" [value]="filters.billable" (change)="filters.billable = $any($event.target).value; applyFilters()">
-              <option value="">All</option>
-              <option value="yes">Yes</option>
+              <option value="">Todos</option>
+              <option value="yes">Sí</option>
               <option value="no">No</option>
             </select>
           </div>
           <div class="col-12 col-md-6 col-lg-2">
             <label class="form-label d-block">&nbsp;</label>
-            <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
+            <button class="btn btn-secondary w-100" (click)="clearFilters()">Limpiar</button>
           </div>
         </div>
       </div>
@@ -64,17 +64,17 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th class="d-none d-md-table-cell">Code</th>
-              <th>User</th>
-              <th class="d-none d-md-table-cell">Package</th>
-              <th class="d-none d-lg-table-cell">Billable</th>
-              <th class="d-none d-md-table-cell">Value</th>
-              <th class="d-none d-xl-table-cell">Mode</th>
-              <th class="d-none d-xl-table-cell">Pay Day</th>
-              <th class="d-none d-xl-table-cell">Start Date</th>
-              <th class="d-none d-xl-table-cell">End Date</th>
-              <th class="d-none d-md-table-cell">Status</th>
-              <th class="text-center" style="width: 100px;">Actions</th>
+              <th class="d-none d-md-table-cell">Código</th>
+              <th>Usuario</th>
+              <th class="d-none d-md-table-cell">Paquete</th>
+              <th class="d-none d-lg-table-cell">Facturable</th>
+              <th class="d-none d-md-table-cell">Valor</th>
+              <th class="d-none d-xl-table-cell">Modalidad</th>
+              <th class="d-none d-xl-table-cell">Día de pago</th>
+              <th class="d-none d-xl-table-cell">Fecha de inicio</th>
+              <th class="d-none d-xl-table-cell">Fecha de fin</th>
+              <th class="d-none d-md-table-cell">Estado</th>
+              <th class="text-center" style="width: 100px;">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -86,11 +86,11 @@
               <td class="d-none d-md-table-cell">{{ contrato.package.name || 'N/A' }}</td>
               <td class="d-none d-lg-table-cell">
                 <span class="badge" [ngClass]="contrato.package.isBillable !== false ? 'bg-success' : 'bg-secondary'">
-                  {{ contrato.package.isBillable !== false ? 'Yes' : 'No' }}
+                  {{ contrato.package.isBillable !== false ? 'Sí' : 'No' }}
                 </span>
               </td>
               <td class="d-none d-md-table-cell">$ {{ ((+contrato.value || 0) | number:'1.0-0' || '0') | replace:',':'.' }},oo</td>
-              <td class="d-none d-xl-table-cell">{{ contrato.mode || 'N/A' }}</td>
+              <td class="d-none d-xl-table-cell">{{ (contrato.mode | es) || 'N/A' }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.payday }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.startDate }}</td>
               <td class="d-none d-xl-table-cell">{{ contrato.endDate }}</td>
@@ -99,7 +99,7 @@
                   'bg-success': contrato.status === 'ACTIVE',
                   'bg-danger': contrato.status === 'EXPIRED',
                   'bg-warning': contrato.status === 'PENDING'
-                }">{{ contrato.status }}</span>
+                }">{{ contrato.status | es }}</span>
               </td>
               <td>
                 <div class="d-flex align-items-center justify-content-center gap-2">
@@ -141,7 +141,7 @@
             'bg-danger': modalContrato.status === 'EXPIRED'
           }">
             <h4 class="contract-code text-dark fw-bold mb-0">{{ modalContrato.code || modalContrato.id }}</h4>
-            <span class="status-badge bg-white text-dark">{{ modalContrato.status }}</span>
+            <span class="status-badge bg-white text-dark">{{ modalContrato.status | es }}</span>
           </div>
 
           <!-- Contenido del contrato -->
@@ -162,7 +162,7 @@
                     <small class="text-muted">Contacto:</small> {{ modalContrato.user.basicData.legalEntityData.contactName }}
                   </div>
                   <div class="mb-1">
-                    <small class="text-muted">Email:</small> {{ modalContrato.user.basicData.legalEntityData.contactEmail }}
+                    <small class="text-muted">Correo:</small> {{ modalContrato.user.basicData.legalEntityData.contactEmail }}
                   </div>
                   <div class="mb-1">
                     <small class="text-muted">Teléfono:</small> {{ modalContrato.user.basicData.legalEntityData.contactPhone }}
@@ -205,7 +205,7 @@
             <!-- Modalidad -->
             <div class="info-section">
               <label class="info-label">Modalidad</label>
-              <div class="info-value">{{ modalContrato.mode || 'N/A' }}</div>
+              <div class="info-value">{{ (modalContrato.mode | es) || 'N/A' }}</div>
             </div>
 
             <!-- Valor y día de pago -->
@@ -249,11 +249,11 @@
               </button>
               <button type="button" class="btn btn-sm btn-outline-warning flex-fill" (click)="openStatusChangeFromModal(modalContrato)" [disabled]="modalContrato.status === 'PENDING' && (!modalContrato.clientSignedAt || !modalContrato.adminSignedAt)">
                 <svg width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#arrow-repeat" /></svg>
-                Status
+                Estado
               </button>
               <button type="button" class="btn btn-sm btn-outline-danger flex-fill" (click)="openDeleteConfirmationModal()">
                 <svg width="14" height="14" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#trash" /></svg>
-                Delete
+                Eliminar
               </button>
             </div>
 
@@ -285,7 +285,7 @@
                             (click)="signContractAsAdmin(modalContrato)">
                       Firmar como Admin
                     </button>
-                    <span *ngIf="!modalContrato.adminSignedAt && (userRol !== 'adminFactonet' || !isAuthorizedSigner)" class="badge bg-secondary" style="font-size: 0.65rem; cursor: help;" title="Only the authorized signer can sign this contract">Pendiente</span>
+                    <span *ngIf="!modalContrato.adminSignedAt && (userRol !== 'adminFactonet' || !isAuthorizedSigner)" class="badge bg-secondary" style="font-size: 0.65rem; cursor: help;" title="Solo el firmante autorizado puede firmar este contrato">Pendiente</span>
                   </div>
                   <small *ngIf="modalContrato.adminSignedAt" class="text-muted d-block">
                     {{ modalContrato.adminSignedBy }} · {{ modalContrato.adminSignedAt | date:'dd/MM/yyyy HH:mm' }}
@@ -295,7 +295,7 @@
             </div>
 
             <div class="mt-3">
-              <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal" (click)="closeModal()">Close</button>
+              <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal" (click)="closeModal()">Cerrar</button>
             </div>
           </div>
         </div>

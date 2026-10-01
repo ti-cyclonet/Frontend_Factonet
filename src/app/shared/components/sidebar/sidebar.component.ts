@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { EsLabelPipe } from '../../pipes/es-label.pipe';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, NgStyle } from '@angular/common';
 import { OptionMenu } from '../../model/option_menu';
@@ -6,7 +7,7 @@ import { OptionMenu } from '../../model/option_menu';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, NgStyle],
+  imports: [CommonModule, RouterLink, RouterLinkActive, NgStyle, EsLabelPipe],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })

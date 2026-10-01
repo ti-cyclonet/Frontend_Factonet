@@ -16,14 +16,14 @@
   <div class="outer-container">
     <!-- Título + Action Icons -->
     <div class="inner-container d-flex justify-content-between align-items-center" id="cuadro1" style="border-bottom: 4px solid #2782d8 !important; padding-bottom: 10px;">
-      <h3 class="card-title mb-0">Invoices List</h3>
+      <h3 class="card-title mb-0">Lista de facturas</h3>
       <div class="d-flex gap-2 align-items-center">
         <button class="btn-icon-circle" (click)="showFilters = !showFilters" [title]="showFilters ? 'Hide filters' : 'Show filters'" [attr.aria-label]="showFilters ? 'Hide filters' : 'Show filters'">
           <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
             <use [attr.xlink:href]="showFilters ? './assets/icons/bootstrap-icons.svg#funnel-fill' : './assets/icons/bootstrap-icons.svg#funnel'" />
           </svg>
         </button>
-        <button *ngIf="userRol === 'adminFactonet'" class="btn-icon-circle" (click)="sweepInvoices()" title="Generate pending invoices" aria-label="Generate pending invoices" [disabled]="loading">
+        <button *ngIf="userRol === 'adminFactonet'" class="btn-icon-circle" (click)="sweepInvoices()" title="Generar facturas pendientes" aria-label="Generar facturas pendientes" [disabled]="loading">
           <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
             <use xlink:href="./assets/icons/bootstrap-icons.svg#lightning-charge" />
           </svg>
@@ -36,38 +36,38 @@
       <div class="bg-warning bg-opacity-10 rounded p-3 border border-primary border-opacity-25">
           <div class="row g-3">
             <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-              <label class="form-label">Status</label>
+              <label class="form-label">Estado</label>
               <select class="form-select" [value]="filters.status" (change)="filters.status = $any($event.target).value; applyFilters()">
-                <option value="">All</option>
-                <option value="Unconfirmed">Unconfirmed</option>
-                <option value="Issued">Issued</option>
-                <option value="In arrears">In arrears</option>
-                <option value="Notification1">Notification1</option>
-                <option value="Notification2">Notification2</option>
-                <option value="Suspended">Suspended</option>
-                <option value="Payment Reported">Payment Reported</option>
-                <option value="Paid">Paid</option>
+                <option value="">Todos</option>
+                <option value="Unconfirmed">Sin confirmar</option>
+                <option value="Issued">Emitida</option>
+                <option value="In arrears">En mora</option>
+                <option value="Notification1">Primer aviso</option>
+                <option value="Notification2">Segundo aviso</option>
+                <option value="Suspended">Suspendida</option>
+                <option value="Payment Reported">Pago reportado</option>
+                <option value="Paid">Pagada</option>
               </select>
             </div>
             <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-              <label class="form-label">Number</label>
+              <label class="form-label">Número</label>
               <input type="text" class="form-control" [value]="filters.number" (input)="filters.number = $any($event.target).value; applyFilters()" placeholder="DF00001">
             </div>
             <div class="col-12 col-md-6 col-lg-3 col-xl-2" *ngIf="userRol !== 'adminInvoices'">
-              <label class="form-label">Client</label>
-              <input type="text" class="form-control" [value]="filters.client" (input)="filters.client = $any($event.target).value; applyFilters()" placeholder="Search client">
+              <label class="form-label">Cliente</label>
+              <input type="text" class="form-control" [value]="filters.client" (input)="filters.client = $any($event.target).value; applyFilters()" placeholder="Buscar cliente">
             </div>
             <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-              <label class="form-label">From</label>
+              <label class="form-label">Desde</label>
               <input type="date" class="form-control" [value]="filters.dateFrom" (change)="filters.dateFrom = $any($event.target).value; applyFilters()">
             </div>
             <div class="col-12 col-md-6 col-lg-3 col-xl-2">
-              <label class="form-label">To</label>
+              <label class="form-label">Hasta</label>
               <input type="date" class="form-control" [value]="filters.dateTo" (change)="filters.dateTo = $any($event.target).value; applyFilters()">
             </div>
             <div class="col-12 col-md-6 col-lg-3 col-xl-2">
               <label class="form-label d-block">&nbsp;</label>
-              <button class="btn btn-secondary w-100" (click)="clearFilters()">Clear</button>
+              <button class="btn btn-secondary w-100" (click)="clearFilters()">Limpiar</button>
             </div>
           </div>
       </div>
@@ -84,7 +84,7 @@
             <span class="fn-f">F</span><span class="fn-n">N</span>
           </div>
         </div>
-        <p class="fn-loading-text">Loading invoices...</p>
+        <p class="fn-loading-text">Cargando facturas…</p>
       </div>
 
       <!-- Encabezados fijos -->
@@ -93,15 +93,15 @@
           <table class="table table-striped mb-0">
             <thead style="background-color: white;">
               <tr>
-                <th class="text-center" style="width: 145px;">Status</th>
-                <th class="text-center" style="width: 100px;">Number</th>
-                <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Issue Date</th>
-                <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Due Date</th>
-                <th class="text-start d-none d-md-table-cell">Client</th>
-                <th class="text-end d-none d-md-table-cell" style="width: 120px;">Amount</th>
+                <th class="text-center" style="width: 145px;">Estado</th>
+                <th class="text-center" style="width: 100px;">Número</th>
+                <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Emisión</th>
+                <th class="text-center d-none d-xl-table-cell" style="width: 110px;">Vencimiento</th>
+                <th class="text-start d-none d-md-table-cell">Cliente</th>
+                <th class="text-end d-none d-md-table-cell" style="width: 120px;">Valor</th>
                 <th *ngFor="let column of dynamicColumns" class="text-end d-none d-lg-table-cell" style="width: 130px;">{{ getColumnLabel(column, facturas[0]) }}</th>
                 <th class="text-end d-none d-md-table-cell" style="width: 130px;">Total</th>
-                <th class="text-center" style="width: 80px;">Actions</th>
+                <th class="text-center" style="width: 80px;">Acciones</th>
               </tr>
             </thead>
           </table>
@@ -127,7 +127,7 @@
                       'bg-info': factura.estado === 'Payment Reported',
                       'bg-secondary': factura.estado === 'Unconfirmed'
                     }" 
-                          (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, factura.id) : null" style="font-size: 10px; white-space: nowrap;">{{ factura.estado === 'Payment Reported' ? 'PAY REPORTED' : factura.estado.toUpperCase() }}</span>
+                          (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, factura.id) : null" style="font-size: 10px; white-space: nowrap;">{{ factura.estado | es:true }}</span>
                   </div>
                 </td>
                 <td class="text-center" style="width: 100px;">{{ factura.numero }}</td>
@@ -152,7 +152,7 @@
                 </td>
                 <td class="text-end d-none d-md-table-cell" style="width: 130px;">${{ calculateFinalTotal(factura) | number:'1.0-0' }}</td>
                 <td class="text-center" style="width: 80px;">
-                  <button type="button" class="btn p-0 border-0 bg-transparent me-2" title="View details" 
+                  <button type="button" class="btn p-0 border-0 bg-transparent me-2" title="Ver detalles" 
                           data-bs-toggle="modal" data-bs-target="#viewInvoiceModal" (click)="modalFactura = factura">
                     <svg width="16" height="16" fill="currentColor">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
@@ -161,7 +161,7 @@
                   <button *ngIf="userRol === 'adminInvoices' && (factura.estado === 'Issued' || factura.estado === 'In arrears' || factura.estado === 'Notification1' || factura.estado === 'Notification2' || factura.estado === 'Suspended')" 
                           type="button" 
                           class="btn p-0 border-0 bg-transparent" 
-                          title="Pay invoice"
+                          title="Pagar factura"
                           (click)="payInvoice(factura)">
                     <svg width="16" height="16" fill="currentColor">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#credit-card" />
@@ -180,7 +180,7 @@
                 </td>
               </tr>
               <tr *ngIf="paginatedFacturas.length === 0">
-                <td [attr.colspan]="8 + dynamicColumns.length" class="text-center">No invoices available</td>
+                <td [attr.colspan]="8 + dynamicColumns.length" class="text-center">No hay facturas</td>
               </tr>
             </tbody>
           </table>
@@ -191,7 +191,7 @@
       <div class="pagination-fixed" *ngIf="totalPages > 1">
         <div class="d-flex justify-content-between align-items-center">
           <div class="text-muted">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredFacturas.length) }} of {{ filteredFacturas.length }} invoices
+            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredFacturas.length) }} de {{ filteredFacturas.length }} facturas
           </div>
           <nav>
             <ul class="pagination mb-0">
@@ -222,7 +222,7 @@
   <button *ngFor="let status of invoiceStatuses" 
           class="dropdown-item btn btn-link text-start w-100 border-0 px-3 py-2"
           (click)="changeInvoiceStatus(+statusDropdownOpen()!, status)">
-    {{ status }}
+    {{ status | es }}
   </button>
 </div>
 
@@ -233,9 +233,9 @@
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="viewInvoiceModalLabel">
           <i class="bi bi-receipt me-2"></i>
-          Invoice {{ modalFactura?.numero }}
+          Factura {{ modalFactura?.numero }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body p-3" *ngIf="modalFactura">
         <!-- Información básica -->
@@ -243,19 +243,19 @@
           <div class="col-md-6">
             <div class="card h-100">
               <div class="card-header bg-light py-2">
-                <h6 class="mb-0 small"><i class="bi bi-info-circle me-1"></i>General Information</h6>
+                <h6 class="mb-0 small"><i class="bi bi-info-circle me-1"></i>Información general</h6>
               </div>
               <div class="card-body py-2 px-3">
-                <p class="mb-1"><strong>Number:</strong> {{ modalFactura.numero }}</p>
-                <p class="mb-1"><strong>Client:</strong> {{ modalFactura.cliente }}</p>
-                <p class="mb-0"><strong>Status:</strong> 
+                <p class="mb-1"><strong>Número:</strong> {{ modalFactura.numero }}</p>
+                <p class="mb-1"><strong>Cliente:</strong> {{ modalFactura.cliente }}</p>
+                <p class="mb-0"><strong>Estado:</strong> 
                   <span class="badge" [ngClass]="{
                     'bg-success': modalFactura.estado === 'Paid',
                     'bg-danger': modalFactura.estado === 'In arrears' || modalFactura.estado === 'Suspended',
                     'bg-warning': modalFactura.estado === 'Issued' || modalFactura.estado === 'Notification1' || modalFactura.estado === 'Notification2',
                     'bg-info': modalFactura.estado === 'Payment Reported',
                     'bg-secondary': modalFactura.estado === 'Unconfirmed'
-                  }">{{ modalFactura.estado.toUpperCase() }}</span>
+                  }">{{ modalFactura.estado | es:true }}</span>
                 </p>
               </div>
             </div>
@@ -263,11 +263,11 @@
           <div class="col-md-6">
             <div class="card h-100">
               <div class="card-header bg-light py-2">
-                <h6 class="mb-0 small"><i class="bi bi-calendar me-1"></i>Dates</h6>
+                <h6 class="mb-0 small"><i class="bi bi-calendar me-1"></i>Fechas</h6>
               </div>
               <div class="card-body py-2 px-3">
-                <p class="mb-1"><strong>Issue date:</strong> {{ modalFactura.fechaEmision }}</p>
-                <p class="mb-0"><strong>Due date:</strong> {{ modalFactura.fechaVencimiento }}</p>
+                <p class="mb-1"><strong>Emisión:</strong> {{ modalFactura.fechaEmision }}</p>
+                <p class="mb-0"><strong>Vencimiento:</strong> {{ modalFactura.fechaVencimiento }}</p>
               </div>
             </div>
           </div>
@@ -276,7 +276,7 @@
         <!-- Resumen Financiero -->
         <div class="card">
           <div class="card-header bg-light py-2">
-            <h6 class="mb-0 small"><i class="bi bi-calculator me-1"></i>Financial Summary</h6>
+            <h6 class="mb-0 small"><i class="bi bi-calculator me-1"></i>Resumen financiero</h6>
           </div>
           <div class="card-body py-2 px-3">
             <div class="d-flex justify-content-between mb-1">
@@ -309,9 +309,9 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-primary" (click)="generateInvoicePDF(modalFactura!)">
-          <i class="bi bi-file-earmark-pdf me-2"></i>Generate PDF
+          <i class="bi bi-file-earmark-pdf me-2"></i>Generar PDF
         </button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>

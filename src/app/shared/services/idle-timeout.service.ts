@@ -8,6 +8,8 @@ import { Router, NavigationEnd } from '@angular/router';
 export class IdleTimeoutService {
   private timeoutId: any;
   private readonly idleTime = 3 * 60 * 1000;
+  /** Pantallas que se dejan abiertas: no cierran sesión por inactividad (el Dashboard renueva su token). */
+  private readonly keepAliveRoutes = ['/home'];
   private isBrowser: boolean;
 
   constructor(
@@ -36,6 +38,9 @@ export class IdleTimeoutService {
       document.addEventListener('keydown', this.resetTimer);
       document.addEventListener('click', this.resetTimer);
       document.addEventListener('touchstart', this.resetTimer);
+      // Desplazarse también es actividad (leer una lista larga con la rueda)
+      document.addEventListener('wheel', this.resetTimer, { passive: true });
+      document.addEventListener('scroll', this.resetTimer, { passive: true, capture: true });
     });
 
     this.startTimer();
@@ -48,11 +53,18 @@ export class IdleTimeoutService {
     document.removeEventListener('keydown', this.resetTimer);
     document.removeEventListener('click', this.resetTimer);
     document.removeEventListener('touchstart', this.resetTimer);
+    document.removeEventListener('wheel', this.resetTimer);
+    document.removeEventListener('scroll', this.resetTimer, { capture: true });
     clearTimeout(this.timeoutId);
   }
 
   private startTimer(): void {
     this.timeoutId = setTimeout(() => {
+      const url = this.router.url.split('?')[0];
+      if (this.keepAliveRoutes.some((r) => url === r || url.startsWith(r + '/'))) {
+        this.startTimer();
+        return;
+      }
       this.handleLogout();
     }, this.idleTime);
   }

@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { EsLabelPipe } from '../../pipes/es-label.pipe';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { OptionMenu } from '../../model/option_menu';
@@ -16,7 +17,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
+  imports: [EsLabelPipe, 
     CommonModule,
     RouterModule,
     NavbarComponent,
@@ -276,10 +277,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       next: (metrics: DashboardMetrics) => {
         this.notifications = [];
         if (metrics.pendingInvoices > 0) {
-          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} Pending invoices`, type: 'warning', visible: true });
+          this.notifications.push({ container: 0, title: `${metrics.pendingInvoices} factura(s) pendiente(s)`, type: 'warning', visible: true });
         }
         if (metrics.paidInvoices > 0) {
-          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} Paid invoices`, type: 'success', visible: true });
+          this.notifications.push({ container: 0, title: `${metrics.paidInvoices} factura(s) pagada(s)`, type: 'success', visible: true });
         }
       },
       error: (error) => {

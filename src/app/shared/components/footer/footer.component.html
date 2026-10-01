@@ -9,32 +9,32 @@
 
             <!-- 2. Estados de Facturas -->
             <div class="d-flex align-items-center me-3 d-none d-lg-flex">
-                <span class="text-dark small fw-bold me-2">Invoices:</span>
+                <span class="text-dark small fw-bold me-2">Facturas:</span>
                 <span class="badge bg-secondary text-white px-2 py-1 me-1" *ngIf="invoiceStats.unconfirmed > 0">
-                    {{ invoiceStats.unconfirmed }} Unconfirmed
+                    {{ invoiceStats.unconfirmed }} sin confirmar
                 </span>
                 <span class="badge bg-primary text-white px-2 py-1 me-1" *ngIf="invoiceStats.issued > 0">
-                    {{ invoiceStats.issued }} Issued
+                    {{ invoiceStats.issued }} emitidas
                 </span>
                 <span class="badge bg-success text-white px-2 py-1 me-1" *ngIf="invoiceStats.paid > 0">
-                    {{ invoiceStats.paid }} Paid
+                    {{ invoiceStats.paid }} pagadas
                 </span>
             </div>
 
             <!-- 3. Estados de Contratos -->
             <div class="d-flex align-items-center d-none d-xl-flex">
-                <span class="text-dark small fw-bold me-2">Contracts:</span>
+                <span class="text-dark small fw-bold me-2">Contratos:</span>
                 <span class="badge bg-warning text-dark px-2 py-1 me-1" *ngIf="contractStats.pending > 0">
-                    {{ contractStats.pending }} Pending
+                    {{ contractStats.pending }} pendientes
                 </span>
                 <span class="badge bg-success text-white px-2 py-1 me-1" *ngIf="contractStats.active > 0">
-                    {{ contractStats.active }} Active
+                    {{ contractStats.active }} activos
                 </span>
                 <span class="badge bg-danger text-white px-2 py-1 me-1" *ngIf="contractStats.suspended > 0">
-                    {{ contractStats.suspended }} Suspended
+                    {{ contractStats.suspended }} suspendidos
                 </span>
                 <span class="badge bg-dark text-white px-2 py-1 me-1" *ngIf="contractStats.expired > 0">
-                    {{ contractStats.expired }} Expired
+                    {{ contractStats.expired }} vencidos
                 </span>
             </div>
         </div>

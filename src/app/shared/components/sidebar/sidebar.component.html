@@ -14,7 +14,7 @@
           <svg fill="currentcolor" viewBox="0 0 16 16">
             <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + option.icon"></use>
           </svg>
-          <div>{{ option.description }}</div>
+          <div>{{ option.description | es }}</div>
         
           <!-- Renderiza el badge solo si hay submenú -->
           <span class="badge" *ngIf="hasSubmenu(option.id)" [class.show]="isSubmenuOpen(option.id)">
@@ -34,7 +34,7 @@
             <svg fill="currentcolor" viewBox="0 0 16 16">
               <use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + submenu.icon"></use>
             </svg>
-            {{ submenu.description }}
+            {{ submenu.description | es }}
           </a>
         </div>
       </ng-container>      
