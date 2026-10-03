@@ -10,9 +10,18 @@
   height: 100vh;
 }
 
+/* Alto fijo de la pantalla y scroll dentro del contenido: app.component
+   pone overflow: hidden al body, así que la página no puede crecer. */
+.main-layout-container {
+  height: 100vh;
+  height: 100dvh;
+}
+
 .router-outlet-container {
   overflow-y: auto;
   flex-grow: 1;
+  min-height: 0;
+  padding-bottom: 48px; /* el footer es fijo y taparía el final */
 }
 
 /* Fondo para cuando el usuario está logueado */
