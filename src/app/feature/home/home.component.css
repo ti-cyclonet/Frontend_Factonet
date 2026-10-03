@@ -134,9 +134,9 @@
 .feed-value { font-size: 0.82rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 900px) { .row-2, .row-3 { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .row-2, .row-3 { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 576px) {
   .dash { padding: 1rem 0.85rem 1.5rem; }
-  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: minmax(0, 1fr); }
   .dash-live { width: 100%; justify-content: space-between; }
 }
