@@ -1,6 +1,5 @@
 <div class="main-layout-container d-flex flex-column" 
-     [class.logged-in]="isUserLoggedIn()" 
-     style="min-height: 100vh;">
+     [class.logged-in]="isUserLoggedIn()">
 
   <!-- Global Loading Spinner -->
   <div *ngIf="isLoading" class="global-spinner-overlay">
@@ -11,8 +10,8 @@
     <app-header [optionsMenu]="optionsMenu"></app-header>
   </header>
   
-  <div class="router-outlet-container flex-grow-1" 
-       style="overflow-y: auto; background-color: #2782d8;">
+  <div class="router-outlet-container flex-grow-1"
+       style="background-color: #2782d8;">
     <div class="content-wrapper">
       <router-outlet></router-outlet>
     </div>
