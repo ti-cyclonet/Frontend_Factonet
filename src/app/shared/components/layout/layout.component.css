@@ -21,7 +21,8 @@
   overflow-y: auto;
   flex-grow: 1;
   min-height: 0;
-  padding-bottom: 48px; /* el footer es fijo y taparía el final */
+  /* el footer y el botón de ajustes son fijos y taparían el final */
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
 /* Fondo para cuando el usuario está logueado */
