@@ -10,6 +10,7 @@ import { escapeHtml } from '../../shared/utils/escape-html';
 import { mensajeError } from '../../shared/utils/mensaje-error';
 import { FacturasPendientesComponent } from './facturas-pendientes.component';
 import { hoyLocal } from './facturas-resumen';
+import { DATOS_PAGO_CYCLONET, generarEstadoCuenta, nombreArchivoEstadoCuenta } from './estado-cuenta-pdf';
 
 interface Factura {
   id: number;
@@ -656,9 +657,9 @@ export class FacturasComponent implements OnInit, OnDestroy {
     pdf.text('INFORMACIÓN DE PAGO', margin + 3, y);
     y += 6;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Banco: Bancolombia  |  Cuenta de ahorros No. 039-000000-00  |  A nombre de: Cyclonet S. A. S.  |  NIT: 901.515.884-4', margin + 3, y);
+    pdf.text(DATOS_PAGO_CYCLONET[0], margin + 3, y);
     y += 5;
-    pdf.text('Nequi / Daviplata: 314 414 4986', margin + 3, y);
+    pdf.text(DATOS_PAGO_CYCLONET[1], margin + 3, y);
 
     // ===== TÉRMINOS Y CONDICIONES =====
     y += 12;
@@ -758,6 +759,19 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.closeStatusDropdown();
       }
     });
+  }
+
+  /** PDF con lo que el cliente debe, lo que está en verificación y sus últimos pagos. */
+  descargarEstadoCuenta(): void {
+    const guardar = (logo: HTMLImageElement | null) => {
+      const pdf = generarEstadoCuenta(this.facturas, this.totalFactura, { logo });
+      pdf.save(nombreArchivoEstadoCuenta(this.facturas.find(f => f.cliente)?.cliente));
+      this.showToast('Estado de cuenta descargado', 'success', 'A', 0);
+    };
+    const logo = new Image();
+    logo.onload = () => guardar(logo);
+    logo.onerror = () => guardar(null);
+    logo.src = 'assets/img/Cyclonet_nit.png';
   }
 
   private cargarConfiguracionPagos(): void {

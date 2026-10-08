@@ -16,7 +16,7 @@
   <!-- Lo primero que ve cada rol: el cliente, qué debe; el administrador, qué pagos verificar -->
   <app-facturas-pendientes *ngIf="!loading" [facturas]="facturas" [rol]="userRol" [total]="totalFactura"
     [textoPagar]="pasarelaActiva ? 'Pagar' : 'Reportar pago'"
-    (pagar)="pagarFactura($event)" (revisar)="viewPaymentVoucher($event)"></app-facturas-pendientes>
+    (pagar)="pagarFactura($event)" (estadoCuenta)="descargarEstadoCuenta()" (revisar)="viewPaymentVoucher($event)"></app-facturas-pendientes>
 
   <div class="outer-container">
     <!-- Título + Action Icons -->

@@ -10,10 +10,13 @@
           <ng-container *ngIf="r.proximoVencimiento"> · la primera vence el {{ fecha(r.proximoVencimiento) }}</ng-container>
         </p>
       </div>
-      <span class="fp-chip fp-chip-peligro" *ngIf="r.vencidas">
-        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#exclamation-triangle-fill"/></svg>
-        {{ r.vencidas }} {{ r.vencidas === 1 ? 'vencida' : 'vencidas' }}
-      </span>
+      <div class="fp-acciones">
+        <span class="fp-chip fp-chip-peligro" *ngIf="r.vencidas">
+          <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#exclamation-triangle-fill"/></svg>
+          {{ r.vencidas }} {{ r.vencidas === 1 ? 'vencida' : 'vencidas' }}
+        </span>
+        <ng-container *ngTemplateOutlet="botonEstadoCuenta"></ng-container>
+      </div>
     </ng-container>
     <ng-template #alDia>
       <span class="fp-icono-ok"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle-fill"/></svg></span>
@@ -21,6 +24,13 @@
         <p class="fp-total fp-total-ok">Estás al día</p>
         <p class="fp-sub">No tienes facturas pendientes de pago.</p>
       </div>
+      <div class="fp-acciones fp-acciones-fin"><ng-container *ngTemplateOutlet="botonEstadoCuenta"></ng-container></div>
+    </ng-template>
+    <ng-template #botonEstadoCuenta>
+      <button type="button" class="fp-btn-sec" (click)="estadoCuenta.emit()" *ngIf="facturas.length">
+        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-arrow-down"/></svg>
+        Estado de cuenta
+      </button>
     </ng-template>
   </div>
 

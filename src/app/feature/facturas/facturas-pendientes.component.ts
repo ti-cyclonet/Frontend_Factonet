@@ -29,6 +29,8 @@ export class FacturasPendientesComponent implements OnChanges {
 
   @Output() pagar = new EventEmitter<any>();
   @Output() revisar = new EventEmitter<any>();
+  /** El cliente pide su estado de cuenta en PDF. */
+  @Output() estadoCuenta = new EventEmitter<void>();
 
   resumen: ResumenCliente<FacturaVista> | null = null;
   porVerificar: FacturaVista[] = [];
