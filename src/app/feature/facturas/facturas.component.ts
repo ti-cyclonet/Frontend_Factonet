@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
 import { CommonModule, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
@@ -99,13 +100,21 @@ export class FacturasComponent implements OnInit, OnDestroy {
   // Loading state
   loading = false;
 
+  /**
+   * Pago en línea (Wompi). Mientras el backend diga pasarelaActiva=false (no
+   * hay cuenta empresarial todavía), solo se ofrece "Reportar pago".
+   */
+  pasarelaActiva = false;
+
   /** TOTAL de una factura para las tarjetas de arriba (el mismo de la tabla y del PDF). */
   readonly totalFactura = (f: Factura) => this.calculateFinalTotal(f);
 
   constructor(
     private cdr: ChangeDetectorRef,
     private factonetService: FactonetService,
-    private invoiceRefreshService: InvoiceRefreshService
+    private invoiceRefreshService: InvoiceRefreshService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {}
 
   // Misma referencia para agregar y quitar el listener: antes se quitaba otra
@@ -115,6 +124,10 @@ export class FacturasComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
     this.loadFacturas();
+    if (this.userRol === 'adminInvoices') {
+      this.cargarConfiguracionPagos();
+      this.revisarRegresoDeWompi();
+    }
 
     // Listener para cerrar dropdown al hacer click fuera
     document.addEventListener('click', this.onDocumentClick);
@@ -744,6 +757,83 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.showToast(mensajeError(error, 'No se pudo actualizar el estado de la factura'), 'danger', 'A', 0);
         this.closeStatusDropdown();
       }
+    });
+  }
+
+  private cargarConfiguracionPagos(): void {
+    this.factonetService.getConfiguracionPagos().subscribe({
+      next: (c) => (this.pasarelaActiva = !!c?.pasarelaActiva),
+      error: () => (this.pasarelaActiva = false), // sin configuración, queda el flujo de siempre
+    });
+  }
+
+  /**
+   * Botón de pago del cliente. Con la pasarela apagada abre "Reportar pago"
+   * como siempre; encendida, deja elegir entre pagar en línea o reportar una
+   * transferencia ya hecha.
+   */
+  pagarFactura(factura: Factura): void {
+    if (!this.pasarelaActiva) {
+      this.payInvoice(factura);
+      return;
+    }
+    Swal.fire({
+      title: `Pagar la factura ${escapeHtml(factura.numero)}`,
+      html: `<p style="margin:0 0 4px">Total: <strong>$${Number(this.calculateFinalTotal(factura)).toLocaleString('es-CO')}</strong></p>
+             <p style="margin:0;color:#64748b;font-size:13px">Paga con PSE, tarjeta, Nequi o botón Bancolombia, o reporta una transferencia que ya hiciste.</p>`,
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Pagar en línea',
+      denyButtonText: 'Ya pagué: reportar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#1877e4',
+      denyButtonColor: '#64748b',
+    }).then((r) => {
+      if (r.isConfirmed) this.irAPagarEnLinea(factura);
+      else if (r.isDenied) this.payInvoice(factura);
+    });
+  }
+
+  private irAPagarEnLinea(factura: Factura): void {
+    this.loading = true;
+    this.factonetService.crearCheckout(factura.id).subscribe({
+      next: ({ url }) => {
+        // El monto va firmado por el servidor: Wompi rechaza cualquier cambio
+        window.location.href = url;
+      },
+      error: (error) => {
+        this.loading = false;
+        Swal.fire({ icon: 'error', title: 'No se pudo iniciar el pago', text: mensajeError(error, 'Intenta de nuevo en un momento.'), confirmButtonColor: '#0d6efd' });
+      },
+    });
+  }
+
+  /** Wompi devuelve al cliente a /invoices?pago=wompi&id=<transacción>: se confirma el resultado con el servidor. */
+  private revisarRegresoDeWompi(): void {
+    const q = this.route.snapshot.queryParamMap;
+    const transaccion = q.get('id');
+    if (q.get('pago') !== 'wompi' || !transaccion) return;
+
+    // Quita los parámetros para que recargar la página no repita la verificación
+    this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    Swal.fire({ title: 'Confirmando tu pago…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    this.factonetService.verificarTransaccion(transaccion).subscribe({
+      next: (r) => {
+        const mensajes: Record<string, { icon: 'success' | 'info' | 'warning'; title: string; text: string }> = {
+          'pagada': { icon: 'success', title: '¡Pago recibido!', text: 'Tu factura quedó pagada. Gracias.' },
+          'por-verificar': { icon: 'info', title: 'Recibimos tu pago', text: 'El administrador lo revisará y te avisaremos cuando quede confirmado.' },
+          'pendiente': { icon: 'info', title: 'Tu pago está en proceso', text: 'Algunos medios, como PSE, tardan unos minutos. Te avisaremos cuando se confirme.' },
+          'rechazada': { icon: 'warning', title: 'El pago no fue aprobado', text: 'No se hizo ningún cobro. Puedes intentarlo de nuevo con otro medio.' },
+        };
+        const m = mensajes[r.estado] || mensajes['pendiente'];
+        Swal.fire({ ...m, confirmButtonColor: '#1a237e' });
+        this.loadFacturas();
+        this.invoiceRefreshService.triggerRefresh();
+      },
+      error: (error) => {
+        Swal.fire({ icon: 'error', title: 'No pudimos confirmar el pago', text: mensajeError(error, 'Si el banco te cobró, el pago se aplicará en unos minutos.'), confirmButtonColor: '#0d6efd' });
+      },
     });
   }
 

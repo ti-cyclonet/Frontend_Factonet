@@ -15,7 +15,8 @@
   
   <!-- Lo primero que ve cada rol: el cliente, qué debe; el administrador, qué pagos verificar -->
   <app-facturas-pendientes *ngIf="!loading" [facturas]="facturas" [rol]="userRol" [total]="totalFactura"
-    (pagar)="payInvoice($event)" (revisar)="viewPaymentVoucher($event)"></app-facturas-pendientes>
+    [textoPagar]="pasarelaActiva ? 'Pagar' : 'Reportar pago'"
+    (pagar)="pagarFactura($event)" (revisar)="viewPaymentVoucher($event)"></app-facturas-pendientes>
 
   <div class="outer-container">
     <!-- Título + Action Icons -->
@@ -166,7 +167,7 @@
                           type="button" 
                           class="btn p-0 border-0 bg-transparent" 
                           title="Pagar factura"
-                          (click)="payInvoice(factura)">
+                          (click)="pagarFactura(factura)">
                     <svg width="16" height="16" fill="currentColor">
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#credit-card" />
                     </svg>

@@ -121,6 +121,19 @@ export class FactonetService {
     return this.http.post<any>(`${this.apiUrl}/invoices/${invoiceId}/reject-payment`, { reason }, { headers: this.getHeaders() });
   }
 
+  // Pago en línea (Wompi). Apagado mientras el backend diga pasarelaActiva=false.
+  getConfiguracionPagos(): Observable<{ pasarelaActiva: boolean; proveedor: string | null }> {
+    return this.http.get<any>(`${this.apiUrl}/pagos/configuracion`, { headers: this.getHeaders() });
+  }
+
+  crearCheckout(invoiceId: number): Observable<{ url: string; referencia: string; montoEnCentavos: number; total: number }> {
+    return this.http.post<any>(`${this.apiUrl}/pagos/facturas/${invoiceId}/checkout`, {}, { headers: this.getHeaders() });
+  }
+
+  verificarTransaccion(transaccionId: string): Observable<{ estado: string; facturaId?: number; motivo?: string; estadoWompi?: string }> {
+    return this.http.get<any>(`${this.apiUrl}/pagos/wompi/transacciones/${encodeURIComponent(transaccionId)}`, { headers: this.getHeaders() });
+  }
+
   // Métodos de Reportes
   getManagementIndicators(filters?: any): Observable<any> {
     let params = new HttpParams();
