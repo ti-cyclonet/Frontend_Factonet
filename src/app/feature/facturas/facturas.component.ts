@@ -5,6 +5,7 @@ import { FactonetService } from '../../shared/services/factonet/factonet.service
 import { InvoiceRefreshService } from '../../shared/services/invoice-refresh.service';
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
+import { escapeHtml } from '../../shared/utils/escape-html';
 
 interface Factura {
   id: number;
@@ -101,20 +102,20 @@ export class FacturasComponent implements OnInit, OnDestroy {
     private invoiceRefreshService: InvoiceRefreshService
   ) {}
 
+  // Misma referencia para agregar y quitar el listener: antes se quitaba otra
+  // función y el listener quedaba vivo al salir de la pantalla.
+  private readonly onDocumentClick = () => this.closeStatusDropdown();
+
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
     this.loadFacturas();
-    
+
     // Listener para cerrar dropdown al hacer click fuera
-    document.addEventListener('click', () => {
-      this.closeStatusDropdown();
-    });
+    document.addEventListener('click', this.onDocumentClick);
   }
 
   ngOnDestroy(): void {
-    document.removeEventListener('click', () => {
-      this.closeStatusDropdown();
-    });
+    document.removeEventListener('click', this.onDocumentClick);
   }
 
   loadFacturas(): void {
@@ -148,7 +149,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.facturas = [];
         this.dynamicColumns = [];
         this.loading = false;
-        this.showToast('No se pudo conectar con Authoriza', 'danger', 'A', 0);
+        this.showToast(error.error?.message || 'No se pudieron cargar las facturas', 'danger', 'A', 0);
       }
     });
   }
@@ -177,13 +178,13 @@ export class FacturasComponent implements OnInit, OnDestroy {
   getColumnLabel(column: string, factura?: Factura): string {
     const baseLabels: { [key: string]: string } = {
       'iva': 'IVA',
-      'profit_margin': 'Profit Margin',
-      'financing_interest': 'Financing Interest',
-      'global_discount': 'Global Discount',
-      'late_fee_penalty': 'Late Fee Penalty',
-      'BLACK_FRIDAY_DISCOUNT': 'Black Friday Discount',
-      'RTE_FUENTE': 'RTE Fuente',
-      'currency': 'Currency'
+      'profit_margin': 'Margen',
+      'financing_interest': 'Interés de financiación',
+      'global_discount': 'Descuento',
+      'late_fee_penalty': 'Interés de mora',
+      'BLACK_FRIDAY_DISCOUNT': 'Descuento Black Friday',
+      'RTE_FUENTE': 'Retención en la fuente',
+      'currency': 'Moneda'
     };
     
     return baseLabels[column] || column;
@@ -206,7 +207,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.loading = false;
-        this.showToast('No se pudieron generar las facturas pendientes', 'danger', 'A', 0);
+        this.showToast(error.error?.message || 'No se pudieron generar las facturas pendientes', 'danger', 'A', 0);
       }
     });
   }
@@ -498,11 +499,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
     pdf.setFont('helvetica', 'normal');
     const periodoTexto = this.formatDate(factura.periodoInicio || '') + ' a ' + this.formatDate(factura.periodoFin || '');
     pdf.text(periodoTexto, margin + 40, y);
-    const estadoLabel: Record<string, string> = { 'Unconfirmed': 'Sin confirmar', 'Issued': 'Emitida', 'In arrears': 'En mora', 'Paid': 'Pagada', 'Suspended': 'Suspendida', 'Notification1': 'Notificación 1', 'Notification2': 'Notificación 2' };
     pdf.setFont('helvetica', 'bold');
     pdf.text('Estado:', col2X, y);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(estadoLabel[factura.estado] || factura.estado, col2X + 16, y);
+    // Mismas etiquetas que la pantalla (antes faltaba 'Payment Reported' y salía en inglés)
+    pdf.text(esLabel(factura.estado), col2X + 16, y);
 
     y += 5;
     const diasCobrados = this.calculateDaysBetween(factura.periodoInicio, factura.periodoFin);
@@ -734,17 +735,18 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.closeStatusDropdown();
       },
       error: (error) => {
-        this.showToast('No se pudo actualizar el estado de la factura', 'danger', 'A', 0);
+        this.showToast(error.error?.message || 'No se pudo actualizar el estado de la factura', 'danger', 'A', 0);
         this.closeStatusDropdown();
       }
     });
   }
 
   payInvoice(factura: Factura) {
-    // Calculate the current total (value + dynamic parameters)
-    const baseValue = factura.total || 0;
+    // El total sugerido es el mismo TOTAL de la tabla y del PDF (valor más los
+    // conceptos de la factura: IVA, mora, descuentos). Antes era valor + mora,
+    // y el cliente podía reportar menos de lo que debía.
     const lateFee = factura['late_fee_penalty'] || 0;
-    const suggestedTotal = baseValue;
+    const suggestedTotal = this.calculateFinalTotal(factura);
 
     Swal.fire({
       title: '',
@@ -782,11 +784,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
           <div class="swal-payment-summary" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-radius: 10px; padding: 16px; margin-bottom: 18px; border: 1px solid #bbdefb;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
               <span style="color: #5c6bc0; font-weight: 500;">📄 Factura</span>
-              <strong style="color: #1a237e; font-size: 15px;">${factura.numero || ''}</strong>
+              <strong style="color: #1a237e; font-size: 15px;">${escapeHtml(factura.numero)}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
               <span style="color: #5c6bc0; font-weight: 500;">🏢 Cliente</span>
-              <strong style="color: #1a237e;">${factura.cliente || ''}</strong>
+              <strong style="color: #1a237e;">${escapeHtml(factura.cliente)}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center;">
               <span style="color: #5c6bc0; font-weight: 500;">💰 Valor base</span>
@@ -799,7 +801,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             </div>` : ''}
             <div style="border-top: 2px dashed #90caf9; margin: 10px 0; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
               <span style="color: #0d1b4a; font-weight: 700; font-size: 15px;">Total sugerido</span>
-              <span style="color: #0d1b4a; font-weight: 800; font-size: 18px; background: linear-gradient(135deg, #e8eaf6, #c5cae9); padding: 5px 14px; border-radius: 6px; border: 1px solid #7986cb;">$${Number(suggestedTotal + lateFee).toLocaleString('es-CO')}</span>
+              <span style="color: #0d1b4a; font-weight: 800; font-size: 18px; background: linear-gradient(135deg, #e8eaf6, #c5cae9); padding: 5px 14px; border-radius: 6px; border: 1px solid #7986cb;">$${Number(suggestedTotal).toLocaleString('es-CO')}</span>
             </div>
           </div>
 
@@ -811,7 +813,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             </div>
             <div>
               <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado <span style="color: #e53935;">*</span></label>
-              <input type="number" id="swal-paid-amount" value="${suggestedTotal + lateFee}" step="0.01" min="0" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
+              <input type="number" id="swal-paid-amount" value="${suggestedTotal}" step="0.01" min="0" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
             </div>
           </div>
 
@@ -876,9 +878,9 @@ export class FacturasComponent implements OnInit, OnDestroy {
               html: `
                 <div style="font-size: 14px; text-align: center;">
                   <div style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 10px; padding: 16px; margin-bottom: 12px;">
-                    <p style="margin: 0 0 6px 0; color: #2e7d32; font-weight: 600;">Factura <strong>${factura.numero}</strong></p>
+                    <p style="margin: 0 0 6px 0; color: #2e7d32; font-weight: 600;">Factura <strong>${escapeHtml(factura.numero)}</strong></p>
                     <p style="margin: 0 0 6px 0; color: #1b5e20;">Valor: <strong>$${paidAmount.toLocaleString('es-CO')}</strong></p>
-                    <p style="margin: 0; color: #1b5e20;">Fecha: <strong>${paymentDate}</strong></p>
+                    <p style="margin: 0; color: #1b5e20;">Fecha: <strong>${escapeHtml(paymentDate)}</strong></p>
                   </div>
                   <div style="background: #e3f2fd; padding: 10px 16px; border-radius: 8px; border-left: 4px solid #1976d2;">
                     <p style="margin: 0; color: #1565c0; font-size: 12px;">⏳ <em>Pendiente de verificación por el administrador.</em></p>
@@ -937,11 +939,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
               <div style="margin-bottom: 12px; padding: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #ede7f6 100%); border-radius: 8px; border: 1px solid #bbdefb;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                   <span style="color: #5c6bc0;">Factura:</span>
-                  <strong style="color: #1a237e;">${factura.numero}</strong>
+                  <strong style="color: #1a237e;">${escapeHtml(factura.numero)}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                   <span style="color: #5c6bc0;">Cliente:</span>
-                  <strong style="color: #1a237e;">${factura.cliente}</strong>
+                  <strong style="color: #1a237e;">${escapeHtml(factura.cliente)}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                   <span style="color: #5c6bc0;">Valor pagado:</span>
@@ -949,7 +951,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                   <span style="color: #5c6bc0;">Fecha de pago:</span>
-                  <strong style="color: #1a237e;">${data.paymentDate ? new Date(data.paymentDate + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</strong>
+                  <strong style="color: #1a237e;">${data.paymentDate ? new Date(data.paymentDate + 'T12:00:00').toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</strong>
                 </div>
                 ${isPendingVerification ? `
                 <div style="margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #fff8e1, #fff3e0); border-radius: 6px; color: #e65100; font-weight: 600; text-align: center; border: 1px solid #ffcc80;">
@@ -958,7 +960,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
               </div>
               ${!isPdf ? `
                 <div style="text-align: center; margin: 16px 0;">
-                  <img src="${voucherUrl}" alt="Payment proof" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                  <img src="${escapeHtml(voucherUrl)}" alt="Comprobante de pago" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 </div>
               ` : `
                 <div style="text-align: center; margin: 16px 0; padding: 24px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 10px;">
@@ -969,10 +971,10 @@ export class FacturasComponent implements OnInit, OnDestroy {
                 </div>
               `}
               <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px;">
-                <a href="${voucherUrl}" target="_blank" rel="noopener" style="padding: 8px 18px; text-decoration: none; border-radius: 6px; background: #e3f2fd; color: #1565c0; font-size: 13px; font-weight: 500;">
+                <a href="${escapeHtml(voucherUrl)}" target="_blank" rel="noopener" style="padding: 8px 18px; text-decoration: none; border-radius: 6px; background: #e3f2fd; color: #1565c0; font-size: 13px; font-weight: 500;">
                   🔍 Ver en pantalla completa
                 </a>
-                <a href="${downloadUrl}" target="_blank" style="padding: 8px 18px; text-decoration: none; border-radius: 6px; background: #e8f5e9; color: #2e7d32; font-size: 13px; font-weight: 500;">
+                <a href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener" style="padding: 8px 18px; text-decoration: none; border-radius: 6px; background: #e8f5e9; color: #2e7d32; font-size: 13px; font-weight: 500;">
                   ⬇️ Descargar
                 </a>
               </div>
@@ -995,11 +997,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
           }
         });
       },
-      error: () => {
+      error: (error) => {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo obtener el comprobante de pago.',
+          text: error.error?.message || 'No se pudo obtener el comprobante de pago.',
           confirmButtonColor: '#0d6efd',
         });
       }
@@ -1012,7 +1014,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
   private confirmPayment(factura: Factura) {
     Swal.fire({
       title: '¿Confirmar el pago?',
-      html: `<p>¿Aprobar el pago de la factura <strong>${factura.numero}</strong>?</p><p>La factura quedará <strong>Pagada</strong>.</p>`,
+      html: `<p>¿Aprobar el pago de la factura <strong>${escapeHtml(factura.numero)}</strong>?</p><p>La factura quedará <strong>Pagada</strong>.</p>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, aprobar',
@@ -1051,9 +1053,9 @@ export class FacturasComponent implements OnInit, OnDestroy {
   private rejectPayment(factura: Factura) {
     Swal.fire({
       title: 'Rechazar pago',
-      html: `<p>¿Rechazar el pago de la factura <strong>${factura.numero}</strong>?</p><p>La factura vuelve a <strong>Emitida</strong> y el cliente podrá intentarlo de nuevo.</p>`,
+      html: `<p>¿Rechazar el pago de la factura <strong>${escapeHtml(factura.numero)}</strong>?</p><p>La factura vuelve a <strong>Emitida</strong> y el cliente podrá intentarlo de nuevo.</p>`,
       input: 'textarea',
-      inputLabel: 'Rejection reason (optional)',
+      inputLabel: 'Motivo del rechazo (opcional)',
       inputPlaceholder: 'Ej.: el comprobante no coincide, el valor es incorrecto…',
       icon: 'warning',
       showCancelButton: true,
@@ -1096,8 +1098,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
     if (rejectedInvoices.length > 0) {
       const invoiceList = rejectedInvoices.map(f => 
         `<div style="background: #fff3e0; border-left: 4px solid #e65100; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; text-align: left;">
-          <strong style="color: #e65100;">${f.numero}</strong>
-          <p style="margin: 4px 0 0 0; color: #bf360c; font-size: 13px;">${f.rejectionReason}</p>
+          <strong style="color: #e65100;">${escapeHtml(f.numero)}</strong>
+          <p style="margin: 4px 0 0 0; color: #bf360c; font-size: 13px;">${escapeHtml(f.rejectionReason)}</p>
         </div>`
       ).join('');
 
