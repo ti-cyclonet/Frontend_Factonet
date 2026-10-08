@@ -6,6 +6,9 @@ import { InvoiceRefreshService } from '../../shared/services/invoice-refresh.ser
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import { escapeHtml } from '../../shared/utils/escape-html';
+import { mensajeError } from '../../shared/utils/mensaje-error';
+import { FacturasPendientesComponent } from './facturas-pendientes.component';
+import { hoyLocal } from './facturas-resumen';
 
 interface Factura {
   id: number;
@@ -48,7 +51,7 @@ interface NotificationItem {
 @Component({
   selector: 'app-facturas',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, UpperCasePipe, EsLabelPipe],
+  imports: [CommonModule, CurrencyPipe, UpperCasePipe, EsLabelPipe, FacturasPendientesComponent],
   templateUrl: './facturas.component.html',
   styleUrls: ['./facturas.component.css']
 })
@@ -95,6 +98,9 @@ export class FacturasComponent implements OnInit, OnDestroy {
 
   // Loading state
   loading = false;
+
+  /** TOTAL de una factura para las tarjetas de arriba (el mismo de la tabla y del PDF). */
+  readonly totalFactura = (f: Factura) => this.calculateFinalTotal(f);
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -149,7 +155,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.facturas = [];
         this.dynamicColumns = [];
         this.loading = false;
-        this.showToast(error.error?.message || 'No se pudieron cargar las facturas', 'danger', 'A', 0);
+        this.showToast(mensajeError(error, 'No se pudieron cargar las facturas'), 'danger', 'A', 0);
       }
     });
   }
@@ -207,7 +213,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.loading = false;
-        this.showToast(error.error?.message || 'No se pudieron generar las facturas pendientes', 'danger', 'A', 0);
+        this.showToast(mensajeError(error, 'No se pudieron generar las facturas pendientes'), 'danger', 'A', 0);
       }
     });
   }
@@ -735,7 +741,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.closeStatusDropdown();
       },
       error: (error) => {
-        this.showToast(error.error?.message || 'No se pudo actualizar el estado de la factura', 'danger', 'A', 0);
+        this.showToast(mensajeError(error, 'No se pudo actualizar el estado de la factura'), 'danger', 'A', 0);
         this.closeStatusDropdown();
       }
     });
@@ -809,7 +815,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
           <div class="swal-payment-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
             <div>
               <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">📅 Fecha de pago <span style="color: #e53935;">*</span></label>
-              <input type="date" id="swal-payment-date" value="${new Date().toISOString().split('T')[0]}" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
+              <input type="date" id="swal-payment-date" value="${hoyLocal()}" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
             </div>
             <div>
               <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado <span style="color: #e53935;">*</span></label>
@@ -898,7 +904,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             Swal.fire({
               icon: 'error',
               title: 'No se pudo reportar el pago',
-              text: error.error?.message || 'No se pudo registrar el pago',
+              text: mensajeError(error, 'No se pudo registrar el pago'),
               confirmButtonColor: '#0d6efd',
             });
           }
@@ -1001,7 +1007,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: error.error?.message || 'No se pudo obtener el comprobante de pago.',
+          text: mensajeError(error, 'No se pudo obtener el comprobante de pago.'),
           confirmButtonColor: '#0d6efd',
         });
       }
@@ -1038,7 +1044,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: error.error?.message || 'No se pudo confirmar el pago.',
+              text: mensajeError(error, 'No se pudo confirmar el pago.'),
               confirmButtonColor: '#0d6efd',
             });
           }
@@ -1081,7 +1087,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: error.error?.message || 'No se pudo rechazar el pago.',
+              text: mensajeError(error, 'No se pudo rechazar el pago.'),
               confirmButtonColor: '#0d6efd',
             });
           }

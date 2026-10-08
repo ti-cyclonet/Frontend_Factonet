@@ -13,10 +13,14 @@
     <button type="button" class="btn-close" (click)="removeNotification(i)"></button>
   </div>
   
+  <!-- Lo primero que ve cada rol: el cliente, qué debe; el administrador, qué pagos verificar -->
+  <app-facturas-pendientes *ngIf="!loading" [facturas]="facturas" [rol]="userRol" [total]="totalFactura"
+    (pagar)="payInvoice($event)" (revisar)="viewPaymentVoucher($event)"></app-facturas-pendientes>
+
   <div class="outer-container">
     <!-- Título + Action Icons -->
     <div class="inner-container d-flex justify-content-between align-items-center" id="cuadro1" style="border-bottom: 4px solid #2782d8 !important; padding-bottom: 10px;">
-      <h3 class="card-title mb-0">Lista de facturas</h3>
+      <h3 class="card-title mb-0">{{ userRol === 'adminInvoices' ? 'Historial de facturas' : 'Lista de facturas' }}</h3>
       <div class="d-flex gap-2 align-items-center">
         <button class="btn-icon-circle" (click)="showFilters = !showFilters" [title]="showFilters ? 'Ocultar filtros' : 'Mostrar filtros'" [attr.aria-label]="showFilters ? 'Ocultar filtros' : 'Mostrar filtros'">
           <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
