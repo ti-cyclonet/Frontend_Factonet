@@ -1,0 +1,100 @@
+<!-- ═══ Cliente: qué debo y cómo lo pago ═══ -->
+<section class="fp" *ngIf="esCliente && resumen as r">
+  <div class="fp-resumen" [class.fp-al-dia]="!r.porPagar.length">
+    <ng-container *ngIf="r.porPagar.length; else alDia">
+      <div>
+        <p class="fp-etiqueta">Total por pagar</p>
+        <p class="fp-total">{{ dinero(r.totalPendiente) }}</p>
+        <p class="fp-sub">
+          {{ r.porPagar.length }} {{ r.porPagar.length === 1 ? 'factura pendiente' : 'facturas pendientes' }}
+          <ng-container *ngIf="r.proximoVencimiento"> · la primera vence el {{ fecha(r.proximoVencimiento) }}</ng-container>
+        </p>
+      </div>
+      <div class="fp-acciones">
+        <span class="fp-chip fp-chip-peligro" *ngIf="r.vencidas">
+          <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#exclamation-triangle-fill"/></svg>
+          {{ r.vencidas }} {{ r.vencidas === 1 ? 'vencida' : 'vencidas' }}
+        </span>
+        <ng-container *ngTemplateOutlet="botonEstadoCuenta"></ng-container>
+      </div>
+    </ng-container>
+    <ng-template #alDia>
+      <span class="fp-icono-ok"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle-fill"/></svg></span>
+      <div>
+        <p class="fp-total fp-total-ok">Estás al día</p>
+        <p class="fp-sub">No tienes facturas pendientes de pago.</p>
+      </div>
+      <div class="fp-acciones fp-acciones-fin"><ng-container *ngTemplateOutlet="botonEstadoCuenta"></ng-container></div>
+    </ng-template>
+    <ng-template #botonEstadoCuenta>
+      <button type="button" class="fp-btn-sec" (click)="estadoCuenta.emit()" *ngIf="facturas.length">
+        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-arrow-down"/></svg>
+        Estado de cuenta
+      </button>
+    </ng-template>
+  </div>
+
+  <div class="fp-grid" *ngIf="r.porPagar.length">
+    <article class="fp-card" *ngFor="let f of r.porPagar; trackBy: trackById" [ngClass]="'fp-' + urgencia(f)">
+      <header class="fp-card-head">
+        <strong class="fp-numero">{{ f.numero }}</strong>
+        <span class="fp-estado">{{ f.estado | es }}</span>
+      </header>
+      <p class="fp-periodo" *ngIf="f.periodoInicio && f.periodoFin">Servicio del {{ fecha(f.periodoInicio) }} al {{ fecha(f.periodoFin) }}</p>
+      <p class="fp-valor">{{ dinero(total(f)) }}</p>
+      <p class="fp-vence">
+        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#calendar-event"/></svg>
+        {{ vencimiento(f) }}
+      </p>
+      <p class="fp-fecha" *ngIf="f.fechaVencimiento">Fecha límite: {{ fecha(f.fechaVencimiento) }}</p>
+      <button type="button" class="fp-btn" (click)="pagar.emit(f)">
+        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#credit-card"/></svg>
+        {{ textoPagar }}
+      </button>
+    </article>
+  </div>
+
+  <div class="fp-verificacion" *ngIf="r.enVerificacion.length">
+    <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#hourglass-split"/></svg>
+    <div>
+      <strong>En verificación:</strong>&nbsp;
+      <span *ngFor="let f of r.enVerificacion; let last = last">{{ f.numero }} ({{ dinero(total(f)) }}){{ last ? '' : ', ' }}</span>.
+      Te avisaremos cuando confirmemos el pago.
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Administrador: pagos por verificar ═══ -->
+<section class="fp" *ngIf="esAdmin">
+  <div class="fp-bandeja-head">
+    <h4 class="fp-bandeja-titulo">
+      Pagos por verificar
+      <span class="fp-contador" [class.fp-contador-cero]="!porVerificar.length">{{ porVerificar.length }}</span>
+    </h4>
+    <p class="fp-sub fp-sub-claro" *ngIf="porVerificar.length">Revisa cada comprobante y aprueba o rechaza el pago.</p>
+  </div>
+
+  <p class="fp-vacio" *ngIf="!porVerificar.length">
+    <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#check2-all"/></svg>
+    No hay pagos pendientes de verificar.
+  </p>
+
+  <div class="fp-grid" *ngIf="porVerificar.length">
+    <article class="fp-card fp-reportado" *ngFor="let f of porVerificar; trackBy: trackById">
+      <header class="fp-card-head">
+        <strong class="fp-numero">{{ f.numero }}</strong>
+        <span class="fp-estado">Pago reportado</span>
+      </header>
+      <p class="fp-cliente" [title]="f.cliente">{{ f.cliente }}</p>
+      <p class="fp-valor">{{ dinero(total(f)) }}</p>
+      <p class="fp-vence" *ngIf="f.fechaPago">
+        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#calendar-check"/></svg>
+        Pagó el {{ fecha(f.fechaPago) }}
+      </p>
+      <button type="button" class="fp-btn" (click)="revisar.emit(f)">
+        <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-check"/></svg>
+        Revisar comprobante
+      </button>
+    </article>
+  </div>
+</section>

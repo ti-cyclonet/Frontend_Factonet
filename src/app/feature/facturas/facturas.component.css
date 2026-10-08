@@ -8,13 +8,19 @@ body {
   height: 100vh;
 }
 
+/* En columna: arriba el resumen por rol (app-facturas-pendientes) y debajo la
+   tabla, que conserva su alto fijo con scroll propio. */
 .floating-container {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  height: 100vh;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100vh;
   padding: 10px;
   padding-top: 10px;
+}
+
+.floating-container > .outer-container {
+  flex-shrink: 0;
 }
 
 .outer-container {
@@ -232,6 +238,10 @@ body {
 @media (max-width: 768px) {
   .floating-container {
     padding: 0;
+  }
+
+  .floating-container > app-facturas-pendientes {
+    padding: 0.5rem 0.5rem 0;
   }
 
   .outer-container {

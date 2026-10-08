@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import { FactonetService } from '../../shared/services/factonet/factonet.service';
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
+import { fechaLocal } from '../../shared/utils/fechas';
 
 Chart.register(...registerables);
 
@@ -222,11 +223,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   shortDate(v: string): string {
-    return v ? new Date(v).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : '—';
+    return fechaLocal(v)?.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) ?? '—';
   }
 
   longDate(v: string): string {
-    return v ? new Date(v).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    return fechaLocal(v)?.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) ?? '—';
   }
 
   get greeting(): string {
