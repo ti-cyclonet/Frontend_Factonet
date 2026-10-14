@@ -37,13 +37,55 @@ describe('HomeComponent', () => {
     expect(component.attention[0].detail).toContain('$211.820');
   });
 
-  it('administrador: pagos por verificar primero, y tareas de contratos', () => {
+  it('administrador: pagos por verificar primero; las tareas de contratos van en su vista', () => {
     component.userRol = 'adminFactonet';
     (component as any).buildDerived(overview());
     const labels = component.attention.map(a => a.label);
     expect(labels[0]).toBe('Pagos reportados por verificar');
     expect(labels).toContain('Facturas por confirmar');
-    expect(labels).toContain('Contratos por tu firma');
+    expect(labels).not.toContain('Contratos por tu firma');
+    expect(component.contractAttention.map(a => a.label)).toEqual(['Contratos por tu firma']);
+  });
+
+  it('administrador: contratos por vencer y suspendidos en la vista de contratos', () => {
+    component.userRol = 'adminFactonet';
+    const contracts = { kpis: { expiringCount: 2, expiringMrr: 300000, suspended: 1 }, statusCount: { ACTIVE: 3, SUSPENDED: 1 }, byPackage: [], byMode: { MONTHLY: 3 }, months: [], expiring: [], recent: [], ids: [] };
+    (component as any).buildDerived({ ...overview(), contracts });
+    expect(component.contractAttention.map(a => a.label)).toEqual(['Contratos por tu firma', 'Vencen en 30 días', 'Contratos suspendidos']);
+    expect(component.contractBars.map(b => [b.label, b.count])).toEqual([['Activo', 3], ['Suspendido', 1]]);
+  });
+
+  describe('burbujas de novedades', () => {
+    const conFacturas = (ids: number[], extra: any = {}) => ({
+      ...overview(), invoiceIds: ids,
+      recentInvoices: ids.map((id) => ({ id, numero: `DF${id}`, cliente: 'Café Aroma', total: 105910, estado: 'Issued', vence: '' })), ...extra,
+    });
+    beforeEach(() => { component.soundOn = false; });
+
+    it('la primera carga no avisa; una factura nueva sí', () => {
+      component.userRol = 'adminFactonet';
+      (component as any).detectNews(conFacturas([1, 2]));
+      expect(component.bubbles).toEqual([]);
+      (component as any).detectNews(conFacturas([1, 2, 3]));
+      expect(component.bubbles.length).toBe(1);
+      expect(component.bubbles[0].title).toBe('Nueva factura');
+      expect(component.bubbles[0].detail).toContain('DF3 · Café Aroma');
+    });
+
+    it('un contrato nuevo avisa con su código y cliente', () => {
+      component.userRol = 'adminFactonet';
+      const contracts = (ids: string[]) => ({ ids, recent: ids.map((id) => ({ id, code: `CT-${id}`, cliente: 'Hotel Bahía', paquete: 'PRO' })) });
+      (component as any).detectNews(conFacturas([1], { contracts: contracts(['a']) }));
+      (component as any).detectNews(conFacturas([1], { contracts: contracts(['a', 'b']) }));
+      expect(component.bubbles.map(b => [b.kind, b.detail])).toEqual([['contract', 'CT-b · Hotel Bahía · PRO']]);
+    });
+
+    it('muchas novedades juntas se agrupan en una burbuja', () => {
+      component.userRol = 'adminInvoices';
+      (component as any).detectNews(conFacturas([1]));
+      (component as any).detectNews(conFacturas([1, 2, 3, 4, 5]));
+      expect(component.bubbles.map(b => b.title)).toEqual(['4 facturas nuevas']);
+    });
   });
 
   it('sin pendientes no hay avisos', () => {
