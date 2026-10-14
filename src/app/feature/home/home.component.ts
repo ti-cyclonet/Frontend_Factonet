@@ -9,6 +9,7 @@ import { FactonetService } from '../../shared/services/factonet/factonet.service
 import { AuthService } from '../../shared/services/auth/auth.service';
 import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
 import { fechaLocal } from '../../shared/utils/fechas';
+import { NewsBubble, bubblesFor, newIds, playNewsSound } from '../../shared/utils/news-bubbles';
 
 Chart.register(...registerables);
 
@@ -18,6 +19,17 @@ const REFRESH_MS = 30_000;
 const KEEPALIVE_MS = 60_000;
 
 interface InvoiceRow { id: number; numero: string; cliente: string; total: number; estado: string; vence: string }
+interface ContractRow { id: string; code: string; cliente: string; paquete: string; estado: string; mensual: number; inicio: string; fin: string | null; dias?: number }
+interface ContractsBlock {
+  kpis: { total: number; active: number; newThisMonth: number; inProcess: number; suspended: number; expiringCount: number; expiringMrr: number; mrr: number; arr: number; avgMonthly: number };
+  statusCount: Record<string, number>;
+  byPackage: { name: string; active: number; mrr: number }[];
+  byMode: Record<string, number>;
+  months: { key: string; label: string; started: number; ended: number }[];
+  expiring: ContractRow[];
+  recent: ContractRow[];
+  ids: string[];
+}
 interface Overview {
   generatedAt: string;
   scope: 'admin' | 'client';
@@ -35,8 +47,18 @@ interface Overview {
   reportedInvoices: InvoiceRow[];
   topDebtors: { name: string; balance: number; overdue: number; count: number }[];
   recentInvoices: InvoiceRow[];
+  invoiceIds?: number[];
+  contracts?: ContractsBlock | null;
 }
 interface Attention { icon: string; tone: 'danger' | 'warning' | 'info'; count: number; label: string; detail: string; route: string }
+
+const CONTRACT_COLORS: Record<string, string> = {
+  ACTIVE: '#16a34a', PENDING: '#f59e0b', DRAFT: '#cbd5e1', SUSPENDED: '#ea580c', RENEWED: '#0ea5e9',
+  EXPIRED: '#94a3b8', CANCELLED: '#dc2626', TERMINATED: '#7f1d1d',
+};
+const MODE_LABELS: Record<string, string> = { MONTHLY: 'Mensual', SEMIANNUAL: 'Semestral', ANNUAL: 'Anual' };
+const VIEW_KEY = 'factonet_dash_view';
+const SOUND_KEY = 'factonet_dash_sound';
 
 const STATUS_COLORS: Record<string, string> = {
   Paid: '#16a34a', Issued: '#1877e4', 'Payment Reported': '#7c3aed', 'In arrears': '#dc2626',
@@ -69,7 +91,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   lastUpdated: Date | null = null;
   now = Date.now();
   attention: Attention[] = [];
+  contractAttention: Attention[] = [];
   statusBars: { key: string; label: string; count: number; color: string }[] = [];
+  contractBars: { key: string; label: string; count: number; color: string }[] = [];
+  modeBars: { label: string; count: number }[] = [];
+
+  /** Administrador: vista de contratos (por defecto) o de facturación. */
+  view: 'contracts' | 'billing' = 'contracts';
+  /** Burbujas de novedades (factura o contrato nuevo) y su sonido. */
+  bubbles: NewsBubble[] = [];
+  soundOn = true;
+  private seenInvoices: Set<number> | null = null;
+  private seenContracts: Set<string> | null = null;
 
   activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string | null; adminSignedAt?: string | null; pdfUrl?: string | null } | null = null;
 
@@ -85,6 +118,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     scales: {
       x: { grid: { display: false }, ticks: { font: { size: 11 } } },
       y: { beginAtZero: true, grid: { color: 'rgba(15,23,42,.06)' }, ticks: { font: { size: 11 }, callback: (v) => this.compactMoney(Number(v)) } },
+    },
+  };
+
+  contractsChart: ChartData<'bar'> = { labels: [], datasets: [] };
+  contractsChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { beginAtZero: true, grid: { color: 'rgba(15,23,42,.06)' }, ticks: { font: { size: 11 }, precision: 0 } },
     },
   };
 
@@ -112,6 +157,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     const name = sessionStorage.getItem('user_name') || '';
     this.userName = name.includes('@') ? '' : name.split(' ')[0];
     this.isAuthorizedSigner = sessionStorage.getItem('user_isAuthorizedSigner') === 'true';
+    try {
+      if (localStorage.getItem(VIEW_KEY) === 'billing') this.view = 'billing';
+      this.soundOn = localStorage.getItem(SOUND_KEY) !== 'off';
+    } catch { /* sin almacenamiento */ }
     this.refresh();
     if (this.isClient) this.loadActiveContract();
     this.refreshTimer = setInterval(() => { if (!document.hidden) this.refresh(); }, REFRESH_MS);
@@ -143,6 +192,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (o: Overview) => {
         this.overview = o;
         this.buildDerived(o);
+        this.detectNews(o);
         this.lastUpdated = new Date();
         this.now = Date.now();
         this.loading = this.refreshing = this.stale = false;
@@ -178,21 +228,27 @@ export class HomeComponent implements OnInit, OnDestroy {
   private buildDerived(o: Overview): void {
     const a: Attention[] = [];
     const k = o.kpis;
+    const ca: Attention[] = [];
     if (this.isAdmin) {
       if (k.reportedCount) a.push({ icon: 'file-earmark-check', tone: 'warning', count: k.reportedCount, label: 'Pagos reportados por verificar', detail: `${this.money(k.reportedValue)} con comprobante`, route: '/invoices' });
       if (k.overdueCount) a.push({ icon: 'exclamation-octagon-fill', tone: 'danger', count: k.overdueCount, label: 'Facturas vencidas', detail: `${this.money(k.overdueValue)} en mora`, route: '/invoices' });
       if (k.unconfirmedCount) a.push({ icon: 'receipt', tone: 'info', count: k.unconfirmedCount, label: 'Facturas por confirmar', detail: 'Generadas, pendientes de emitir', route: '/invoices' });
       const c = o.contractsPending;
-      if (c.adminSignature.length) a.push({ icon: 'pen-fill', tone: 'warning', count: c.adminSignature.length, label: 'Contratos por tu firma', detail: 'El cliente ya firmó', route: '/contracts' });
-      if (c.needsPdf.length) a.push({ icon: 'file-earmark-pdf', tone: 'info', count: c.needsPdf.length, label: 'Contratos sin PDF', detail: 'Genera el PDF para emitirlos', route: '/contracts' });
-      if (c.needsIssue.length) a.push({ icon: 'send', tone: 'info', count: c.needsIssue.length, label: 'Contratos por emitir', detail: 'El PDF está listo para enviarlo al cliente', route: '/contracts' });
-      if (c.clientSignature.length) a.push({ icon: 'hourglass-split', tone: 'info', count: c.clientSignature.length, label: 'Esperando firma del cliente', detail: 'Contratos emitidos sin firmar', route: '/contracts' });
+      if (c.adminSignature.length) ca.push({ icon: 'pen-fill', tone: 'warning', count: c.adminSignature.length, label: 'Contratos por tu firma', detail: 'El cliente ya firmó', route: '/contracts' });
+      const ck = o.contracts?.kpis;
+      if (ck?.expiringCount) ca.push({ icon: 'calendar-x', tone: 'warning', count: ck.expiringCount, label: 'Vencen en 30 días', detail: `${this.money(ck.expiringMrr)} al mes por renovar`, route: '/contracts' });
+      if (ck?.suspended) ca.push({ icon: 'pause-circle', tone: 'danger', count: ck.suspended, label: 'Contratos suspendidos', detail: 'Servicio detenido por falta de pago', route: '/contracts' });
+      if (c.needsPdf.length) ca.push({ icon: 'file-earmark-pdf', tone: 'info', count: c.needsPdf.length, label: 'Contratos sin PDF', detail: 'Genera el PDF para emitirlos', route: '/contracts' });
+      if (c.needsIssue.length) ca.push({ icon: 'send', tone: 'info', count: c.needsIssue.length, label: 'Contratos por emitir', detail: 'El PDF está listo para enviarlo al cliente', route: '/contracts' });
+      if (c.clientSignature.length) ca.push({ icon: 'hourglass-split', tone: 'info', count: c.clientSignature.length, label: 'Esperando firma del cliente', detail: 'Contratos emitidos sin firmar', route: '/contracts' });
     } else {
       if (k.overdueCount) a.push({ icon: 'exclamation-octagon-fill', tone: 'danger', count: k.overdueCount, label: 'Facturas vencidas', detail: `${this.money(k.overdueValue)} por pagar: págalas para evitar la suspensión`, route: '/invoices' });
       if (k.dueSoonCount) a.push({ icon: 'calendar-event', tone: 'warning', count: k.dueSoonCount, label: 'Vencen en 7 días', detail: `${this.money(k.dueSoonValue)} por pagar`, route: '/invoices' });
       if (k.reportedCount) a.push({ icon: 'hourglass-split', tone: 'info', count: k.reportedCount, label: 'Pagos en verificación', detail: 'Reportaste el pago; CycloNet lo está revisando', route: '/invoices' });
     }
     this.attention = a;
+    this.contractAttention = ca;
+    this.buildContracts(o.contracts || null);
 
     const order = ['Paid', 'Issued', 'Payment Reported', 'Notification1', 'Notification2', 'In arrears', 'Suspended', 'Unconfirmed'];
     this.statusBars = order.filter((s) => o.statusCount[s]).map((s) => ({ key: s, label: esLabel(s), count: o.statusCount[s], color: STATUS_COLORS[s] }));
@@ -205,6 +261,67 @@ export class HomeComponent implements OnInit, OnDestroy {
       ],
     };
   }
+
+  private buildContracts(c: ContractsBlock | null): void {
+    if (!c) { this.contractBars = []; this.modeBars = []; return; }
+    const order = ['ACTIVE', 'PENDING', 'DRAFT', 'SUSPENDED', 'RENEWED', 'EXPIRED', 'CANCELLED', 'TERMINATED'];
+    this.contractBars = order.filter((s) => c.statusCount[s]).map((s) => ({ key: s, label: esLabel(s), count: c.statusCount[s], color: CONTRACT_COLORS[s] }));
+    this.modeBars = Object.entries(c.byMode).map(([m, n]) => ({ label: MODE_LABELS[m] || m, count: n })).sort((a, b) => b.count - a.count);
+    this.contractsChart = {
+      labels: c.months.map((m) => m.label),
+      datasets: [
+        { label: 'Nuevos', data: c.months.map((m) => m.started), backgroundColor: '#16a34a', borderRadius: 6, barPercentage: 0.7 },
+        { label: 'Terminados', data: c.months.map((m) => m.ended), backgroundColor: 'rgba(220, 38, 38, 0.35)', borderRadius: 6, barPercentage: 0.7 },
+      ],
+    };
+  }
+
+  // ─── Novedades: burbujas con sonido ─────────────────────────────────────
+
+  /** Compara con la consulta anterior; la primera carga no avisa. */
+  private detectNews(o: Overview): void {
+    const invoiceIds = o.invoiceIds || o.recentInvoices.map((i) => i.id);
+    const contractIds = o.contracts?.ids || [];
+    const freshInvoices = newIds(this.seenInvoices, invoiceIds);
+    const freshContracts = this.isAdmin ? newIds(this.seenContracts, contractIds) : [];
+    this.seenInvoices = new Set(invoiceIds);
+    if (this.isAdmin) this.seenContracts = new Set(contractIds);
+
+    const inv = (id: number) => o.recentInvoices.find((i) => i.id === id);
+    const con = (id: string) => o.contracts?.recent.find((c) => c.id === id);
+    const fresh = [
+      ...bubblesFor('contract', freshContracts, (id) => {
+        const c = con(id);
+        return { title: 'Nuevo contrato', detail: c ? `${c.code} · ${c.cliente} · ${c.paquete}` : 'Revísalo en Contratos' };
+      }),
+      ...bubblesFor('invoice', freshInvoices, (id) => {
+        const i = inv(id);
+        return { title: this.isAdmin ? 'Nueva factura' : 'Tienes una factura nueva', detail: i ? `${i.numero}${this.isAdmin ? ' · ' + i.cliente : ''} · ${this.money(i.total)}` : 'Revísala en Facturas' };
+      }),
+    ];
+    if (!fresh.length) return;
+    this.bubbles = [...fresh, ...this.bubbles].slice(0, 5);
+    if (this.soundOn) playNewsSound(fresh[0].kind);
+    for (const b of fresh) setTimeout(() => this.dismissBubble(b.id), 9000);
+  }
+
+  dismissBubble(id: string): void {
+    this.bubbles = this.bubbles.filter((b) => b.id !== id);
+  }
+
+  toggleSound(): void {
+    this.soundOn = !this.soundOn;
+    try { localStorage.setItem(SOUND_KEY, this.soundOn ? 'on' : 'off'); } catch { /* sin almacenamiento */ }
+    if (this.soundOn) playNewsSound('invoice');
+  }
+
+  setView(v: 'contracts' | 'billing'): void {
+    this.view = v;
+    try { localStorage.setItem(VIEW_KEY, v); } catch { /* sin almacenamiento */ }
+  }
+
+  trackByBubble = (_: number, b: NewsBubble) => b.id;
+  contractColor = (s: string) => CONTRACT_COLORS[s] || '#94a3b8';
 
   // ─── Formato ────────────────────────────────────────────────────────────
 

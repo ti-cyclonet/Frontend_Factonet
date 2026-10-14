@@ -3,13 +3,16 @@
   <header class="dash-head">
     <div>
       <h1 class="dash-title">{{ greeting }}<span *ngIf="userName">, {{ userName }}</span></h1>
-      <p class="dash-sub">{{ isAdmin ? 'Así va la facturación de CycloNet' : 'Tus facturas y tu contrato' }} · {{ monthLabel }}</p>
+      <p class="dash-sub">{{ isAdmin ? (view === 'contracts' ? 'Así van los contratos de CycloNet' : 'Así va la facturación de CycloNet') : 'Tus facturas y tu contrato' }} · {{ monthLabel }}</p>
     </div>
     <div class="dash-live" *ngIf="!loading && !sessionEnded">
       <span class="live-pill" [class.stale]="stale" [title]="stale ? 'No se pudo actualizar; se reintentará' : 'Se actualiza cada 30 segundos'">
         <span class="live-dot"></span>{{ stale ? 'Sin conexión' : 'En vivo' }}
       </span>
       <span class="live-updated">Actualizado {{ updatedLabel }}</span>
+      <button type="button" class="icon-btn" (click)="toggleSound()" [title]="soundOn ? 'Sonido de novedades activado' : 'Sonido de novedades desactivado'" [attr.aria-pressed]="soundOn">
+        <svg viewBox="0 0 16 16"><use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + (soundOn ? 'bell-fill' : 'bell-slash-fill')"/></svg>
+      </button>
       <button type="button" class="icon-btn" (click)="refresh()" [disabled]="refreshing" title="Actualizar ahora">
         <svg viewBox="0 0 16 16" [class.spin]="refreshing"><use xlink:href="./assets/icons/bootstrap-icons.svg#arrow-clockwise"/></svg>
       </button>
@@ -29,7 +32,111 @@
     <button type="button" class="link-btn" (click)="refresh()">Reintentar</button>
   </div>
 
+  <nav class="dash-tabs" *ngIf="isAdmin && overview" role="tablist" aria-label="Vista del panel">
+    <button type="button" role="tab" [class.on]="view === 'contracts'" [attr.aria-selected]="view === 'contracts'" (click)="setView('contracts')"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-text"/></svg> Contratos</button>
+    <button type="button" role="tab" [class.on]="view === 'billing'" [attr.aria-selected]="view === 'billing'" (click)="setView('billing')"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#receipt"/></svg> Facturación</button>
+  </nav>
+
   <ng-container *ngIf="overview as o">
+  
+  <!-- ═══ Administrador: vista de CONTRATOS ═══ -->
+  <ng-container *ngIf="isAdmin && view === 'contracts' && o.contracts as c">
+    <section class="kpi-grid">
+      <article class="kpi">
+        <div class="kpi-top"><span class="kpi-icon g-green"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#file-earmark-check"/></svg></span><span class="kpi-label">Contratos activos</span></div>
+        <div class="kpi-value">{{ c.kpis.active }}</div>
+        <div class="kpi-foot"><span class="chip" [class.chip-up]="c.kpis.newThisMonth > 0">{{ c.kpis.newThisMonth ? '+' + c.kpis.newThisMonth + ' este mes' : 'Sin nuevos este mes' }}</span><span>de {{ c.kpis.total }} en total</span></div>
+      </article>
+      <article class="kpi">
+        <div class="kpi-top"><span class="kpi-icon g-blue"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#arrow-repeat"/></svg></span><span class="kpi-label">Ingreso recurrente mensual</span></div>
+        <div class="kpi-value" [title]="money(c.kpis.mrr)">{{ compactMoney(c.kpis.mrr) }}</div>
+        <div class="kpi-foot"><span>{{ compactMoney(c.kpis.arr) }} al año · promedio {{ compactMoney(c.kpis.avgMonthly) }}/mes</span></div>
+      </article>
+      <article class="kpi" [class.kpi-alert]="contractAttention.length > 0 && c.kpis.inProcess > 0">
+        <div class="kpi-top"><span class="kpi-icon g-orange"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#pen-fill"/></svg></span><span class="kpi-label">En proceso de firma</span></div>
+        <div class="kpi-value">{{ c.kpis.inProcess }}</div>
+        <div class="kpi-foot"><span class="chip" [class.chip-danger]="o.contractsPending.adminSignature.length" [class.chip-ok]="!o.contractsPending.adminSignature.length">{{ o.contractsPending.adminSignature.length ? o.contractsPending.adminSignature.length + ' por tu firma' : 'Nada por tu firma' }}</span><span>{{ o.contractsPending.clientSignature.length }} esperando al cliente</span></div>
+      </article>
+      <article class="kpi" [class.kpi-alert]="c.kpis.expiringCount > 0">
+        <div class="kpi-top"><span class="kpi-icon g-rose"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#calendar-x"/></svg></span><span class="kpi-label">Vencen en 30 días</span></div>
+        <div class="kpi-value">{{ c.kpis.expiringCount }}</div>
+        <div class="kpi-foot"><span>{{ c.kpis.expiringCount ? compactMoney(c.kpis.expiringMrr) + ' al mes por renovar' : 'Ninguno por renovar' }}</span><span *ngIf="c.kpis.suspended" class="chip chip-danger">{{ c.kpis.suspended }} suspendido(s)</span></div>
+      </article>
+    </section>
+
+    <section class="row-2">
+      <article class="panel">
+        <header class="panel-head"><h2>Requiere atención</h2><span class="count-badge" *ngIf="contractAttention.length">{{ contractAttention.length }}</span></header>
+        <ul class="attn" *ngIf="contractAttention.length; else contractsOk">
+          <li *ngFor="let a of contractAttention; trackBy: trackByLabel" [class]="'attn-' + a.tone">
+            <a [routerLink]="a.route">
+              <span class="attn-icon"><svg viewBox="0 0 16 16"><use [attr.xlink:href]="'./assets/icons/bootstrap-icons.svg#' + a.icon"/></svg></span>
+              <span class="attn-body"><strong>{{ a.label }}</strong><small>{{ a.detail }}</small></span>
+              <span class="attn-count">{{ a.count }}</span>
+            </a>
+          </li>
+        </ul>
+        <ng-template #contractsOk>
+          <div class="all-good"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle-fill"/></svg><strong>Contratos al día</strong><small>Sin firmas pendientes, contratos por vencer ni suspendidos.</small></div>
+        </ng-template>
+        <div class="attn-list" *ngIf="c.expiring.length">
+          <div class="attn-row" *ngFor="let e of c.expiring; trackBy: trackById">
+            <span class="dot" [class.dot-danger]="(e.dias ?? 99) <= 7" [class.dot-warning]="(e.dias ?? 99) > 7"></span>
+            <span class="attn-row-main">{{ e.code }} · {{ e.cliente }}</span>
+            <span class="attn-row-meta">{{ e.dias === 0 ? 'vence hoy' : 'vence en ' + e.dias + ' día(s)' }} · {{ shortDate(e.fin || '') }}</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head"><h2>Contratos nuevos y terminados</h2><small>Últimos 6 meses</small></header>
+        <div class="chart-box chart-lg"><canvas baseChart [data]="contractsChart" [options]="contractsChartOptions" type="bar"></canvas></div>
+      </article>
+    </section>
+
+    <section class="row-3">
+      <article class="panel">
+        <header class="panel-head"><h2>Contratos por estado</h2><small>{{ c.kpis.total }} en total</small></header>
+        <ng-container *ngIf="contractBars.length; else noContracts">
+          <div class="split"><span *ngFor="let b of contractBars" [style.flex-grow]="b.count" [style.background]="b.color" [title]="b.label"></span></div>
+          <ul class="legend">
+            <li *ngFor="let b of contractBars"><span class="sw" [style.background]="b.color"></span><span class="ln">{{ b.label }}</span><strong>{{ b.count }}</strong></li>
+          </ul>
+          <p class="mode-line" *ngIf="modeBars.length">Activos por forma de pago: <ng-container *ngFor="let m of modeBars; let last = last">{{ m.label }} <b>{{ m.count }}</b>{{ last ? '' : ' · ' }}</ng-container></p>
+        </ng-container>
+        <ng-template #noContracts><p class="empty">Aún no hay contratos.</p></ng-template>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head"><h2>Ingreso por paquete</h2><small>Contratos activos</small></header>
+        <ul class="bars" *ngIf="c.byPackage.length; else noPackages">
+          <li *ngFor="let p of c.byPackage; let i = index">
+            <span class="bar-rank">{{ i + 1 }}</span>
+            <span class="bar-body">
+              <span class="bar-name">{{ p.name }}<small> · {{ p.active }} activo(s)</small></span>
+              <span class="bar-track"><span [style.width.%]="c.byPackage[0].mrr ? (p.mrr / c.byPackage[0].mrr) * 100 : 0"></span></span>
+            </span>
+            <span class="bar-value">{{ compactMoney(p.mrr) }}</span>
+          </li>
+        </ul>
+        <ng-template #noPackages><p class="empty">Sin contratos activos.</p></ng-template>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head"><h2>Contratos recientes</h2><a routerLink="/contracts" class="panel-link">Ver todos</a></header>
+        <ul class="feed" *ngIf="c.recent.length; else noRecentContracts">
+          <li *ngFor="let r of c.recent; trackBy: trackById">
+            <span class="feed-dot" [style.background]="contractColor(r.estado)"></span>
+            <span class="feed-body"><strong>{{ r.code }} · {{ r.cliente }}</strong><small>{{ r.paquete }} · {{ r.estado | es }}</small></span>
+            <span class="feed-value">{{ compactMoney(r.mensual) }}<small>/mes</small></span>
+          </li>
+        </ul>
+        <ng-template #noRecentContracts><p class="empty">Sin contratos todavía.</p></ng-template>
+      </article>
+    </section>
+  </ng-container>
+
+  <ng-container *ngIf="!isAdmin || view === 'billing'">
     <!-- ═══ Indicadores ═══ -->
     <section class="kpi-grid">
       <ng-container *ngIf="isAdmin; else clientKpis">
@@ -98,7 +205,7 @@
           <div class="all-good">
             <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#check-circle-fill"/></svg>
             <strong>Todo al día</strong>
-            <small>{{ isAdmin ? 'Sin pagos por verificar, facturas vencidas ni contratos pendientes.' : 'No tienes facturas vencidas ni por vencer.' }}</small>
+            <small>{{ isAdmin ? 'Sin pagos por verificar, facturas vencidas ni por confirmar.' : 'No tienes facturas vencidas ni por vencer.' }}</small>
           </div>
         </ng-template>
         <div class="attn-list" *ngIf="o.overdueInvoices.length || o.dueSoonInvoices.length">
@@ -183,7 +290,18 @@
       </article>
     </section>
   </ng-container>
+  </ng-container>
 </div>
+
+<!-- Novedades: burbujas con sonido (factura o contrato nuevo) -->
+<div class="news-stack" aria-live="polite">
+  <div class="news-bubble" *ngFor="let b of bubbles; trackBy: trackByBubble" [class.news-contract]="b.kind === 'contract'" role="status">
+    <span class="news-icon">{{ b.kind === 'contract' ? '📝' : '🧾' }}</span>
+    <a class="news-body" [routerLink]="b.kind === 'contract' ? '/contracts' : '/invoices'" (click)="dismissBubble(b.id)"><strong>{{ b.title }}</strong><small>{{ b.detail }}</small></a>
+    <button type="button" class="news-close" (click)="dismissBubble(b.id)" aria-label="Cerrar"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#x-lg"/></svg></button>
+  </div>
+</div>
+
 
 <ng-template #deltaTpl let-d="d">
   <span class="chip" *ngIf="d === null" title="Sin datos del mes anterior">Nuevo</span>
