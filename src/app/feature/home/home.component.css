@@ -140,3 +140,25 @@
   .kpi-grid { grid-template-columns: minmax(0, 1fr); }
   .dash-live { width: 100%; justify-content: space-between; }
 }
+
+/* ─── Administrador: Contratos / Facturación ─── */
+.dash-tabs { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 1.1rem; border-radius: 12px; background: rgba(255, 255, 255, 0.16); }
+.dash-tabs button { display: inline-flex; align-items: center; gap: 0.45rem; border: 0; border-radius: 9px; padding: 0.5rem 1rem; background: transparent; color: #fff; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.dash-tabs button.on { background: #fff; color: var(--accent); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15); }
+.dash-tabs button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.mode-line { margin: 0.9rem 0 0; font-size: 0.8rem; color: var(--muted); }
+.mode-line b { color: var(--ink); }
+.feed-value small { font-weight: 500; color: var(--muted); font-size: 0.72rem; }
+
+/* ─── Burbujas de novedades ─── */
+.news-stack { position: fixed; right: 18px; bottom: 60px; z-index: 1080; display: grid; gap: 10px; width: min(360px, calc(100vw - 32px)); }
+.news-bubble { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 0.85rem 0.8rem 1rem; border-radius: 16px; color: #fff; background: linear-gradient(135deg, #1877e4, #0b4f9e); box-shadow: 0 14px 34px rgba(15, 42, 74, 0.35); animation: news-in 0.45s cubic-bezier(.2, 1.4, .4, 1); }
+.news-bubble.news-contract { background: linear-gradient(135deg, #16a34a, #0d9488); }
+.news-icon { font-size: 1.5rem; line-height: 1; }
+.news-body { flex: 1; min-width: 0; display: grid; gap: 2px; color: inherit; text-decoration: none; }
+.news-body strong { font-size: 0.93rem; }
+.news-body small { font-size: 0.78rem; opacity: 0.92; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.news-close { border: 0; background: rgba(255, 255, 255, 0.18); color: #fff; width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.75rem; flex: none; }
+.news-close svg { width: 1em; height: 1em; fill: currentColor; }
+@keyframes news-in { from { opacity: 0; transform: translateY(16px) scale(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .news-bubble { animation: none; } }
