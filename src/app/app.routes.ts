@@ -16,10 +16,13 @@ import { SetupComponent } from './feature/setup/setup.component';
 import { ParametrosGlobalesComponent } from './feature/parametros-globales/parametros-globales.component';
 import { ParametrosFacturasComponent } from './feature/parametros-facturas/parametros-facturas.component';
 import { LoginComponent } from './shared/components/login/login.component';
+import { ResetPasswordComponent } from './shared/components/reset-password/reset-password.component';
 import { RegisterComponent } from './shared/components/register/register.component';
 
 export const routes: Routes = [
     { path: ROOT_LOGIN, component: LoginComponent },
+    // Enlace del correo de "¿Olvidaste tu contraseña?" (Authoriza)
+    { path: 'reset-password', component: ResetPasswordComponent },
     { path: ROOT_REGISTER, component: RegisterComponent },
     {
         path: '',
