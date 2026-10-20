@@ -19,6 +19,16 @@ export class AuthService {
     private userDataService: UserDataService
   ) {}
 
+  /** "¿Olvidaste tu contraseña?": Authoriza envía el enlace al correo (a la pantalla de FactoNet). */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.BASE_URL_AUTHORIZA}/auth/forgot-password`, { email, app: 'factonet' });
+  }
+
+  /** Fija la nueva contraseña con el token del enlace del correo. */
+  resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.BASE_URL_AUTHORIZA}/auth/reset-password`, { token, newPassword });
+  }
+
   login(credentials: { email: string; password: string; applicationName: string }): Observable<any> {
     return this.http.post<any>(
       this.apiUrl,
