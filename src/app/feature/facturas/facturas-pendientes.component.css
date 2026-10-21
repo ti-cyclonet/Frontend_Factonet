@@ -97,3 +97,4 @@ p { margin: 0; }
   .fp-resumen { padding: 1rem; }
   .fp-btn { width: 100%; }
 }
+.fp-concepto { margin: 0 0 2px; font-weight: 600; font-size: 0.85rem; color: #1e3a8a; }

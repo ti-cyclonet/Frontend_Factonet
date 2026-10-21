@@ -39,6 +39,8 @@ interface Factura {
   // Periodo de servicio
   periodoInicio?: string;
   periodoFin?: string;
+  /** Qué se cobra cuando no es el plan (ej. "Destacado en CycloNet Market · 7 días"). */
+  concepto?: string | null;
   [key: string]: any;
 }
 
@@ -181,7 +183,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
       // Buscar todas las propiedades que no son campos base en TODAS las facturas
       const baseFields = ['id', 'numero', 'cliente', 'fechaEmision', 'fechaVencimiento', 'fechaPago', 'total', 'estado', 'operationTypes', 'percentages', 'paymentVoucherUrl', 'rejectionReason',
         'clienteNit', 'clienteTipoPersona', 'clienteEmail', 'clienteContacto', 'clienteTelefono', 'clienteEmailContacto',
-        'contratoCode', 'contratoModo', 'contratoPrefijo', 'periodoInicio', 'periodoFin'];
+        'contratoCode', 'contratoModo', 'contratoPrefijo', 'periodoInicio', 'periodoFin', 'concepto'];
       
       this.facturas.forEach(factura => {
         Object.keys(factura).forEach(key => {

@@ -40,6 +40,7 @@
         <strong class="fp-numero">{{ f.numero }}</strong>
         <span class="fp-estado">{{ f.estado | es }}</span>
       </header>
+      <p class="fp-concepto" *ngIf="f.concepto">{{ f.concepto }}</p>
       <p class="fp-periodo" *ngIf="f.periodoInicio && f.periodoFin">Servicio del {{ fecha(f.periodoInicio) }} al {{ fecha(f.periodoFin) }}</p>
       <p class="fp-valor">{{ dinero(total(f)) }}</p>
       <p class="fp-vence">
