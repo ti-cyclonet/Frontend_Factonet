@@ -5,7 +5,7 @@ import {
   FacturaResumible, ResumenCliente, diasParaVencer, hoyLocal, pagosPorVerificar, resumenCliente, textoVencimiento,
 } from './facturas-resumen';
 
-type FacturaVista = FacturaResumible & { numero: string; cliente: string; fechaPago?: string | null; periodoInicio?: string; periodoFin?: string };
+type FacturaVista = FacturaResumible & { numero: string; cliente: string; fechaPago?: string | null; periodoInicio?: string; periodoFin?: string; concepto?: string | null };
 
 /**
  * Lo primero que ve cada rol en Facturas, antes de la tabla:

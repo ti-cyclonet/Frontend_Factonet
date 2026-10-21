@@ -135,7 +135,7 @@
                           (click)="userRol === 'adminFactonet' ? openStatusDropdown($event, factura.id) : null" style="font-size: 10px; white-space: nowrap;">{{ factura.estado | es:true }}</span>
                   </div>
                 </td>
-                <td class="text-center" style="width: 100px;">{{ factura.numero }}</td>
+                <td class="text-center" style="width: 100px;">{{ factura.numero }}<small *ngIf="factura.concepto" class="d-block text-muted" style="font-size: 0.72rem; line-height: 1.2">{{ factura.concepto }}</small></td>
                 <td class="text-center d-none d-xl-table-cell" style="width: 110px;">{{ factura.fechaEmision }}</td>
                 <td class="text-center d-none d-xl-table-cell" style="width: 110px;">{{ factura.fechaVencimiento }}</td>
                 <td class="text-start d-none d-md-table-cell">{{ factura.cliente }}</td>
