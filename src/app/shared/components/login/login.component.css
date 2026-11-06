@@ -26,16 +26,8 @@
     min-width: 120px;
 }
 
-/* Botón responsive para tablets */
-@media (max-width: 768px) {
-    .login-container .custom-btn {
-        width: 70%;
-        max-width: 200px;
-    }
-}
-
 /* Botón responsive para móviles */
-@media (max-width: 576px) {
+@media (max-width: 437px) {
     .login-container .custom-btn {
         width: 100%;
         max-width: 100%;
@@ -54,13 +46,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 15px;
-}
-
-@media (max-width: 576px) {
-    .login-container {
-        padding: 5px;
-    }
+    padding: 15px 5px;
 }
 
 .login-container::before {
@@ -76,6 +62,12 @@
 }
 
 /* Asegura que el contenido esté encima del overlay */
+.login-col {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 452px; /* 420px del formulario + el margen lateral (cabe desde 438px) */
+}
+
 .login-container > * {
     position: relative;
     z-index: 2;
@@ -127,7 +119,7 @@
     width: auto;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 437px) {
     .logo-img {
         max-width: 60%;
     }
@@ -140,7 +132,7 @@
     box-sizing: border-box;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 437px) {
     .custom-card .form-control {
         font-size: 0.9rem;
     }
@@ -163,7 +155,7 @@
     box-sizing: border-box;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 437px) {
     .custom-error-box {
         font-size: 12px;
         padding: 6px 10px;
@@ -177,7 +169,7 @@
     font-size: 1.5rem;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 437px) {
     .custom-welcome {
         font-size: 1.3rem;
         padding-top: 0.5%;
