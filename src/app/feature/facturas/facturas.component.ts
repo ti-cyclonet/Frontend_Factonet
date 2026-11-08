@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import { escapeHtml } from '../../shared/utils/escape-html';
 import { mensajeError } from '../../shared/utils/mensaje-error';
-import { readPaymentProof } from '../../shared/utils/payment-proof-ocr';
+import { amountMatches, readPaymentProof } from '../../shared/utils/payment-proof-ocr';
 import { firstValueFrom } from 'rxjs';
 import { FacturasPendientesComponent } from './facturas-pendientes.component';
 import { hoyLocal } from './facturas-resumen';
@@ -934,8 +934,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
               <input type="date" id="swal-payment-date" value="${hoyLocal()}" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
             </div>
             <div>
-              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado <span style="color: #e53935;">*</span></label>
-              <input type="number" id="swal-paid-amount" value="${suggestedTotal}" step="0.01" min="0" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
+              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado</label>
+              <input type="number" id="swal-paid-amount" value="${suggestedTotal}" readonly title="El pago es por el total de la factura" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; background: #f1f5f9; color: #334155;">
             </div>
           </div>
 
@@ -974,7 +974,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
       preConfirm: async () => {
         const paymentDate = (document.getElementById('swal-payment-date') as HTMLInputElement).value;
         const paymentReference = (document.getElementById('swal-payment-reference') as HTMLInputElement).value.trim();
-        const paidAmount = parseFloat((document.getElementById('swal-paid-amount') as HTMLInputElement).value);
+        // El comprobante debe ser por el total de la factura (no se aceptan pagos divididos ni parciales)
+        const paidAmount = Number(suggestedTotal);
         const fileInput = document.getElementById('swal-voucher-file') as HTMLInputElement;
         const voucherFile = fileInput.files?.[0] || null;
 
@@ -992,6 +993,16 @@ export class FacturasComponent implements OnInit, OnDestroy {
         }
         if (voucherFile.size > 5 * 1024 * 1024) {
           Swal.showValidationMessage('El archivo no puede superar 5 MB');
+          return false;
+        }
+        if (this.lecturaComprobante?.file === voucherFile && this.lecturaComprobante.leyendo) {
+          Swal.showValidationMessage('Espera un momento: estamos leyendo el comprobante');
+          return false;
+        }
+        if (this.lecturaComprobante?.file === voucherFile && !amountMatches(this.lecturaComprobante.amounts, paidAmount)) {
+          Swal.showValidationMessage(
+            `El comprobante dice $${Math.max(...this.lecturaComprobante.amounts).toLocaleString('es-CO')} y la factura es de $${paidAmount.toLocaleString('es-CO')}. ` +
+            'El pago debe ser por el valor total de la factura; si el valor sí es el correcto, sube una foto más clara del comprobante.');
           return false;
         }
         if (paymentReference.replace(/[^A-Za-z0-9]/g, '').length < 4) {
@@ -1053,7 +1064,11 @@ export class FacturasComponent implements OnInit, OnDestroy {
    * referencia (OCR en el navegador; la imagen no sale del equipo) y se avisa
    * si ese soporte ya se usó en otra factura. Los PDF no se leen.
    */
+  /** Lo que leyó el OCR de la foto elegida en "Reportar pago" (valores en pesos). */
+  private lecturaComprobante: { file: File; leyendo: boolean; amounts: number[] } | null = null;
+
   private prepararLecturaComprobante(factura: Factura, total: number): void {
+    this.lecturaComprobante = null;
     const archivo = document.getElementById('swal-voucher-file') as HTMLInputElement | null;
     const referencia = document.getElementById('swal-payment-reference') as HTMLInputElement | null;
     const nota = document.getElementById('swal-payment-reference-note') as HTMLElement | null;
@@ -1075,14 +1090,18 @@ export class FacturasComponent implements OnInit, OnDestroy {
 
     archivo.addEventListener('change', async () => {
       const file = archivo.files?.[0];
+      this.lecturaComprobante = null;
       if (!file) return;
       if (!file.type.startsWith('image/')) {
         avisar('Escribe la referencia tal como aparece en el comprobante.');
         return;
       }
       avisar('Leyendo el comprobante…');
+      const lectura = { file, leyendo: true, amounts: [] as number[] };
+      this.lecturaComprobante = lectura;
       try {
         const { reference, amounts } = await readPaymentProof(file);
+        lectura.amounts = amounts;
         if (archivo.files?.[0] !== file) return; // cambiaron la foto mientras se leía
         let texto: string;
         if (reference && !referencia.value.trim()) {
@@ -1093,13 +1112,16 @@ export class FacturasComponent implements OnInit, OnDestroy {
         } else {
           texto = 'No pudimos leer la referencia: escríbela tal como aparece en el comprobante.';
         }
-        if (amounts.length && !amounts.some((a) => Math.abs(a - Number(total)) < 1)) {
-          texto += ` El comprobante dice $${Math.max(...amounts).toLocaleString('es-CO')}; revisa el valor pagado.`;
+        if (!amountMatches(amounts, total)) {
+          avisar(`${texto} ⚠ El comprobante dice $${Math.max(...amounts).toLocaleString('es-CO')} y la factura es de $${Number(total).toLocaleString('es-CO')}: el pago debe ser por el total.`, '#b91c1c');
+        } else {
+          avisar(texto);
         }
-        avisar(texto);
         await revisar();
       } catch {
         avisar('Escribe la referencia tal como aparece en el comprobante.');
+      } finally {
+        lectura.leyendo = false;
       }
     });
   }

@@ -55,6 +55,14 @@ export function extractAmounts(text: string): number[] {
 }
 
 /**
+ * ¿El comprobante es por el valor esperado? Sin valores leídos no se puede
+ * saber (p. ej. un PDF o una foto borrosa): no se bloquea.
+ */
+export function amountMatches(amounts: number[], expected: number): boolean {
+  return !amounts.length || amounts.some((a) => Math.abs(a - Number(expected)) < 1);
+}
+
+/**
  * Lee la foto del comprobante en el navegador (Tesseract; la imagen no sale
  * del equipo) y devuelve la referencia y los valores que encontró.
  */
