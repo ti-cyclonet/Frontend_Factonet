@@ -51,14 +51,17 @@ describe('FacturasComponent', () => {
     http.expectNone(r => r.url.endsWith('/pagos/configuracion'));
   });
 
-  it('con la pasarela apagada, pagar abre directamente el reporte con constancia', () => {
+  it('con la pasarela apagada, "Pagar en línea" se ve como Próximamente y solo queda reportar', async () => {
     crear('adminInvoices');
     const reporte = spyOn(component, 'payInvoice');
-    const dialogo = spyOn(Swal, 'fire');
+    const enLinea = spyOn(component as any, 'irAPagarEnLinea');
+    const dialogo = spyOn(Swal, 'fire').and.returnValue(Promise.resolve({ isConfirmed: true } as any));
     component.pasarelaActiva = false;
     component.pagarFactura({ id: 1, numero: 'DF1', total: 100 } as any);
-    expect(reporte).toHaveBeenCalled();
-    expect(dialogo).not.toHaveBeenCalled();
+    expect((dialogo.calls.mostRecent().args[0] as any).confirmButtonText).toContain('Próximamente');
+    await Promise.resolve();
+    expect(enLinea).not.toHaveBeenCalled();
+    expect(reporte).not.toHaveBeenCalled();
   });
 
   describe('tabla', () => {
