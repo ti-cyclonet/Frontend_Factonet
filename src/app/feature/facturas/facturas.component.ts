@@ -8,6 +8,8 @@ import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import { escapeHtml } from '../../shared/utils/escape-html';
 import { mensajeError } from '../../shared/utils/mensaje-error';
+import { amountMatches, readPaymentProof } from '../../shared/utils/payment-proof-ocr';
+import { firstValueFrom } from 'rxjs';
 import { FacturasPendientesComponent } from './facturas-pendientes.component';
 import { hoyLocal } from './facturas-resumen';
 import { DATOS_PAGO_CYCLONET, generarEstadoCuenta, nombreArchivoEstadoCuenta } from './estado-cuenta-pdf';
@@ -105,7 +107,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
 
   /**
    * Pago en línea (Wompi). Mientras el backend diga pasarelaActiva=false (no
-   * hay cuenta empresarial todavía), solo se ofrece "Reportar pago".
+   * hay cuenta empresarial todavía) se muestra, desactivado, como "Próximamente".
    */
   pasarelaActiva = false;
 
@@ -784,28 +786,36 @@ export class FacturasComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Botón de pago del cliente. Con la pasarela apagada abre "Reportar pago"
-   * como siempre; encendida, deja elegir entre pagar en línea o reportar una
-   * transferencia ya hecha.
+   * Botón de pago del cliente: elegir entre pagar en línea o reportar una
+   * transferencia ya hecha. Con la pasarela apagada, "Pagar en línea" se ve
+   * desactivado con la leyenda "Próximamente".
    */
   pagarFactura(factura: Factura): void {
-    if (!this.pasarelaActiva) {
-      this.payInvoice(factura);
-      return;
-    }
+    const activa = this.pasarelaActiva;
     Swal.fire({
       title: `Pagar la factura ${escapeHtml(factura.numero)}`,
       html: `<p style="margin:0 0 4px">Total: <strong>$${Number(this.calculateFinalTotal(factura)).toLocaleString('es-CO')}</strong></p>
-             <p style="margin:0;color:#64748b;font-size:13px">Paga con PSE, tarjeta, Nequi o botón Bancolombia, o reporta una transferencia que ya hiciste.</p>`,
+             <p style="margin:0;color:#64748b;font-size:13px">${activa
+               ? 'Paga con PSE, tarjeta, Nequi o botón Bancolombia, o reporta una transferencia que ya hiciste.'
+               : 'Muy pronto podrás pagar en línea con PSE, tarjeta, Nequi o botón Bancolombia. Por ahora, paga por transferencia y reporta el pago con el comprobante.'}</p>`,
       showDenyButton: true,
       showCancelButton: true,
-      confirmButtonText: 'Pagar en línea',
+      confirmButtonText: activa ? 'Pagar en línea' : 'Pagar en línea · Próximamente',
       denyButtonText: 'Ya pagué: reportar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#1877e4',
-      denyButtonColor: '#64748b',
+      confirmButtonColor: activa ? '#1877e4' : '#94a3b8',
+      denyButtonColor: activa ? '#64748b' : '#2e7d32',
+      didOpen: () => {
+        if (activa) return;
+        const boton = Swal.getConfirmButton();
+        if (boton) {
+          boton.disabled = true;
+          boton.title = 'Próximamente';
+          boton.style.cursor = 'not-allowed';
+        }
+      },
     }).then((r) => {
-      if (r.isConfirmed) this.irAPagarEnLinea(factura);
+      if (r.isConfirmed && this.pasarelaActiva) this.irAPagarEnLinea(factura);
       else if (r.isDenied) this.payInvoice(factura);
     });
   }
@@ -924,8 +934,8 @@ export class FacturasComponent implements OnInit, OnDestroy {
               <input type="date" id="swal-payment-date" value="${hoyLocal()}" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
             </div>
             <div>
-              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado <span style="color: #e53935;">*</span></label>
-              <input type="number" id="swal-paid-amount" value="${suggestedTotal}" step="0.01" min="0" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='#5c6bc0'" onblur="this.style.borderColor='#e0e0e0'">
+              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">💵 Valor pagado</label>
+              <input type="number" id="swal-paid-amount" value="${suggestedTotal}" readonly title="El pago es por el total de la factura" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; background: #f1f5f9; color: #334155;">
             </div>
           </div>
 
@@ -941,6 +951,13 @@ export class FacturasComponent implements OnInit, OnDestroy {
             <input type="file" id="swal-voucher-file" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width: 100%; padding: 8px; border: none; background: white; border-radius: 6px; font-size: 13px; cursor: pointer;">
             <small style="color: #558b2f; display: block; margin-top: 6px; font-size: 11px;">PDF, JPG, PNG, WEBP — Máx. 5 MB • <strong style="color: #c62828;">Obligatorio</strong></small>
           </div>
+
+          <!-- Referencia del soporte: la lee el OCR de la foto; un mismo soporte no sirve para dos facturas -->
+          <div style="margin: 14px 0 4px 0;">
+            <label for="swal-payment-reference" style="display: block; margin-bottom: 6px; font-weight: 600; color: #37474f; font-size: 13px;">🔖 Número de referencia del comprobante <span style="color: #e53935;">*</span></label>
+            <input type="text" id="swal-payment-reference" maxlength="100" autocomplete="off" placeholder="Ej.: M87214093" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; text-transform: uppercase;">
+            <small id="swal-payment-reference-note" style="display: block; margin-top: 6px; font-size: 12px; color: #475569;">Sube una foto del comprobante y la leemos por ti, o escríbela tal como aparece.</small>
+          </div>
           </div>
         </div>
       `,
@@ -953,9 +970,12 @@ export class FacturasComponent implements OnInit, OnDestroy {
       customClass: {
         popup: 'swal-payment-popup'
       },
-      preConfirm: () => {
+      didOpen: () => this.prepararLecturaComprobante(factura, suggestedTotal),
+      preConfirm: async () => {
         const paymentDate = (document.getElementById('swal-payment-date') as HTMLInputElement).value;
-        const paidAmount = parseFloat((document.getElementById('swal-paid-amount') as HTMLInputElement).value);
+        const paymentReference = (document.getElementById('swal-payment-reference') as HTMLInputElement).value.trim();
+        // El comprobante debe ser por el total de la factura (no se aceptan pagos divididos ni parciales)
+        const paidAmount = Number(suggestedTotal);
         const fileInput = document.getElementById('swal-voucher-file') as HTMLInputElement;
         const voucherFile = fileInput.files?.[0] || null;
 
@@ -975,14 +995,34 @@ export class FacturasComponent implements OnInit, OnDestroy {
           Swal.showValidationMessage('El archivo no puede superar 5 MB');
           return false;
         }
+        if (this.lecturaComprobante?.file === voucherFile && this.lecturaComprobante.leyendo) {
+          Swal.showValidationMessage('Espera un momento: estamos leyendo el comprobante');
+          return false;
+        }
+        if (this.lecturaComprobante?.file === voucherFile && !amountMatches(this.lecturaComprobante.amounts, paidAmount)) {
+          Swal.showValidationMessage(
+            `El comprobante dice $${Math.max(...this.lecturaComprobante.amounts).toLocaleString('es-CO')} y la factura es de $${paidAmount.toLocaleString('es-CO')}. ` +
+            'El pago debe ser por el valor total de la factura; si el valor sí es el correcto, sube una foto más clara del comprobante.');
+          return false;
+        }
+        if (paymentReference.replace(/[^A-Za-z0-9]/g, '').length < 4) {
+          Swal.showValidationMessage('Escribe el número de referencia del comprobante');
+          return false;
+        }
+        // Un mismo soporte no sirve para pagar dos facturas (el servidor también lo valida)
+        const uso = await firstValueFrom(this.factonetService.checkPaymentReference(factura.id, paymentReference)).catch(() => null);
+        if (uso?.used) {
+          Swal.showValidationMessage(uso.message || 'Este soporte de pago ya se usó en otra factura.');
+          return false;
+        }
 
-        return { paymentDate, paidAmount, voucherFile };
+        return { paymentDate, paidAmount, voucherFile, paymentReference };
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        const { paymentDate, paidAmount, voucherFile } = result.value;
+        const { paymentDate, paidAmount, voucherFile, paymentReference } = result.value;
 
-        this.factonetService.registerPayment(factura.id, paymentDate, paidAmount, voucherFile).subscribe({
+        this.factonetService.registerPayment(factura.id, paymentDate, paidAmount, voucherFile, paymentReference).subscribe({
           next: () => {
             Swal.fire({
               icon: 'success',
@@ -1008,13 +1048,80 @@ export class FacturasComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             Swal.fire({
-              icon: 'error',
-              title: 'No se pudo reportar el pago',
+              icon: error?.status === 409 ? 'warning' : 'error',
+              title: error?.status === 409 ? 'Soporte de pago ya usado' : 'No se pudo reportar el pago',
               text: mensajeError(error, 'No se pudo registrar el pago'),
               confirmButtonColor: '#0d6efd',
             });
           }
         });
+      }
+    });
+  }
+
+  /**
+   * En el formulario de reporte: al elegir la foto del comprobante se lee la
+   * referencia (OCR en el navegador; la imagen no sale del equipo) y se avisa
+   * si ese soporte ya se usó en otra factura. Los PDF no se leen.
+   */
+  /** Lo que leyó el OCR de la foto elegida en "Reportar pago" (valores en pesos). */
+  private lecturaComprobante: { file: File; leyendo: boolean; amounts: number[] } | null = null;
+
+  private prepararLecturaComprobante(factura: Factura, total: number): void {
+    this.lecturaComprobante = null;
+    const archivo = document.getElementById('swal-voucher-file') as HTMLInputElement | null;
+    const referencia = document.getElementById('swal-payment-reference') as HTMLInputElement | null;
+    const nota = document.getElementById('swal-payment-reference-note') as HTMLElement | null;
+    if (!archivo || !referencia || !nota) return;
+
+    const avisar = (texto: string, color = '#475569') => { nota.textContent = texto; nota.style.color = color; };
+    const revisar = async () => {
+      const ref = referencia.value.trim();
+      referencia.style.borderColor = '#e0e0e0';
+      if (ref.replace(/[^A-Za-z0-9]/g, '').length < 4) return;
+      const uso = await firstValueFrom(this.factonetService.checkPaymentReference(factura.id, ref)).catch(() => null);
+      if (referencia.value.trim() !== ref) return;
+      if (uso?.used) {
+        referencia.style.borderColor = '#c62828';
+        avisar(`⚠ ${uso.message || 'Este soporte de pago ya se usó en otra factura.'}`, '#b91c1c');
+      }
+    };
+    referencia.addEventListener('blur', revisar);
+
+    archivo.addEventListener('change', async () => {
+      const file = archivo.files?.[0];
+      this.lecturaComprobante = null;
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        avisar('Escribe la referencia tal como aparece en el comprobante.');
+        return;
+      }
+      avisar('Leyendo el comprobante…');
+      const lectura = { file, leyendo: true, amounts: [] as number[] };
+      this.lecturaComprobante = lectura;
+      try {
+        const { reference, amounts } = await readPaymentProof(file);
+        lectura.amounts = amounts;
+        if (archivo.files?.[0] !== file) return; // cambiaron la foto mientras se leía
+        let texto: string;
+        if (reference && !referencia.value.trim()) {
+          referencia.value = reference;
+          texto = 'Leímos la referencia del comprobante: revisa que esté bien.';
+        } else if (reference) {
+          texto = `El comprobante dice ${reference}: revisa que coincida con la que escribiste.`;
+        } else {
+          texto = 'No pudimos leer la referencia: escríbela tal como aparece en el comprobante.';
+        }
+        if (!amountMatches(amounts, total)) {
+          avisar(`${texto} ⚠ El comprobante dice $${Math.max(...amounts).toLocaleString('es-CO')} y la factura es de $${Number(total).toLocaleString('es-CO')}: el pago debe ser por el total.`, '#b91c1c');
+        } else {
+          avisar(texto);
+        }
+        await revisar();
+      } catch {
+        avisar('Escribe la referencia tal como aparece en el comprobante.');
+      } finally {
+        lectura.leyendo = false;
       }
     });
   }
