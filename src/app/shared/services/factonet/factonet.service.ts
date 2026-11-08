@@ -90,10 +90,13 @@ export class FactonetService {
     );
   }
 
-  registerPayment(invoiceId: number, paymentDate: string, paidAmount: number, voucherFile?: File): Observable<any> {
+  registerPayment(invoiceId: number, paymentDate: string, paidAmount: number, voucherFile?: File, paymentReference?: string): Observable<any> {
     const formData = new FormData();
     formData.append('paymentDate', paymentDate);
     formData.append('paidAmount', paidAmount.toString());
+    if (paymentReference) {
+      formData.append('paymentReference', paymentReference);
+    }
     if (voucherFile) {
       formData.append('voucher', voucherFile);
     }
@@ -107,6 +110,14 @@ export class FactonetService {
       formData,
       { headers }
     );
+  }
+
+  /** ¿La referencia del soporte ya se usó en el pago de otra factura? */
+  checkPaymentReference(invoiceId: number, ref: string): Observable<{ used: boolean; message: string | null }> {
+    return this.http.get<any>(`${this.apiUrl}/invoices/${invoiceId}/payment-reference/check`, {
+      headers: this.getHeaders(),
+      params: { ref },
+    });
   }
 
   getPaymentVoucher(invoiceId: number): Observable<any> {
