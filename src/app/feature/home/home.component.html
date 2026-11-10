@@ -37,6 +37,26 @@
     <button type="button" role="tab" [class.on]="view === 'billing'" [attr.aria-selected]="view === 'billing'" (click)="setView('billing')"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#receipt"/></svg> Facturación</button>
   </nav>
 
+  <!-- Administrador: contabilidad de CycloNet -->
+  <a class="acc-strip" *ngIf="isAdmin && accounting as a" routerLink="/contabilidad" title="Abrir Contabilidad">
+    <span class="kpi-icon g-violet"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#journal-bookmark"/></svg></span>
+    <span class="acc-item"><small>{{ a.utilidad < 0 ? 'Pérdida' : 'Utilidad' }} del mes</small><b [class.neg]="a.utilidad < 0" [title]="money(a.utilidad)">{{ compactMoney(a.utilidad) }}</b></span>
+    <span class="acc-item"><small>Ingresos / gastos</small><b>{{ compactMoney(a.ingresos) }} <span class="acc-sep">/</span> {{ compactMoney(a.gastos) }}</b></span>
+    <span class="acc-item"><small>Caja y bancos</small><b [class.neg]="a.caja < 0" [title]="money(a.caja)">{{ compactMoney(a.caja) }}</b></span>
+    <span class="acc-go">Contabilidad <svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#chevron-right"/></svg></span>
+  </a>
+
+  <!-- Cliente: conocer FactoNet como servicio (se puede cerrar) -->
+  <aside class="upsell" *ngIf="isClient && showUpsell" aria-label="Conoce FactoNet">
+    <span class="kpi-icon g-blue"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#receipt"/></svg></span>
+    <div class="upsell-body">
+      <strong>¿Quieres cobrarles a tus clientes como CycloNet te cobra a ti?</strong>
+      <span>Contratos con firma, facturación recurrente y avisos de cobro automáticos con FactoNet.</span>
+    </div>
+    <a class="upsell-cta" [href]="landingUrl" target="_blank" rel="noopener">Conoce FactoNet</a>
+    <button type="button" class="upsell-x" (click)="closeUpsell()" aria-label="No mostrar de nuevo" title="No mostrar de nuevo">×</button>
+  </aside>
+
   <ng-container *ngIf="overview as o">
   
   <!-- ═══ Administrador: vista de CONTRATOS ═══ -->
