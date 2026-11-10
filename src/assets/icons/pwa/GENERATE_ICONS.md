@@ -1,7 +1,8 @@
 # Íconos de la app (PWA) - FactoNet
 
 El ícono de la app instalada se genera desde **`icon-master.png`** (1024 × 1024):
-fondo azul (#319eff) con la insignia "FN", de borde a borde.
+fondo azul (#319eff) de borde a borde, con la insignia "FN" de borde amarillo
+(#ffd966, como el logo) y las letras centradas en ella.
 
 - El fondo llega hasta el borde y el símbolo queda dentro de la **zona segura**
   (círculo central del 80 %). Android recorta los íconos `maskable` con la forma
