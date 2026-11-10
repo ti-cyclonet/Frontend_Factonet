@@ -1,8 +1,9 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { provideRouter } from '@angular/router';
 
 // Asegúrate de que ROOT_INVOICES y ROOT_CONTRACTS estén definidos en './config/config'
-import { ROOT_CONFIGURATION, ROOT_LOGIN, ROOT_REGISTER, ROOT_HOME, ROOT_INVOICES, ROOT_CONTRACTS, ROOT_PARAMETROS, ROOT_PARAMETROS_FACTURAS, ROOT_REPORTES } from './config/config';
+import { ROOT_CONFIGURATION, ROOT_LOGIN, ROOT_REGISTER, ROOT_HOME, ROOT_INVOICES, ROOT_CONTRACTS, ROOT_PARAMETROS, ROOT_PARAMETROS_FACTURAS, ROOT_REPORTES, ROOT_CONTABILIDAD } from './config/config';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { ActivePeriodGuard } from './shared/guards/active-period.guard';
 
@@ -12,6 +13,7 @@ import { HomeComponent } from './feature/home/home.component';
 import { FacturasComponent } from './feature/facturas/facturas.component'; 
 import { ContratosComponent } from './feature/contratos/contratos.component';
 import { ReportesComponent } from './feature/reportes/reportes.component';
+import { ContabilidadComponent } from './feature/contabilidad/contabilidad.component';
 import { SetupComponent } from './feature/setup/setup.component';
 import { ParametrosGlobalesComponent } from './feature/parametros-globales/parametros-globales.component';
 import { ParametrosFacturasComponent } from './feature/parametros-facturas/parametros-facturas.component';
@@ -34,6 +36,7 @@ export const routes: Routes = [
     { path: ROOT_CONTRACTS, component: ContratosComponent, canActivate: [ActivePeriodGuard] },
     { path: ROOT_INVOICES, component: FacturasComponent, canActivate: [ActivePeriodGuard] },
     { path: ROOT_REPORTES, component: ReportesComponent },
+    { path: ROOT_CONTABILIDAD, component: ContabilidadComponent, canActivate: [() => sessionStorage.getItem('user_rol') === 'adminFactonet' || inject(Router).createUrlTree(['/' + ROOT_HOME])] },
     
     // RUTAS DE CONFIGURACIÓN
     { path: ROOT_CONFIGURATION, component: SetupComponent },
