@@ -15,7 +15,7 @@
 
   <ng-container *ngIf="enabled">
     <nav class="acc-tabs" role="tablist">
-      <button type="button" *ngFor="let t of [['resumen','Resumen'],['comprobantes','Comprobantes'],['reportes','Reportes'],['cuentas','Plan de cuentas'],['terceros','Terceros'],['periodos','Periodos']]"
+      <button type="button" *ngFor="let t of [['resumen','Resumen'],['comprobantes','Comprobantes'],['reportes','Reportes'],['cuentas','Plan de cuentas'],['terceros','Terceros'],['periodos','Cierre de meses']]"
         role="tab" [class.on]="tab === t[0]" [attr.aria-selected]="tab === t[0]" (click)="setTab($any(t[0]))">{{ t[1] }}</button>
     </nav>
 
@@ -252,7 +252,7 @@
       </div>
     </section>
 
-    <!-- ═══ Periodos ═══ -->
+    <!-- ═══ Cierre de meses ═══ -->
     <section *ngIf="tab === 'periodos'" class="acc-panel">
       <p class="acc-muted">Cierra cada mes cuando esté revisado: no se podrán registrar comprobantes con fecha de un mes cerrado hasta reabrirlo.</p>
       <div class="acc-table-wrap">
