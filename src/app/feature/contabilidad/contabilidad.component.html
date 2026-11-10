@@ -1,0 +1,269 @@
+<div class="acc">
+  <header class="acc-head">
+    <div>
+      <h2>Contabilidad</h2>
+      <p *ngIf="company">{{ company.name }}<span *ngIf="company.nit"> · NIT {{ company.nit }}</span></p>
+    </div>
+  </header>
+
+  <p class="acc-muted" *ngIf="loading">Cargando…</p>
+
+  <div class="acc-off" *ngIf="!loading && !enabled">
+    <strong>La contabilidad aún no está configurada.</strong>
+    <span>{{ disabledMessage }}</span>
+  </div>
+
+  <ng-container *ngIf="enabled">
+    <nav class="acc-tabs" role="tablist">
+      <button type="button" *ngFor="let t of [['resumen','Resumen'],['comprobantes','Comprobantes'],['reportes','Reportes'],['cuentas','Plan de cuentas'],['terceros','Terceros'],['periodos','Periodos']]"
+        role="tab" [class.on]="tab === t[0]" [attr.aria-selected]="tab === t[0]" (click)="setTab($any(t[0]))">{{ t[1] }}</button>
+    </nav>
+
+    <!-- ═══ Resumen ═══ -->
+    <section *ngIf="tab === 'resumen'" class="acc-panel">
+      <div class="acc-row">
+        <label class="acc-inline">Mes <input type="month" [(ngModel)]="month" (change)="loadSummary()"></label>
+        <button type="button" class="btn btn-primary btn-sm" [disabled]="busy" (click)="sync()">{{ busy ? 'Sincronizando…' : 'Sincronizar facturas de Authoriza' }}</button>
+      </div>
+      <p class="acc-note" *ngIf="syncResult">
+        ✓ {{ syncResult.created }} asiento(s) nuevo(s) de {{ syncResult.invoices }} factura(s) revisada(s).
+        <span *ngIf="syncResult.skipped.length"> Omitidos por mes cerrado: {{ syncResult.skipped.join(' · ') }}</span>
+      </p>
+      <div class="acc-kpis" *ngIf="er">
+        <div class="acc-kpi"><small>Ingresos</small><b>{{ money(er.ingresos) }}</b></div>
+        <div class="acc-kpi"><small>Gastos y costos</small><b>{{ money(er.gastos + er.costos) }}</b></div>
+        <div class="acc-kpi" [class.neg]="er.utilidad < 0"><small>{{ er.utilidad < 0 ? 'Pérdida' : 'Utilidad' }} del mes</small><b>{{ money(er.utilidad) }}</b></div>
+      </div>
+      <p class="acc-muted">
+        Las facturas y los pagos verificados de CycloNet se contabilizan solos cada 30 minutos (o con el botón).
+        <span *ngIf="company?.autoFrom">Desde el {{ company?.autoFrom }}.</span>
+      </p>
+    </section>
+
+    <!-- ═══ Comprobantes ═══ -->
+    <section *ngIf="tab === 'comprobantes'" class="acc-panel">
+      <div class="acc-row acc-filters">
+        <label>Desde <input type="date" [(ngModel)]="filters.from"></label>
+        <label>Hasta <input type="date" [(ngModel)]="filters.to"></label>
+        <label>Tipo
+          <select [(ngModel)]="filters.type"><option value="">Todos</option><option *ngFor="let t of ['CI','CE','NC','AUT']" [value]="t">{{ tipos[t] }}</option></select>
+        </label>
+        <label>Estado
+          <select [(ngModel)]="filters.status"><option value="">Todos</option><option value="BORRADOR">Borrador</option><option value="CONTABILIZADO">Contabilizado</option><option value="ANULADO">Anulado</option></select>
+        </label>
+        <label>Buscar <input [(ngModel)]="filters.q" placeholder="Descripción"></label>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="loadVouchers()">Filtrar</button>
+        <button type="button" class="btn btn-primary btn-sm" (click)="newVoucher()">+ Nuevo comprobante</button>
+      </div>
+
+      <!-- Nuevo comprobante -->
+      <div class="acc-form" *ngIf="form">
+        <div class="acc-row">
+          <label>Tipo
+            <select [(ngModel)]="form.type"><option value="CI">Ingreso</option><option value="CE">Egreso</option><option value="NC">Nota contable</option></select>
+          </label>
+          <label>Fecha <input type="date" [(ngModel)]="form.date"></label>
+          <label class="grow">Descripción <input [(ngModel)]="form.description" maxlength="300" placeholder="Ej.: Factura AWS octubre"></label>
+        </div>
+        <datalist id="acc-cuentas"><option *ngFor="let a of postable" [value]="a.code">{{ a.code }} · {{ a.name }}</option></datalist>
+        <div class="acc-table-wrap">
+          <table class="acc-table">
+            <thead><tr><th>Cuenta</th><th>Tercero</th><th>Detalle</th><th class="num">Débito</th><th class="num">Crédito</th><th></th></tr></thead>
+            <tbody>
+              <tr *ngFor="let l of form.lines; let i = index; trackBy: trackLine">
+                <td><input list="acc-cuentas" [(ngModel)]="l.accountCode" class="code" placeholder="111005"><small>{{ accountName(l.accountCode) }}</small></td>
+                <td>
+                  <select [(ngModel)]="l.thirdPartyId" [class.req]="needsThirdParty(l.accountCode) && !l.thirdPartyId">
+                    <option [ngValue]="null">{{ needsThirdParty(l.accountCode) ? 'Elige (obligatorio)' : '—' }}</option>
+                    <option *ngFor="let t of thirdParties" [ngValue]="t.id">{{ t.name }} · {{ t.idNumber }}</option>
+                  </select>
+                </td>
+                <td><input [(ngModel)]="l.description" maxlength="300"></td>
+                <td class="num"><input type="number" min="0" step="0.01" [(ngModel)]="l.debit" (ngModelChange)="$event > 0 ? l.credit = 0 : null"></td>
+                <td class="num"><input type="number" min="0" step="0.01" [(ngModel)]="l.credit" (ngModelChange)="$event > 0 ? l.debit = 0 : null"></td>
+                <td><button type="button" class="acc-x" (click)="form.lines.splice(i, 1)" [disabled]="form.lines.length <= 2" aria-label="Quitar línea">×</button></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="3"><button type="button" class="btn btn-link btn-sm p-0" (click)="form.lines.push(emptyLine())">+ Agregar línea</button></td>
+                <td class="num"><b>{{ money(formTotals.debit) }}</b></td><td class="num"><b>{{ money(formTotals.credit) }}</b></td><td></td></tr>
+              <tr *ngIf="formTotals.diff !== 0"><td colspan="6" class="acc-diff">Diferencia: {{ money(formTotals.diff) }} — el comprobante debe cuadrar.</td></tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="acc-row">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="form = null">Cancelar</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="busy" (click)="saveVoucher(false)">Guardar borrador</button>
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="busy || formTotals.diff !== 0 || !formTotals.debit" (click)="saveVoucher(true)">Contabilizar</button>
+        </div>
+      </div>
+
+      <!-- Detalle -->
+      <div class="acc-form" *ngIf="detail">
+        <div class="acc-row">
+          <strong>{{ tipos[detail.type] }} {{ detail.number }} · {{ detail.date }}</strong>
+          <span class="acc-st" [ngClass]="'st-' + detail.status">{{ detail.status | titlecase }}</span>
+          <span class="grow">{{ detail.description }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="detail = null">Cerrar</button>
+        </div>
+        <div class="acc-table-wrap">
+          <table class="acc-table">
+            <thead><tr><th>Cuenta</th><th>Tercero</th><th>Detalle</th><th class="num">Débito</th><th class="num">Crédito</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let l of detail.lines"><td>{{ l.accountCode }} <small>{{ accountName(l.accountCode) }}</small></td><td>{{ thirdPartyName(l.thirdPartyId) }}</td><td>{{ l.description }}</td>
+                <td class="num">{{ +l.debit ? money(l.debit) : '' }}</td><td class="num">{{ +l.credit ? money(l.credit) : '' }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="acc-row">
+          <button type="button" class="btn btn-primary btn-sm" *ngIf="detail.status === 'BORRADOR'" (click)="postVoucher(detail)">Contabilizar</button>
+          <button type="button" class="btn btn-outline-danger btn-sm" *ngIf="detail.status === 'BORRADOR'" (click)="deleteDraft(detail)">Eliminar borrador</button>
+          <button type="button" class="btn btn-outline-danger btn-sm" *ngIf="detail.status === 'CONTABILIZADO'" (click)="reverse(detail)">Reversar</button>
+        </div>
+      </div>
+
+      <div class="acc-table-wrap">
+        <table class="acc-table acc-list">
+          <thead><tr><th>Comprobante</th><th>Fecha</th><th>Descripción</th><th class="num">Valor</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let v of vouchers" (click)="openVoucher(v)" [class.anulado]="v.status === 'ANULADO'">
+              <td>{{ tipos[v.type] }} {{ v.number }}</td><td>{{ v.date }}</td><td>{{ v.description }}</td><td class="num">{{ money(v.total) }}</td>
+              <td><span class="acc-st" [ngClass]="'st-' + v.status">{{ v.status | titlecase }}</span></td>
+            </tr>
+            <tr *ngIf="!vouchers.length"><td colspan="5" class="acc-muted">No hay comprobantes con esos filtros.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ Reportes ═══ -->
+    <section *ngIf="tab === 'reportes'" class="acc-panel">
+      <div class="acc-row acc-filters">
+        <label>Reporte
+          <select [(ngModel)]="report">
+            <option value="resultados">Estado de resultados</option><option value="situacion">Estado de situación financiera</option>
+            <option value="prueba">Balance de prueba</option><option value="mayor">Libro mayor / auxiliar</option>
+          </select>
+        </label>
+        <label *ngIf="report !== 'situacion'">Desde <input type="date" [(ngModel)]="rFrom"></label>
+        <label>{{ report === 'situacion' ? 'A la fecha' : 'Hasta' }} <input type="date" [(ngModel)]="rTo"></label>
+        <label *ngIf="report === 'mayor'">Cuenta <input list="acc-todas" [(ngModel)]="rAccount" class="code"></label>
+        <datalist id="acc-todas"><option *ngFor="let a of accounts" [value]="a.code">{{ a.code }} · {{ a.name }}</option></datalist>
+        <button type="button" class="btn btn-primary btn-sm" (click)="runReport()">Generar</button>
+      </div>
+
+      <ng-container *ngIf="reportData as d">
+        <!-- Estado de resultados -->
+        <div *ngIf="d.kind === 'resultados'" class="acc-table-wrap">
+          <table class="acc-table">
+            <tr *ngFor="let r of d.detalle" [class.lvl1]="r.level === 1"><td [style.padding-left.px]="8 + indent(r.level)">{{ r.code }} · {{ r.name }}</td><td class="num">{{ money(r.valor) }}</td></tr>
+            <tr class="tot"><td>{{ d.utilidad < 0 ? 'Pérdida' : 'Utilidad' }} del periodo</td><td class="num">{{ money(d.utilidad) }}</td></tr>
+          </table>
+        </div>
+        <!-- Situación financiera -->
+        <div *ngIf="d.kind === 'situacion'">
+          <p class="acc-note" [class.bad]="!d.cuadra">{{ d.cuadra ? '✓ Activo = Pasivo + Patrimonio' : '⚠ El estado no cuadra: revisa los saldos iniciales' }}</p>
+          <div class="acc-table-wrap">
+            <table class="acc-table">
+              <tr *ngFor="let r of d.detalle" [class.lvl1]="r.level === 1"><td [style.padding-left.px]="8 + indent(r.level)">{{ r.code }} · {{ r.name }}</td><td class="num">{{ money(r.saldo) }}</td></tr>
+              <tr><td>Resultado del ejercicio</td><td class="num">{{ money(d.resultadoEjercicio) }}</td></tr>
+              <tr><td>Resultados de ejercicios anteriores (sin cierre)</td><td class="num">{{ money(d.resultadosAnteriores) }}</td></tr>
+              <tr class="tot"><td>Activo</td><td class="num">{{ money(d.activo) }}</td></tr>
+              <tr class="tot"><td>Pasivo + Patrimonio</td><td class="num">{{ money(d.pasivo + d.patrimonio) }}</td></tr>
+            </table>
+          </div>
+        </div>
+        <!-- Balance de prueba -->
+        <div *ngIf="d.kind === 'prueba'" class="acc-table-wrap">
+          <table class="acc-table">
+            <thead><tr><th>Cuenta</th><th class="num">Saldo inicial</th><th class="num">Débitos</th><th class="num">Créditos</th><th class="num">Saldo final</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let r of rowsWithMovement(d.rows)" [class.lvl1]="r.level === 1">
+                <td [style.padding-left.px]="8 + indent(r.level)">{{ r.code }} · {{ r.name }}</td>
+                <td class="num">{{ money(r.opening) }}</td><td class="num">{{ money(r.debit) }}</td><td class="num">{{ money(r.credit) }}</td><td class="num">{{ money(r.closing) }}</td>
+              </tr>
+            </tbody>
+            <tfoot><tr class="tot"><td>Totales</td><td></td><td class="num">{{ money(d.totals.debit) }}</td><td class="num">{{ money(d.totals.credit) }}</td><td></td></tr></tfoot>
+          </table>
+        </div>
+        <!-- Libro mayor -->
+        <div *ngIf="d.kind === 'mayor'" class="acc-table-wrap">
+          <p class="acc-note">{{ d.account.code }} · {{ d.account.name }} — saldo inicial {{ money(d.opening) }}</p>
+          <table class="acc-table">
+            <thead><tr><th>Fecha</th><th>Comprobante</th><th>Tercero</th><th>Detalle</th><th class="num">Débito</th><th class="num">Crédito</th><th class="num">Saldo</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let m of d.movements"><td>{{ m.date }}</td><td>{{ tipos[m.type] }} {{ m.number }}</td><td>{{ m.thirdParty }}</td><td>{{ m.description || m.voucher }}</td>
+                <td class="num">{{ m.debit ? money(m.debit) : '' }}</td><td class="num">{{ m.credit ? money(m.credit) : '' }}</td><td class="num">{{ money(m.balance) }}</td></tr>
+              <tr *ngIf="!d.movements.length"><td colspan="7" class="acc-muted">Sin movimientos en el periodo.</td></tr>
+            </tbody>
+            <tfoot><tr class="tot"><td colspan="6">Saldo final</td><td class="num">{{ money(d.closing) }}</td></tr></tfoot>
+          </table>
+        </div>
+      </ng-container>
+    </section>
+
+    <!-- ═══ Plan de cuentas ═══ -->
+    <section *ngIf="tab === 'cuentas'" class="acc-panel">
+      <div class="acc-row acc-filters">
+        <label class="grow">Buscar <input [(ngModel)]="accFilter" placeholder="Código o nombre"></label>
+      </div>
+      <div class="acc-form">
+        <strong>Nueva subcuenta o auxiliar</strong>
+        <div class="acc-row">
+          <label>Código <input [(ngModel)]="newAccount.code" class="code" placeholder="51353501" inputmode="numeric"></label>
+          <label class="grow">Nombre <input [(ngModel)]="newAccount.name" maxlength="200"></label>
+          <label class="acc-check"><input type="checkbox" [(ngModel)]="newAccount.requiresThirdParty"> Exige tercero</label>
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="busy" (click)="createAccount()">Crear</button>
+        </div>
+        <small class="acc-muted">6 dígitos = subcuenta bajo una cuenta de 4; 8 o más = auxiliar bajo una subcuenta. El PUC base está pendiente de validar con el contador.</small>
+      </div>
+      <div class="acc-table-wrap">
+        <table class="acc-table">
+          <tr *ngFor="let a of filteredAccounts" [class.lvl1]="a.level === 1">
+            <td [style.padding-left.px]="8 + indent(a.level)">{{ a.code }}</td><td>{{ a.name }}</td>
+            <td><small>{{ a.nature === 'DEBITO' ? 'Débito' : 'Crédito' }}</small></td>
+            <td><small>{{ a.acceptsEntries ? 'Movimiento' : 'Mayor' }}{{ a.requiresThirdParty ? ' · tercero' : '' }}</small></td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ Terceros ═══ -->
+    <section *ngIf="tab === 'terceros'" class="acc-panel">
+      <div class="acc-form">
+        <strong>Nuevo tercero</strong>
+        <div class="acc-row">
+          <label>Tipo <select [(ngModel)]="newTp.idType"><option value="13">Cédula</option><option value="31">NIT</option><option value="22">Cédula de extranjería</option><option value="41">Pasaporte</option></select></label>
+          <label>Número <input [(ngModel)]="newTp.idNumber" maxlength="30"></label>
+          <label class="grow">Nombre o razón social <input [(ngModel)]="newTp.name" maxlength="200"></label>
+          <label>Correo <input type="email" [(ngModel)]="newTp.email" maxlength="255"></label>
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="busy" (click)="saveThirdParty()">Guardar</button>
+        </div>
+      </div>
+      <div class="acc-row acc-filters">
+        <label class="grow">Buscar <input [(ngModel)]="tpFilter" (keyup.enter)="loadThirdParties()" placeholder="Nombre o documento"></label>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="loadThirdParties()">Buscar</button>
+      </div>
+      <div class="acc-table-wrap">
+        <table class="acc-table">
+          <thead><tr><th>Documento</th><th>Nombre</th><th>Correo</th></tr></thead>
+          <tr *ngFor="let t of thirdParties"><td>{{ t.idType === '31' ? 'NIT' : 'CC' }} {{ t.idNumber }}</td><td>{{ t.name }}</td><td>{{ t.email }}</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ Periodos ═══ -->
+    <section *ngIf="tab === 'periodos'" class="acc-panel">
+      <p class="acc-muted">Cierra cada mes cuando esté revisado: no se podrán registrar comprobantes con fecha de un mes cerrado hasta reabrirlo.</p>
+      <div class="acc-table-wrap">
+        <table class="acc-table">
+          <tr *ngFor="let m of months">
+            <td>{{ m }}</td>
+            <td><span class="acc-st" [ngClass]="periodStatus(m) === 'CERRADO' ? 'st-ANULADO' : 'st-CONTABILIZADO'">{{ periodStatus(m) === 'CERRADO' ? 'Cerrado' : 'Abierto' }}</span></td>
+            <td class="num"><button type="button" class="btn btn-sm" [class.btn-outline-secondary]="periodStatus(m) === 'CERRADO'" [class.btn-outline-primary]="periodStatus(m) !== 'CERRADO'" (click)="togglePeriod(m)">{{ periodStatus(m) === 'CERRADO' ? 'Reabrir' : 'Cerrar mes' }}</button></td>
+          </tr>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</div>

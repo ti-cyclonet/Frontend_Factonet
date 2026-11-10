@@ -1,3 +1,4 @@
+import { ROOT_CONTABILIDAD } from '../../../config/config';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { OptionMenu } from '../../model/option_menu';
 import { CommonModule } from '@angular/common';
@@ -169,6 +170,14 @@ export default class LayoutComponent implements OnInit {
             menu.url === '/facturas' || menu.name.toLowerCase().includes('invoice') ||
             menu.url === '/contracts' || menu.name.toLowerCase().includes('contract')
           );
+        }
+
+        // Contabilidad de CycloNet: solo para adminFactonet (no viene del menú de Authoriza)
+        if (userRol === 'adminFactonet' && !this.optionsMenu.some(m => m.url === '/' + ROOT_CONTABILIDAD)) {
+          this.optionsMenu.push({
+            id: 'accounting', name: 'accountingFactonet', description: 'Contabilidad', url: '/' + ROOT_CONTABILIDAD,
+            icon: 'journal-bookmark', type: 'main_menu', idMPather: null, order: '90', idApplication: this.application?.id ?? '',
+          });
         }
 
         // Ordenar por ingOrder numérico
