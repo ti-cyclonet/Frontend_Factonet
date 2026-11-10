@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { HomeComponent } from './home.component';
 
 const overview = (o: any = {}) => ({
@@ -53,6 +54,33 @@ describe('HomeComponent', () => {
     (component as any).buildDerived({ ...overview(), contracts });
     expect(component.contractAttention.map(a => a.label)).toEqual(['Contratos por tu firma', 'Vencen en 30 días', 'Contratos suspendidos']);
     expect(component.contractBars.map(b => [b.label, b.count])).toEqual([['Activo', 3], ['Suspendido', 1]]);
+  });
+
+  it('cliente: la tarjeta de FactoNet se cierra y no vuelve a salir', () => {
+    localStorage.removeItem('factonet.upsell');
+    component.userRol = 'adminInvoices';
+    component.showUpsell = true;
+    component.closeUpsell();
+    expect(component.showUpsell).toBeFalse();
+    expect(localStorage.getItem('factonet.upsell')).toBe('closed');
+    localStorage.removeItem('factonet.upsell');
+  });
+
+  it('administrador: resumen contable del mes con la caja (cuentas 11)', () => {
+    const http = TestBed.inject(HttpTestingController);
+    component.loadAccounting();
+    http.expectOne((r) => r.url.endsWith('/accounting/status')).flush({ enabled: true });
+    http.expectOne((r) => r.url.endsWith('/reports/income-statement')).flush({ ingresos: 298000, gastos: 75000, costos: 0, utilidad: 223000 });
+    http.expectOne((r) => r.url.endsWith('/reports/balance-sheet')).flush({ cuadra: true, detalle: [{ code: '1', saldo: 354620 }, { code: '11', saldo: 211820 }] });
+    expect(component.accounting).toEqual({ utilidad: 223000, ingresos: 298000, gastos: 75000, caja: 211820, cuadra: true });
+  });
+
+  it('administrador: sin contabilidad configurada no muestra el resumen', () => {
+    const http = TestBed.inject(HttpTestingController);
+    component.loadAccounting();
+    http.expectOne((r) => r.url.endsWith('/accounting/status')).flush({ enabled: false });
+    http.verify();
+    expect(component.accounting).toBeNull();
   });
 
   describe('burbujas de novedades', () => {

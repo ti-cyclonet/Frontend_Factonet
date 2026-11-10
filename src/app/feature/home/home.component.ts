@@ -10,6 +10,8 @@ import { AuthService } from '../../shared/services/auth/auth.service';
 import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
 import { fechaLocal } from '../../shared/utils/fechas';
 import { NewsBubble, bubblesFor, newIds, playNewsSound } from '../../shared/utils/news-bubbles';
+import { AccountingService } from '../../shared/services/accounting.service';
+import { forkJoin } from 'rxjs';
 
 Chart.register(...registerables);
 
@@ -17,6 +19,10 @@ Chart.register(...registerables);
 const REFRESH_MS = 30_000;
 /** Cada cuánto se revisa el token, aunque la pestaña esté oculta. */
 const KEEPALIVE_MS = 60_000;
+/** El cliente cerró la tarjeta de FactoNet como servicio. */
+const UPSELL_KEY = 'factonet.upsell';
+/** Página de FactoNet en la landing. */
+export const FACTONET_LANDING = 'https://cyclonet.com.co/factonet/#contacto';
 
 interface InvoiceRow { id: number; numero: string; cliente: string; total: number; estado: string; vence: string }
 interface ContractRow { id: string; code: string; cliente: string; paquete: string; estado: string; mensual: number; inicio: string; fin: string | null; dias?: number }
@@ -78,6 +84,7 @@ const STATUS_COLORS: Record<string, string> = {
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  readonly landingUrl = FACTONET_LANDING;
   userRol: string | null = null;
   userName = '';
   isAuthorizedSigner = false;
@@ -103,6 +110,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   soundOn = true;
   private seenInvoices: Set<number> | null = null;
   private seenContracts: Set<string> | null = null;
+
+  /** Administrador: resumen contable del mes (solo si la contabilidad está configurada). */
+  accounting: { utilidad: number; ingresos: number; gastos: number; caja: number; cuadra: boolean } | null = null;
+  /** Cliente: tarjeta para conocer FactoNet como servicio (se puede cerrar). */
+  showUpsell = false;
 
   activeContract: { code: string; packageName: string; description: string; monthlyValue: number; startDate: string; endDate: string; status: string; id?: string; clientSignedAt?: string | null; adminSignedAt?: string | null; pdfUrl?: string | null } | null = null;
 
@@ -143,6 +155,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private factonetService: FactonetService,
     private authService: AuthService,
     private zone: NgZone,
+    private accountingApi: AccountingService,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -163,11 +176,41 @@ export class HomeComponent implements OnInit, OnDestroy {
     } catch { /* sin almacenamiento */ }
     this.refresh();
     if (this.isClient) this.loadActiveContract();
+    if (this.isAdmin) this.loadAccounting();
+    if (this.isClient) {
+      try { this.showUpsell = localStorage.getItem(UPSELL_KEY) !== 'closed'; } catch { this.showUpsell = true; }
+    }
     this.refreshTimer = setInterval(() => { if (!document.hidden) this.refresh(); }, REFRESH_MS);
     this.keepAliveTimer = setInterval(() => this.keepAlive(), KEEPALIVE_MS);
     this.zone.runOutsideAngular(() => {
       this.clockTimer = setInterval(() => this.zone.run(() => (this.now = Date.now())), 5_000);
     });
+  }
+
+  /** Resultado del mes y caja (cuentas 11) a hoy, desde la contabilidad de CycloNet. */
+  loadAccounting(): void {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+    this.accountingApi.status().subscribe({
+      next: (st) => {
+        if (!st.enabled) return;
+        forkJoin({
+          er: this.accountingApi.incomeStatement(`${today.slice(0, 7)}-01`, today),
+          bs: this.accountingApi.balanceSheet(today),
+        }).subscribe({
+          next: ({ er, bs }) => {
+            const caja = Number((bs.detalle || []).find((r: { code: string }) => r.code === '11')?.saldo) || 0;
+            this.accounting = { utilidad: er.utilidad, ingresos: er.ingresos, gastos: (er.gastos || 0) + (er.costos || 0), caja, cuadra: !!bs.cuadra };
+          },
+          error: () => (this.accounting = null),
+        });
+      },
+      error: () => (this.accounting = null),
+    });
+  }
+
+  closeUpsell(): void {
+    this.showUpsell = false;
+    try { localStorage.setItem(UPSELL_KEY, 'closed'); } catch { /* sin almacenamiento */ }
   }
 
   ngOnDestroy(): void {
