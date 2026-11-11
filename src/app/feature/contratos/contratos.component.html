@@ -108,7 +108,7 @@
                       <use xlink:href="./assets/icons/bootstrap-icons.svg#eye" />
                     </svg>
                   </button>
-                  <button *ngIf="userRol !== 'adminFactonet' && contrato.issuedAt && !contrato.clientSignedAt && isAuthorizedSigner"
+                  <button *ngIf="userRol !== 'adminFactonet' && (contrato.issuedAt || contrato.status === 'PENDING') && !contrato.clientSignedAt && isAuthorizedSigner"
                           type="button" class="btn btn-sm btn-outline-success" style="font-size: 0.7rem; padding: 2px 8px;"
                           (click)="signContractAsClient(contrato)" title="Firmar contrato">
                     <svg width="12" height="12" fill="currentColor"><use xlink:href="./assets/icons/bootstrap-icons.svg#pen" /></svg>

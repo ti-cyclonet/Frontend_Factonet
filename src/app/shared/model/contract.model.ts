@@ -79,6 +79,8 @@ export interface ContractPackage {
   name: string;
   description: string;
   isBillable?: boolean;
+  /** Aplicación del paquete en Authoriza (Inout, Kiri, Shotra, FactoNet…). */
+  targetApplication?: string | null;
   configurations?: PackageConfiguration[];
 }
 
