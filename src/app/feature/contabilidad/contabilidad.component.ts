@@ -69,8 +69,13 @@ export class ContabilidadComponent implements OnInit {
   pendingCount = 0;
   readonly inboxStatus: Record<string, string> = {
     PENDIENTE: 'Por aprobar', CONTABILIZADA: 'Contabilizada', DUPLICADA: 'Duplicada', RECHAZADA: 'No es para nosotros',
-    SIN_XML: 'Sin XML', ERROR: 'No se pudo leer', DESCARTADA: 'Descartada',
+    SIN_XML: 'Sin XML', ERROR: 'No se pudo leer', DESCARTADA: 'Descartada', AVISO: 'Aviso',
   };
+
+  /** Primer enlace de un mensaje (p. ej. la confirmación de reenvío de Gmail). */
+  linkIn(text: string | null): string | null {
+    return text?.match(/https:\/\/\S+/)?.[0] || null;
+  }
 
   // Periodos
   periods: { month: string; status: string; closedBy: string | null; closedAt: string | null }[] = [];
@@ -270,7 +275,7 @@ export class ContabilidadComponent implements OnInit {
   // ═══ Facturas recibidas
   loadInbox(): void {
     if (!this.inboxCfg) this.api.inboxConfig().subscribe({ next: (c) => (this.inboxCfg = c), error: () => {} });
-    const status = this.inboxFilter === 'PROBLEMAS' ? 'SIN_XML,ERROR,RECHAZADA,DUPLICADA' : this.inboxFilter;
+    const status = this.inboxFilter === 'PROBLEMAS' ? 'AVISO,SIN_XML,ERROR,RECHAZADA,DUPLICADA' : this.inboxFilter;
     this.api.inbox(status).subscribe({
       next: (d) => {
         this.inboxDocs = d;

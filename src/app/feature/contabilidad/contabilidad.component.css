@@ -58,4 +58,5 @@
 .in-CONTABILIZADA { background: #dcfce7; color: #166534; }
 .in-DUPLICADA, .in-DESCARTADA { background: #f1f5f9; color: #64748b; }
 .in-RECHAZADA, .in-ERROR, .in-SIN_XML { background: #fee2e2; color: #991b1b; }
+.in-AVISO { background: #e0f2fe; color: #075985; }
 @media (max-width: 640px) { .acc { margin: 0.5rem; padding: 0.75rem; } }

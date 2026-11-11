@@ -12,7 +12,7 @@ export interface AccVoucher {
 }
 export interface InboxDoc {
   id: string; source: 'CORREO' | 'CARGA'; fromAddress: string | null; subject: string | null;
-  status: 'PENDIENTE' | 'CONTABILIZADA' | 'DUPLICADA' | 'RECHAZADA' | 'SIN_XML' | 'ERROR' | 'DESCARTADA';
+  status: 'PENDIENTE' | 'CONTABILIZADA' | 'DUPLICADA' | 'RECHAZADA' | 'SIN_XML' | 'ERROR' | 'DESCARTADA' | 'AVISO';
   kind: 'Invoice' | 'CreditNote' | null; cufe: string | null; supplierNit: string | null; supplierName: string | null;
   number: string | null; issueDate: string | null; dueDate: string | null; base: number; iva: number; otherTaxes: number; payable: number;
   data: { lines?: { description: string; quantity: number; amount: number }[]; withholdings?: { renta: number; iva: number; ica: number }; references?: string[] } | null;

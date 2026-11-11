@@ -167,7 +167,10 @@
           <button type="button" class="btn btn-sm btn-outline-secondary" *ngIf="d.pdfName" (click)="viewInboxPdf(d)">Ver PDF</button>
           <button type="button" class="btn btn-sm btn-outline-secondary" (click)="inboxSel = null">Cerrar</button>
         </div>
-        <p class="acc-note bad" *ngIf="d.message && d.status !== 'PENDIENTE'">{{ d.message }}</p>
+        <p class="acc-note bad" *ngIf="d.message && d.status !== 'PENDIENTE' && d.status !== 'AVISO'">{{ d.message }}</p>
+        <p class="acc-note warn" *ngIf="d.status === 'AVISO'">{{ d.message }}
+          <a *ngIf="linkIn(d.message) as url" [href]="url" target="_blank" rel="noopener">Abrir el enlace de confirmación</a>
+        </p>
         <p class="acc-note warn" *ngIf="d.message && d.status === 'PENDIENTE'">{{ d.message }}</p>
 
         <ng-container *ngIf="d.number">
