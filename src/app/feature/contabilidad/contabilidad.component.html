@@ -218,8 +218,9 @@
         </div>
         <div class="acc-row">
           <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="busy" (click)="pollInbox()" *ngIf="inboxCfg?.mailbox && inboxCfg?.canPoll">Revisar correo</button>
-          <label class="btn btn-primary btn-sm acc-upload">
-            {{ busy ? 'Cargando…' : 'Cargar ZIP, XML o PDF' }}
+          <label class="acc-upload" [class.busy]="busy" title="Sube el ZIP que te envió el proveedor, o su XML o PDF">
+            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+            <span><b>{{ busy ? 'Subiendo…' : 'Subir factura' }}</b><small>ZIP, XML o PDF</small></span>
             <input type="file" multiple accept=".zip,.xml,.pdf" (change)="uploadInbox($event)" [disabled]="busy" hidden>
           </label>
         </div>
