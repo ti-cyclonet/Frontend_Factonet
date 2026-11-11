@@ -22,9 +22,9 @@ const REFRESH_MS = 30_000;
 /** Cada cuánto se revisa el token, aunque la pestaña esté oculta. */
 const KEEPALIVE_MS = 60_000;
 /** El cliente cerró la tarjeta de FactoNet como servicio. */
-const UPSELL_KEY = 'factonet.upsell';
+const UPSELL_KEY = 'factonet.upsell.contabilidad';
 /** Página de FactoNet en la landing. */
-export const FACTONET_LANDING = 'https://cyclonet.com.co/factonet/#contacto';
+export const FACTONET_LANDING = 'https://cyclonet.com.co/factonet/#planes';
 
 interface InvoiceRow { id: number; numero: string; cliente: string; total: number; estado: string; vence: string }
 interface ContractRow { id: string; code: string; cliente: string; paquete: string; estado: string; mensual: number; inicio: string; fin: string | null; dias?: number }
