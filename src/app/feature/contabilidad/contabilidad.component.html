@@ -15,8 +15,8 @@
 
   <ng-container *ngIf="enabled">
     <nav class="acc-tabs" role="tablist">
-      <button type="button" *ngFor="let t of [['resumen','Resumen'],['comprobantes','Comprobantes'],['reportes','Reportes'],['cuentas','Plan de cuentas'],['terceros','Terceros'],['periodos','Cierre de meses']]"
-        role="tab" [class.on]="tab === t[0]" [attr.aria-selected]="tab === t[0]" (click)="setTab($any(t[0]))">{{ t[1] }}</button>
+      <button type="button" *ngFor="let t of [['resumen','Resumen'],['comprobantes','Comprobantes'],['recibidas','Facturas recibidas'],['reportes','Reportes'],['cuentas','Plan de cuentas'],['terceros','Terceros'],['periodos','Cierre de meses']]"
+        role="tab" [class.on]="tab === t[0]" [attr.aria-selected]="tab === t[0]" (click)="setTab($any(t[0]))">{{ t[1] }}<span class="acc-badge" *ngIf="t[0] === 'recibidas' && pendingCount">{{ pendingCount }}</span></button>
     </nav>
 
     <!-- ═══ Resumen ═══ -->
@@ -131,6 +131,110 @@
               <td><span class="acc-st" [ngClass]="'st-' + v.status">{{ v.status | titlecase }}</span></td>
             </tr>
             <tr *ngIf="!vouchers.length"><td colspan="5" class="acc-muted">No hay comprobantes con esos filtros.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ Facturas recibidas ═══ -->
+    <section *ngIf="tab === 'recibidas'" class="acc-panel">
+      <div class="acc-inbox-head">
+        <div>
+          <strong>Facturas de proveedores</strong>
+          <p class="acc-muted" *ngIf="inboxCfg?.address">Pídeles a tus proveedores que envíen la factura electrónica a <b>{{ inboxCfg?.address }}</b>. Llega sola y queda aquí para aprobar.</p>
+          <p class="acc-muted" *ngIf="inboxCfg && !inboxCfg.address">El buzón de correo aún no está configurado. Mientras tanto, carga el ZIP o el XML que te envía el proveedor.</p>
+        </div>
+        <div class="acc-row">
+          <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="busy" (click)="pollInbox()" *ngIf="inboxCfg?.mailbox">Revisar correo</button>
+          <label class="btn btn-primary btn-sm acc-upload">
+            {{ busy ? 'Cargando…' : 'Cargar ZIP, XML o PDF' }}
+            <input type="file" multiple accept=".zip,.xml,.pdf" (change)="uploadInbox($event)" [disabled]="busy" hidden>
+          </label>
+        </div>
+      </div>
+
+      <nav class="acc-chips" aria-label="Filtrar facturas recibidas">
+        <button type="button" *ngFor="let f of [['PENDIENTE','Por aprobar'],['','Todas'],['CONTABILIZADA','Contabilizadas'],['PROBLEMAS','Con problemas'],['DESCARTADA','Descartadas']]"
+          [class.on]="inboxFilter === f[0]" (click)="setInboxFilter($any(f[0]))">{{ f[1] }}</button>
+      </nav>
+
+      <!-- Detalle -->
+      <div class="acc-form" *ngIf="inboxSel as d">
+        <div class="acc-row">
+          <strong>{{ d.kind === 'CreditNote' ? 'Nota crédito' : 'Factura' }} {{ d.number || '' }}</strong>
+          <span class="acc-st" [ngClass]="'in-' + d.status">{{ inboxStatus[d.status] }}</span>
+          <span class="grow">{{ d.supplierName || d.fromAddress }}<span *ngIf="d.supplierNit"> · NIT {{ d.supplierNit }}</span></span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" *ngIf="d.pdfName" (click)="viewInboxPdf(d)">Ver PDF</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="inboxSel = null">Cerrar</button>
+        </div>
+        <p class="acc-note bad" *ngIf="d.message && d.status !== 'PENDIENTE' && d.status !== 'AVISO'">{{ d.message }}</p>
+        <p class="acc-note warn" *ngIf="d.status === 'AVISO'">{{ d.message }}
+          <a *ngIf="linkIn(d.message) as url" [href]="url" target="_blank" rel="noopener">Abrir el enlace de confirmación</a>
+        </p>
+        <p class="acc-note warn" *ngIf="d.message && d.status === 'PENDIENTE'">{{ d.message }}</p>
+
+        <ng-container *ngIf="d.number">
+          <div class="acc-facts">
+            <span><small>Fecha</small>{{ d.issueDate }}</span>
+            <span *ngIf="d.dueDate"><small>Vence</small>{{ d.dueDate }}</span>
+            <span><small>Base</small>{{ money(d.base) }}</span>
+            <span><small>IVA</small>{{ money(d.iva) }}</span>
+            <span *ngIf="+d.otherTaxes"><small>Otros tributos</small>{{ money(d.otherTaxes) }}</span>
+            <span *ngIf="d.data?.withholdings?.renta"><small>Retefuente</small>{{ money(d.data!.withholdings!.renta) }}</span>
+            <span *ngIf="d.data?.withholdings?.iva"><small>ReteIVA</small>{{ money(d.data!.withholdings!.iva) }}</span>
+            <span *ngIf="d.data?.withholdings?.ica"><small>ReteICA</small>{{ money(d.data!.withholdings!.ica) }}</span>
+            <span><small>A pagar</small><b>{{ money(d.payable) }}</b></span>
+          </div>
+          <div class="acc-table-wrap" *ngIf="d.data?.lines?.length">
+            <table class="acc-table">
+              <thead><tr><th>Detalle</th><th class="num">Cant.</th><th class="num">Valor</th></tr></thead>
+              <tbody><tr *ngFor="let l of d.data!.lines"><td>{{ l.description }}</td><td class="num">{{ l.quantity }}</td><td class="num">{{ money(l.amount) }}</td></tr></tbody>
+            </table>
+          </div>
+          <small class="acc-muted" *ngIf="d.cufe">CUFE {{ d.cufe }}</small>
+        </ng-container>
+
+        <!-- Aprobar -->
+        <ng-container *ngIf="d.status === 'PENDIENTE'">
+          <div class="acc-row">
+            <label class="grow">Cuenta de gasto
+              <input list="acc-cuentas-in" [(ngModel)]="approveForm.accountCode" class="code" placeholder="523525">
+              <small class="acc-muted">{{ accountName(approveForm.accountCode) }}</small>
+            </label>
+            <datalist id="acc-cuentas-in"><option *ngFor="let a of postable" [value]="a.code">{{ a.code }} · {{ a.name }}</option></datalist>
+            <label>Fecha contable <input type="date" [(ngModel)]="approveForm.date"></label>
+            <label class="acc-check" *ngIf="d.supplierNit"><input type="checkbox" [(ngModel)]="approveForm.saveRule"> Usar siempre esta cuenta para este proveedor</label>
+          </div>
+          <div class="acc-table-wrap" *ngIf="inboxPreview.length">
+            <table class="acc-table">
+              <thead><tr><th>Asiento que se creará</th><th class="num">Débito</th><th class="num">Crédito</th></tr></thead>
+              <tbody><tr *ngFor="let l of inboxPreview"><td>{{ l.accountCode }} <small>{{ accountName(l.accountCode) }}</small></td><td class="num">{{ l.debit ? money(l.debit) : '' }}</td><td class="num">{{ l.credit ? money(l.credit) : '' }}</td></tr></tbody>
+            </table>
+          </div>
+          <div class="acc-row">
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="discardInbox()">Descartar</button>
+            <button type="button" class="btn btn-primary btn-sm" [disabled]="busy || !approveForm.accountCode" (click)="approveInbox()">Aprobar y contabilizar</button>
+          </div>
+        </ng-container>
+        <div class="acc-row" *ngIf="d.status !== 'PENDIENTE' && d.status !== 'CONTABILIZADA'">
+          <button type="button" class="btn btn-outline-secondary btn-sm" *ngIf="d.status === 'DESCARTADA' && d.number" (click)="reopenInbox()">Reabrir</button>
+          <button type="button" class="btn btn-outline-danger btn-sm" *ngIf="d.status !== 'DESCARTADA'" (click)="discardInbox()">Descartar</button>
+        </div>
+      </div>
+
+      <div class="acc-table-wrap">
+        <table class="acc-table acc-list">
+          <thead><tr><th>Recibida</th><th>Proveedor</th><th>Documento</th><th>Fecha</th><th class="num">A pagar</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let d of inboxDocs" (click)="openInbox(d)" [class.sel]="inboxSel?.id === d.id">
+              <td>{{ d.receivedAt | date: 'dd/MM HH:mm' }}<small>{{ d.source === 'CORREO' ? 'Correo' : 'Cargada' }}</small></td>
+              <td>{{ d.supplierName || d.fromAddress || '—' }}<small *ngIf="d.supplierNit">NIT {{ d.supplierNit }}</small></td>
+              <td>{{ d.kind === 'CreditNote' ? 'NC' : '' }} {{ d.number || '—' }}</td>
+              <td>{{ d.issueDate || '—' }}</td>
+              <td class="num">{{ d.number ? money(d.payable) : '' }}</td>
+              <td><span class="acc-st" [ngClass]="'in-' + d.status">{{ inboxStatus[d.status] }}</span></td>
+            </tr>
+            <tr *ngIf="!inboxDocs.length"><td colspan="6" class="acc-muted">{{ inboxFilter === 'PENDIENTE' ? 'No hay facturas por aprobar.' : 'No hay documentos con este filtro.' }}</td></tr>
           </tbody>
         </table>
       </div>
