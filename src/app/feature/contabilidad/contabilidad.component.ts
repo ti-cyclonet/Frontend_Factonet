@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
-import { AccAccount, AccLine, AccThirdParty, AccVoucher, AccountingService, BalanceRow, InboxDoc } from '../../shared/services/accounting.service';
+import { AccAccount, AccCompanyView, AccLine, AccPlan, AccThirdParty, AccVoucher, AccountingService, BalanceRow, InboxDoc } from '../../shared/services/accounting.service';
 
 type Tab = 'resumen' | 'comprobantes' | 'recibidas' | 'reportes' | 'cuentas' | 'terceros' | 'periodos';
 type Report = 'resultados' | 'situacion' | 'prueba' | 'mayor';
@@ -12,14 +13,15 @@ const hoy = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' 
 const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 
 /**
- * Contabilidad de CycloNet (etapa 1, solo adminFactonet): sincronización con
+ * Contabilidad: la de CycloNet (adminFactonet) o la de la empresa que contrató
+ * FactoNet (empresaFactonet / contadorFactonet). Sincronización con
  * las facturas de Authoriza, comprobantes, reportes, plan de cuentas,
  * terceros y cierre de meses.
  */
 @Component({
   selector: 'app-contabilidad',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './contabilidad.component.html',
   styleUrls: ['./contabilidad.component.css'],
 })
@@ -29,7 +31,24 @@ export class ContabilidadComponent implements OnInit {
   loading = true;
   enabled = false;
   disabledMessage = '';
-  company: { name: string; nit: string | null; autoFrom: string | null; accountMap?: Record<string, string> } | null = null;
+  company: AccCompanyView | null = null;
+  /** Contabilidad de CycloNet (administrador) o de la empresa de la sesión. */
+  isCyclonet = true;
+  role = '';
+  /** La empresa aún no configuró sus datos contables. */
+  needsSetup = false;
+  plan: AccPlan | null = null;
+  setupForm = { name: '', nit: '', ivaResponsable: true };
+  companyForm: { name: string; nit: string; ivaResponsable: boolean } | null = null;
+
+  /** Puede cambiar los datos de la empresa (el contador invitado no). */
+  get canEditCompany(): boolean { return this.role !== 'contadorFactonet'; }
+  /** La contabilidad está lista para usarse. */
+  get ready(): boolean { return this.enabled && !this.needsSetup && (this.isCyclonet || !!this.plan?.active); }
+  /** Porcentaje de uso de un cupo del plan (0-100). */
+  pct(used: number | undefined, max: number | null | undefined): number {
+    return max ? Math.min(100, Math.round(((used || 0) / max) * 100)) : 0;
+  }
   busy = false;
 
   accounts: AccAccount[] = [];
@@ -63,7 +82,7 @@ export class ContabilidadComponent implements OnInit {
   // Facturas recibidas de proveedores
   inboxFilter: 'PENDIENTE' | '' | 'CONTABILIZADA' | 'PROBLEMAS' | 'DESCARTADA' = 'PENDIENTE';
   inboxDocs: InboxDoc[] = [];
-  inboxCfg: { address: string | null; mailbox: boolean } | null = null;
+  inboxCfg: { address: string | null; mailbox: boolean; canPoll?: boolean } | null = null;
   inboxSel: InboxDoc | null = null;
   approveForm = { accountCode: '', saveRule: true, date: '' };
   pendingCount = 0;
@@ -84,13 +103,21 @@ export class ContabilidadComponent implements OnInit {
   constructor(private api: AccountingService) {}
 
   ngOnInit(): void {
+    this.loadStatus();
+  }
+
+  loadStatus(): void {
     this.api.status().subscribe({
       next: (s) => {
         this.enabled = s.enabled;
         this.disabledMessage = s.message || '';
         this.company = s.company || null;
+        this.isCyclonet = s.isCyclonet !== false;
+        this.role = s.role || sessionStorage.getItem('user_rol') || '';
+        this.needsSetup = !!s.needsSetup;
+        this.plan = s.plan || null;
         this.loading = false;
-        if (s.enabled) {
+        if (this.ready) {
           this.loadAccounts();
           this.loadThirdParties();
           this.loadSummary();
@@ -125,6 +152,33 @@ export class ContabilidadComponent implements OnInit {
 
   money(v: number | string): string {
     return '$' + new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(v) || 0);
+  }
+
+  // ═══ Empresa
+  setupCompany(): void {
+    this.busy = true;
+    this.api.setupCompany(this.setupForm).subscribe({
+      next: () => {
+        this.busy = false;
+        Swal.fire({ icon: 'success', title: '¡Tu contabilidad está lista!', text: 'Cargamos el plan de cuentas y creamos tu buzón de facturas.', timer: 2200, showConfirmButton: false });
+        this.loadStatus();
+      },
+      error: (e) => this.fail(e, 'No se pudo configurar la empresa'),
+    });
+  }
+
+  editCompany(): void {
+    const c = this.company;
+    this.companyForm = c ? { name: c.name, nit: c.nit || '', ivaResponsable: c.ivaResponsable !== false } : null;
+  }
+
+  saveCompany(): void {
+    if (!this.companyForm) return;
+    this.busy = true;
+    this.api.updateCompany(this.companyForm).subscribe({
+      next: (c) => { this.busy = false; this.company = c; this.companyForm = null; },
+      error: (e) => this.fail(e, 'No se pudieron guardar los datos'),
+    });
   }
 
   // ═══ Resumen

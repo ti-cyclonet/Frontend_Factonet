@@ -13,7 +13,36 @@
     <span>{{ disabledMessage }}</span>
   </div>
 
-  <ng-container *ngIf="enabled">
+  <!-- Empresa sin plan activo (p. ej. contrato aún sin firmar) -->
+  <div class="acc-off" *ngIf="!loading && enabled && !isCyclonet && plan && !plan.active">
+    <strong>Tu plan de FactoNet todavía no está activo.</strong>
+    <span>Firma tu contrato en <a routerLink="/contracts">Contratos</a>: tu contabilidad se habilita en cuanto lo firmes, y el primer mes es gratis.</span>
+  </div>
+
+  <!-- Primera vez: datos de la empresa -->
+  <div class="acc-form acc-setup" *ngIf="!loading && enabled && needsSetup && plan?.active">
+    <div>
+      <strong>Configura tu contabilidad</strong>
+      <p class="acc-muted">Con estos datos cargamos tu plan de cuentas (PUC) y creamos el buzón donde tus proveedores te enviarán sus facturas electrónicas.</p>
+    </div>
+    <ng-container *ngIf="canEditCompany; else waitOwner">
+      <div class="acc-row">
+        <label class="grow">Razón social <input [(ngModel)]="setupForm.name" maxlength="200" placeholder="Tienda La Esquina S.A.S."></label>
+        <label>NIT <input [(ngModel)]="setupForm.nit" maxlength="20" placeholder="900123456-7"></label>
+      </div>
+      <div class="acc-row">
+        <label class="acc-check"><input type="radio" name="iva" [value]="true" [(ngModel)]="setupForm.ivaResponsable"> Soy responsable de IVA (el IVA de mis compras es descontable)</label>
+        <label class="acc-check"><input type="radio" name="iva" [value]="false" [(ngModel)]="setupForm.ivaResponsable"> No soy responsable de IVA (el IVA de mis compras es parte del gasto)</label>
+      </div>
+      <small class="acc-muted">Si tienes dudas sobre el IVA, pregúntale a tu contador. Puedes cambiarlo después.</small>
+      <div class="acc-row">
+        <button type="button" class="btn btn-primary btn-sm" [disabled]="busy || !setupForm.name || !setupForm.nit" (click)="setupCompany()">{{ busy ? 'Preparando…' : 'Empezar mi contabilidad' }}</button>
+      </div>
+    </ng-container>
+    <ng-template #waitOwner><p class="acc-muted">La empresa aún no configuró su contabilidad. Pídele al dueño de la cuenta que lo haga.</p></ng-template>
+  </div>
+
+  <ng-container *ngIf="ready">
     <nav class="acc-tabs" role="tablist">
       <button type="button" *ngFor="let t of [['resumen','Resumen'],['comprobantes','Comprobantes'],['recibidas','Facturas recibidas'],['reportes','Reportes'],['cuentas','Plan de cuentas'],['terceros','Terceros'],['periodos','Cierre de meses']]"
         role="tab" [class.on]="tab === t[0]" [attr.aria-selected]="tab === t[0]" (click)="setTab($any(t[0]))">{{ t[1] }}<span class="acc-badge" *ngIf="t[0] === 'recibidas' && pendingCount">{{ pendingCount }}</span></button>
@@ -23,7 +52,7 @@
     <section *ngIf="tab === 'resumen'" class="acc-panel">
       <div class="acc-row">
         <label class="acc-inline">Mes <input type="month" [(ngModel)]="month" (change)="loadSummary()"></label>
-        <button type="button" class="btn btn-primary btn-sm" [disabled]="busy" (click)="sync()">{{ busy ? 'Sincronizando…' : 'Sincronizar facturas de Authoriza' }}</button>
+        <button type="button" class="btn btn-primary btn-sm" *ngIf="isCyclonet" [disabled]="busy" (click)="sync()">{{ busy ? 'Sincronizando…' : 'Sincronizar facturas de Authoriza' }}</button>
       </div>
       <p class="acc-note" *ngIf="syncResult">
         ✓ {{ syncResult.created }} asiento(s) nuevo(s) de {{ syncResult.invoices }} factura(s) revisada(s).
@@ -34,10 +63,53 @@
         <div class="acc-kpi"><small>Gastos y costos</small><b>{{ money(er.gastos + er.costos) }}</b></div>
         <div class="acc-kpi" [class.neg]="er.utilidad < 0"><small>{{ er.utilidad < 0 ? 'Pérdida' : 'Utilidad' }} del mes</small><b>{{ money(er.utilidad) }}</b></div>
       </div>
-      <p class="acc-muted">
+      <p class="acc-muted" *ngIf="isCyclonet">
         Las facturas y los pagos verificados de CycloNet se contabilizan solos cada 30 minutos (o con el botón).
         <span *ngIf="company?.autoFrom">Desde el {{ company?.autoFrom }}.</span>
       </p>
+
+      <!-- Plan de la empresa y su consumo del mes -->
+      <div class="acc-plan" *ngIf="plan as p">
+        <div class="acc-plan-head"><strong>{{ p.packageName || 'Tu plan' }}</strong><small>Consumo de este mes</small></div>
+        <div class="acc-meter">
+          <span>Comprobantes</span>
+          <div class="bar"><i [style.width.%]="pct(p.usage?.vouchers, p.limits.vouchers)" [class.full]="pct(p.usage?.vouchers, p.limits.vouchers) >= 100"></i></div>
+          <b>{{ p.usage?.vouchers || 0 }}{{ p.limits.vouchers === null ? '' : ' de ' + p.limits.vouchers }}</b>
+        </div>
+        <div class="acc-meter">
+          <span>Facturas recibidas</span>
+          <div class="bar"><i [style.width.%]="pct(p.usage?.received, p.limits.received)" [class.full]="pct(p.usage?.received, p.limits.received) >= 100"></i></div>
+          <b>{{ p.usage?.received || 0 }}{{ p.limits.received === null ? '' : ' de ' + p.limits.received }}</b>
+        </div>
+        <small class="acc-muted" *ngIf="p.limits.received !== null">Las facturas recibidas por encima del cupo tienen un costo de $300 cada una.</small>
+      </div>
+
+      <!-- Datos de la empresa -->
+      <div class="acc-form" *ngIf="company as c">
+        <div class="acc-row">
+          <strong class="grow">Datos de la empresa</strong>
+          <button type="button" class="btn btn-sm btn-outline-secondary" *ngIf="canEditCompany && !companyForm" (click)="editCompany()">Editar</button>
+        </div>
+        <ng-container *ngIf="!companyForm">
+          <div class="acc-facts">
+            <span><small>Razón social</small>{{ c.name }}</span>
+            <span><small>NIT</small>{{ c.nit || '—' }}</span>
+            <span><small>IVA de las compras</small>{{ c.ivaResponsable ? 'Descontable (responsable de IVA)' : 'Va al gasto (no descontable)' }}</span>
+            <span *ngIf="c.inboxAddress"><small>Buzón de facturas</small><b>{{ c.inboxAddress }}</b></span>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="companyForm as f">
+          <div class="acc-row">
+            <label class="grow">Razón social <input [(ngModel)]="f.name" maxlength="200"></label>
+            <label>NIT <input [(ngModel)]="f.nit" maxlength="20"></label>
+            <label class="acc-check"><input type="checkbox" [(ngModel)]="f.ivaResponsable"> Responsable de IVA (IVA de compras descontable)</label>
+          </div>
+          <div class="acc-row">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="companyForm = null">Cancelar</button>
+            <button type="button" class="btn btn-sm btn-primary" [disabled]="busy" (click)="saveCompany()">Guardar</button>
+          </div>
+        </ng-container>
+      </div>
     </section>
 
     <!-- ═══ Comprobantes ═══ -->
@@ -145,9 +217,10 @@
           <p class="acc-muted" *ngIf="inboxCfg && !inboxCfg.address">El buzón de correo aún no está configurado. Mientras tanto, carga el ZIP o el XML que te envía el proveedor.</p>
         </div>
         <div class="acc-row">
-          <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="busy" (click)="pollInbox()" *ngIf="inboxCfg?.mailbox">Revisar correo</button>
-          <label class="btn btn-primary btn-sm acc-upload">
-            {{ busy ? 'Cargando…' : 'Cargar ZIP, XML o PDF' }}
+          <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="busy" (click)="pollInbox()" *ngIf="inboxCfg?.mailbox && inboxCfg?.canPoll">Revisar correo</button>
+          <label class="acc-upload" [class.busy]="busy" title="Sube el ZIP que te envió el proveedor, o su XML o PDF">
+            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+            <span><b>{{ busy ? 'Subiendo…' : 'Subir factura' }}</b><small>ZIP, XML o PDF</small></span>
             <input type="file" multiple accept=".zip,.xml,.pdf" (change)="uploadInbox($event)" [disabled]="busy" hidden>
           </label>
         </div>

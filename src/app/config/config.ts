@@ -11,7 +11,7 @@ export const ROOT_HOME = 'home'; // Nueva ruta para Dashboard
 export const ROOT_INVOICES = 'invoices'; // Nueva ruta para Facturas
 export const ROOT_CONTRACTS = 'contracts'; // Nueva ruta para Contratos
 export const ROOT_REPORTES = 'reportes'; // Nueva ruta para Reportes
-export const ROOT_CONTABILIDAD = 'contabilidad'; // Contabilidad de CycloNet (solo adminFactonet)
+export const ROOT_CONTABILIDAD = 'contabilidad'; // Contabilidad (adminFactonet: la de CycloNet; empresaFactonet/contadorFactonet: la de su empresa)
 
 //Rutas de administración de la aplicación
 export const ROOT_CONFIGURATION= 'setup';

@@ -18,9 +18,20 @@ export interface InboxDoc {
   data: { lines?: { description: string; quantity: number; amount: number }[]; withholdings?: { renta: number; iva: number; ica: number }; references?: string[] } | null;
   message: string | null; accountCode: string | null; voucherId: string | null; pdfName: string | null; receivedAt: string; reviewedBy: string | null;
 }
+export interface AccCompanyView { name: string; nit: string | null; autoFrom: string | null; accountMap?: Record<string, string>; ivaResponsable?: boolean; inboxAddress?: string | null }
+export interface AccPlan {
+  active: boolean; packageName: string | null;
+  limits: { vouchers: number | null; received: number | null };
+  usage?: { vouchers: number; received: number };
+  features: Record<string, boolean>;
+}
+export interface AccStatus {
+  enabled: boolean; message?: string; role?: string; isCyclonet?: boolean; needsSetup?: boolean;
+  plan?: AccPlan | null; company?: AccCompanyView;
+}
 export interface BalanceRow { code: string; name: string; level: number; nature: string; opening: number; debit: number; credit: number; closing: number }
 
-/** Contabilidad de CycloNet (backend de FactoNet, solo adminFactonet). */
+/** Contabilidad (backend de FactoNet): la de CycloNet o la de la empresa de la sesión. */
 @Injectable({ providedIn: 'root' })
 export class AccountingService {
   private readonly base = `${environment.BASE_URL_FACTONET}/accounting`;
@@ -40,7 +51,9 @@ export class AccountingService {
     return this.http.post<T>(`${this.base}${path}`, body, { headers: this.headers });
   }
 
-  status() { return this.get<{ enabled: boolean; message?: string; company?: { name: string; nit: string | null; autoFrom: string | null; accountMap?: Record<string, string> } }>('/status'); }
+  status() { return this.get<AccStatus>('/status'); }
+  setupCompany(b: { name: string; nit: string; ivaResponsable: boolean }) { return this.post<AccCompanyView>('/company/setup', b); }
+  updateCompany(b: { name?: string; nit?: string; ivaResponsable?: boolean }) { return this.http.put<AccCompanyView>(`${this.base}/company`, b, { headers: this.headers }); }
   sync() { return this.post<{ invoices: number; created: number; skipped: string[] }>('/sync'); }
 
   accounts() { return this.get<AccAccount[]>('/accounts'); }
@@ -66,7 +79,7 @@ export class AccountingService {
   ledger(account: string, from: string, to: string) { return this.get<any>('/reports/ledger', { account, from, to }); }
 
   // Facturas recibidas de proveedores
-  inboxConfig() { return this.get<{ address: string | null; mailbox: boolean }>('/inbox/config'); }
+  inboxConfig() { return this.get<{ address: string | null; mailbox: boolean; canPoll?: boolean }>('/inbox/config'); }
   inbox(status = '') { return this.get<InboxDoc[]>('/inbox', { status }); }
   inboxDoc(id: string) { return this.get<InboxDoc & { preview: { lines: AccLine[]; total: number; warning: string | null } | null }>(`/inbox/${id}`); }
   inboxPoll() { return this.post<{ configured: boolean; emails: number; documents: number }>('/inbox/poll'); }

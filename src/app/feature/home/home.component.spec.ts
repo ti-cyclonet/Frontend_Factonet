@@ -57,13 +57,13 @@ describe('HomeComponent', () => {
   });
 
   it('cliente: la tarjeta de FactoNet se cierra y no vuelve a salir', () => {
-    localStorage.removeItem('factonet.upsell');
+    localStorage.removeItem('factonet.upsell.contabilidad');
     component.userRol = 'adminInvoices';
     component.showUpsell = true;
     component.closeUpsell();
     expect(component.showUpsell).toBeFalse();
-    expect(localStorage.getItem('factonet.upsell')).toBe('closed');
-    localStorage.removeItem('factonet.upsell');
+    expect(localStorage.getItem('factonet.upsell.contabilidad')).toBe('closed');
+    localStorage.removeItem('factonet.upsell.contabilidad');
   });
 
   it('administrador: resumen contable del mes con la caja (cuentas 11)', () => {
