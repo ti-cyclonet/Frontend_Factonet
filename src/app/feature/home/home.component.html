@@ -47,13 +47,13 @@
   </a>
 
   <!-- Cliente: conocer FactoNet como servicio (se puede cerrar) -->
-  <aside class="upsell" *ngIf="isClient && showUpsell" aria-label="Conoce FactoNet">
+  <aside class="upsell" *ngIf="userRol === 'adminInvoices' && showUpsell" aria-label="Contabilidad en FactoNet">
     <span class="kpi-icon g-blue"><svg viewBox="0 0 16 16"><use xlink:href="./assets/icons/bootstrap-icons.svg#receipt"/></svg></span>
     <div class="upsell-body">
-      <strong>¿Quieres cobrarles a tus clientes como CycloNet te cobra a ti?</strong>
-      <span>Contratos con firma, facturación recurrente y avisos de cobro automáticos con FactoNet.</span>
+      <strong>Lleva también tu contabilidad en FactoNet</strong>
+      <span>Tus proveedores te envían las facturas a tu buzón y se contabilizan con un clic. Se agrega a tu misma cuenta y el primer mes es gratis.</span>
     </div>
-    <a class="upsell-cta" [href]="landingUrl" target="_blank" rel="noopener">Conoce FactoNet</a>
+    <a class="upsell-cta" [href]="landingUrl" target="_blank" rel="noopener">Ver planes</a>
     <button type="button" class="upsell-x" (click)="closeUpsell()" aria-label="No mostrar de nuevo" title="No mostrar de nuevo">×</button>
   </aside>
 

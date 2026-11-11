@@ -1,3 +1,4 @@
+import { isClientRole } from '../../shared/utils/roles';
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EsLabelPipe } from '../../shared/pipes/es-label.pipe';
@@ -36,7 +37,7 @@ export class FacturasPendientesComponent implements OnChanges {
   porVerificar: FacturaVista[] = [];
   hoy = hoyLocal();
 
-  get esCliente(): boolean { return this.rol === 'adminInvoices'; }
+  get esCliente(): boolean { return isClientRole(this.rol); }
   get esAdmin(): boolean { return this.rol === 'adminFactonet'; }
 
   ngOnChanges(): void {

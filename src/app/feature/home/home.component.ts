@@ -1,6 +1,7 @@
+import { isClientRole } from '../../shared/utils/roles';
 import { Component, HostListener, Inject, NgZone, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartData, registerables } from 'chart.js';
 import { Subscription, switchMap } from 'rxjs';
@@ -21,9 +22,9 @@ const REFRESH_MS = 30_000;
 /** Cada cuánto se revisa el token, aunque la pestaña esté oculta. */
 const KEEPALIVE_MS = 60_000;
 /** El cliente cerró la tarjeta de FactoNet como servicio. */
-const UPSELL_KEY = 'factonet.upsell';
+const UPSELL_KEY = 'factonet.upsell.contabilidad';
 /** Página de FactoNet en la landing. */
-export const FACTONET_LANDING = 'https://cyclonet.com.co/factonet/#contacto';
+export const FACTONET_LANDING = 'https://cyclonet.com.co/factonet/#planes';
 
 interface InvoiceRow { id: number; numero: string; cliente: string; total: number; estado: string; vence: string }
 interface ContractRow { id: string; code: string; cliente: string; paquete: string; estado: string; mensual: number; inicio: string; fin: string | null; dias?: number }
@@ -160,17 +161,23 @@ export class HomeComponent implements OnInit, OnDestroy {
     private zone: NgZone,
     private accountingApi: AccountingService,
     private contractPdf: ContractPdfService,
+    private router: Router,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
   get isAdmin(): boolean { return this.userRol === 'adminFactonet'; }
-  get isClient(): boolean { return this.userRol === 'adminInvoices'; }
+  get isClient(): boolean { return isClientRole(this.userRol); }
 
   ngOnInit(): void {
     if (!this.isBrowser) return;
     this.userRol = sessionStorage.getItem('user_rol');
+    // El contador invitado solo tiene la contabilidad de la empresa
+    if (this.userRol === 'contadorFactonet') {
+      this.router.navigate(['/contabilidad']);
+      return;
+    }
     const name = sessionStorage.getItem('user_name') || '';
     this.userName = name.includes('@') ? '' : name.split(' ')[0];
     this.isAuthorizedSigner = sessionStorage.getItem('user_isAuthorizedSigner') === 'true';

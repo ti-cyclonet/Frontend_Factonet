@@ -1,3 +1,4 @@
+import { isAccountingRole } from './shared/utils/roles';
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { provideRouter } from '@angular/router';
@@ -36,7 +37,7 @@ export const routes: Routes = [
     { path: ROOT_CONTRACTS, component: ContratosComponent, canActivate: [ActivePeriodGuard] },
     { path: ROOT_INVOICES, component: FacturasComponent, canActivate: [ActivePeriodGuard] },
     { path: ROOT_REPORTES, component: ReportesComponent },
-    { path: ROOT_CONTABILIDAD, component: ContabilidadComponent, canActivate: [() => sessionStorage.getItem('user_rol') === 'adminFactonet' || inject(Router).createUrlTree(['/' + ROOT_HOME])] },
+    { path: ROOT_CONTABILIDAD, component: ContabilidadComponent, canActivate: [() => isAccountingRole(sessionStorage.getItem('user_rol')) || inject(Router).createUrlTree(['/' + ROOT_HOME])] },
     
     // RUTAS DE CONFIGURACIÓN
     { path: ROOT_CONFIGURATION, component: SetupComponent },

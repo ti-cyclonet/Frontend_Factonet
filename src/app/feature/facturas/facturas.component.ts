@@ -1,3 +1,4 @@
+import { isClientRole } from '../../shared/utils/roles';
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
@@ -126,10 +127,13 @@ export class FacturasComponent implements OnInit, OnDestroy {
   // función y el listener quedaba vivo al salir de la pantalla.
   private readonly onDocumentClick = () => this.closeStatusDropdown();
 
+  /** Cliente de CycloNet (adminInvoices o empresa con FactoNet). */
+  get isClient(): boolean { return isClientRole(this.userRol); }
+
   ngOnInit(): void {
     this.userRol = sessionStorage.getItem('user_rol');
     this.loadFacturas();
-    if (this.userRol === 'adminInvoices') {
+    if (isClientRole(this.userRol)) {
       this.cargarConfiguracionPagos();
       this.revisarRegresoDeWompi();
     }
@@ -164,7 +168,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         this.loading = false;
 
         // Check for rejected invoices and notify the client
-        if (this.userRol === 'adminInvoices') {
+        if (isClientRole(this.userRol)) {
           this.checkRejectedPayments();
         }
       },
