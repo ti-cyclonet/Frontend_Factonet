@@ -292,7 +292,7 @@
           </div>
           <button type="button" class="btn-sign" *ngIf="activeContract.status !== 'ACTIVE' && !activeContract.clientSignedAt && isAuthorizedSigner" (click)="signMyContract()">Firmar contrato</button>
           <p class="contract-note" *ngIf="activeContract.status !== 'ACTIVE' && !activeContract.clientSignedAt && !isAuthorizedSigner" title="Solo el firmante autorizado puede firmar este contrato">🔒 Pendiente de firma por el firmante autorizado de tu empresa.</p>
-          <p class="contract-note" *ngIf="activeContract.clientSignedAt && activeContract.status !== 'ACTIVE'">✅ Firmado. Pendiente de la firma del administrador.</p>
+          <p class="contract-note" *ngIf="activeContract.clientSignedAt && activeContract.status !== 'ACTIVE'">✅ Firmado. Tu plan se está activando.</p>
         </ng-container>
         <ng-template #noContract><p class="empty">No tienes un contrato activo.</p></ng-template>
       </article>

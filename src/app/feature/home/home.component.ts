@@ -11,6 +11,7 @@ import { EsLabelPipe, esLabel } from '../../shared/pipes/es-label.pipe';
 import { fechaLocal } from '../../shared/utils/fechas';
 import { NewsBubble, bubblesFor, newIds, playNewsSound } from '../../shared/utils/news-bubbles';
 import { AccountingService } from '../../shared/services/accounting.service';
+import { ContractPdfService } from '../../shared/services/contract-pdf.service';
 import { forkJoin } from 'rxjs';
 
 Chart.register(...registerables);
@@ -113,6 +114,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /** Administrador: resumen contable del mes (solo si la contabilidad está configurada). */
   accounting: { utilidad: number; ingresos: number; gastos: number; caja: number; cuadra: boolean } | null = null;
+  /** Contrato completo del cliente (para generar su PDF al firmar si falta). */
+  private activeContractRaw: any = null;
   /** Cliente: tarjeta para conocer FactoNet como servicio (se puede cerrar). */
   showUpsell = false;
 
@@ -156,6 +159,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private zone: NgZone,
     private accountingApi: AccountingService,
+    private contractPdf: ContractPdfService,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -421,6 +425,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (contracts) => {
         const contract = contracts[0];
         if (!contract) return;
+        this.activeContractRaw = contract;
         const value = typeof contract.value === 'string' ? parseFloat(contract.value) : contract.value;
         this.activeContract = {
           id: contract.id,
@@ -435,6 +440,12 @@ export class HomeComponent implements OnInit, OnDestroy {
           adminSignedAt: contract.adminSignedAt || null,
           pdfUrl: contract.pdfUrl || null,
         };
+        // Por firmar y sin PDF: se genera ya, para que el cliente lo lea antes de firmar.
+        if (contract.status === 'PENDING' && !contract.pdfUrl && this.isAuthorizedSigner) {
+          this.contractPdf.ensurePdf(contract)
+            .then(() => { const a = this.activeContract; if (a && a.id === contract.id) a.pdfUrl = contract.pdfUrl; })
+            .catch(() => { /* se reintenta al firmar */ });
+        }
       },
       error: () => {},
     });
@@ -484,8 +495,15 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
         return true;
       },
-    }).then((result) => {
+    }).then(async (result) => {
       if (!result.isConfirmed) return;
+      // Autoservicio: si el contrato aún no tiene PDF, se genera aquí.
+      try {
+        if (this.activeContractRaw && !this.activeContractRaw.pdfUrl) await this.contractPdf.ensurePdf(this.activeContractRaw);
+      } catch {
+        Swal.fire('Error', 'No se pudo preparar el contrato para la firma. Intenta de nuevo.', 'error');
+        return;
+      }
       this.factonetService.signAsClient(this.activeContract!.id!, clientName).subscribe({
         next: (response) => {
           this.loadActiveContract();
@@ -494,8 +512,8 @@ export class HomeComponent implements OnInit, OnDestroy {
             icon: 'success',
             title: response.status === 'ACTIVE' ? '¡Contrato firmado y activado!' : '¡Firma registrada!',
             html: response.status === 'ACTIVE'
-              ? '<p>Ambas partes firmaron. Tu cuenta está activa.</p>'
-              : '<p>Tu firma quedó registrada. Falta la firma del administrador.</p>',
+              ? '<p>Tu plan quedó activo.</p>'
+              : '<p>Tu firma quedó registrada.</p>',
             confirmButtonColor: '#1877e4',
           });
         },
