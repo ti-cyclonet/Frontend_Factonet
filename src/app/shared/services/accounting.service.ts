@@ -10,6 +10,14 @@ export interface AccVoucher {
   id: string; type: 'CI' | 'CE' | 'NC' | 'AUT'; number: number; date: string; description: string;
   status: 'BORRADOR' | 'CONTABILIZADO' | 'ANULADO'; total: number; sourceKey: string | null; reversalOfId: string | null; lines?: AccLine[];
 }
+export interface InboxDoc {
+  id: string; source: 'CORREO' | 'CARGA'; fromAddress: string | null; subject: string | null;
+  status: 'PENDIENTE' | 'CONTABILIZADA' | 'DUPLICADA' | 'RECHAZADA' | 'SIN_XML' | 'ERROR' | 'DESCARTADA';
+  kind: 'Invoice' | 'CreditNote' | null; cufe: string | null; supplierNit: string | null; supplierName: string | null;
+  number: string | null; issueDate: string | null; dueDate: string | null; base: number; iva: number; otherTaxes: number; payable: number;
+  data: { lines?: { description: string; quantity: number; amount: number }[]; withholdings?: { renta: number; iva: number; ica: number }; references?: string[] } | null;
+  message: string | null; accountCode: string | null; voucherId: string | null; pdfName: string | null; receivedAt: string; reviewedBy: string | null;
+}
 export interface BalanceRow { code: string; name: string; level: number; nature: string; opening: number; debit: number; credit: number; closing: number }
 
 /** Contabilidad de CycloNet (backend de FactoNet, solo adminFactonet). */
@@ -32,7 +40,7 @@ export class AccountingService {
     return this.http.post<T>(`${this.base}${path}`, body, { headers: this.headers });
   }
 
-  status() { return this.get<{ enabled: boolean; message?: string; company?: { name: string; nit: string | null; autoFrom: string | null } }>('/status'); }
+  status() { return this.get<{ enabled: boolean; message?: string; company?: { name: string; nit: string | null; autoFrom: string | null; accountMap?: Record<string, string> } }>('/status'); }
   sync() { return this.post<{ invoices: number; created: number; skipped: string[] }>('/sync'); }
 
   accounts() { return this.get<AccAccount[]>('/accounts'); }
@@ -56,4 +64,19 @@ export class AccountingService {
   incomeStatement(from: string, to: string) { return this.get<any>('/reports/income-statement', { from, to }); }
   balanceSheet(to: string) { return this.get<any>('/reports/balance-sheet', { to }); }
   ledger(account: string, from: string, to: string) { return this.get<any>('/reports/ledger', { account, from, to }); }
+
+  // Facturas recibidas de proveedores
+  inboxConfig() { return this.get<{ address: string | null; mailbox: boolean }>('/inbox/config'); }
+  inbox(status = '') { return this.get<InboxDoc[]>('/inbox', { status }); }
+  inboxDoc(id: string) { return this.get<InboxDoc & { preview: { lines: AccLine[]; total: number; warning: string | null } | null }>(`/inbox/${id}`); }
+  inboxPoll() { return this.post<{ configured: boolean; emails: number; documents: number }>('/inbox/poll'); }
+  inboxUpload(files: File[]) {
+    const form = new FormData();
+    files.forEach((f) => form.append('files', f, f.name));
+    return this.http.post<{ id: string; status: string; number: string | null; supplierName: string | null; message: string | null }[]>(`${this.base}/inbox/upload`, form, { headers: this.headers });
+  }
+  inboxPdf(id: string) { return this.http.get(`${this.base}/inbox/${id}/pdf`, { headers: this.headers, responseType: 'blob' }); }
+  inboxApprove(id: string, b: { accountCode: string; saveRule: boolean; date?: string }) { return this.post<{ voucher: AccVoucher }>(`/inbox/${id}/approve`, b); }
+  inboxDiscard(id: string, reason: string) { return this.post(`/inbox/${id}/discard`, { reason }); }
+  inboxReopen(id: string) { return this.post(`/inbox/${id}/reopen`); }
 }

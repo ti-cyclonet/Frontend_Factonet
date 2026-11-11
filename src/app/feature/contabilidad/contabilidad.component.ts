@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
-import { AccAccount, AccLine, AccThirdParty, AccVoucher, AccountingService, BalanceRow } from '../../shared/services/accounting.service';
+import { AccAccount, AccLine, AccThirdParty, AccVoucher, AccountingService, BalanceRow, InboxDoc } from '../../shared/services/accounting.service';
 
-type Tab = 'resumen' | 'comprobantes' | 'reportes' | 'cuentas' | 'terceros' | 'periodos';
+type Tab = 'resumen' | 'comprobantes' | 'recibidas' | 'reportes' | 'cuentas' | 'terceros' | 'periodos';
 type Report = 'resultados' | 'situacion' | 'prueba' | 'mayor';
 
 const TIPOS: Record<string, string> = { CI: 'Ingreso', CE: 'Egreso', NC: 'Nota contable', AUT: 'Automático' };
@@ -29,7 +29,7 @@ export class ContabilidadComponent implements OnInit {
   loading = true;
   enabled = false;
   disabledMessage = '';
-  company: { name: string; nit: string | null; autoFrom: string | null } | null = null;
+  company: { name: string; nit: string | null; autoFrom: string | null; accountMap?: Record<string, string> } | null = null;
   busy = false;
 
   accounts: AccAccount[] = [];
@@ -60,6 +60,18 @@ export class ContabilidadComponent implements OnInit {
   tpFilter = '';
   newTp: Partial<AccThirdParty> = { idType: '13', idNumber: '', name: '', email: '' };
 
+  // Facturas recibidas de proveedores
+  inboxFilter: 'PENDIENTE' | '' | 'CONTABILIZADA' | 'PROBLEMAS' | 'DESCARTADA' = 'PENDIENTE';
+  inboxDocs: InboxDoc[] = [];
+  inboxCfg: { address: string | null; mailbox: boolean } | null = null;
+  inboxSel: InboxDoc | null = null;
+  approveForm = { accountCode: '', saveRule: true, date: '' };
+  pendingCount = 0;
+  readonly inboxStatus: Record<string, string> = {
+    PENDIENTE: 'Por aprobar', CONTABILIZADA: 'Contabilizada', DUPLICADA: 'Duplicada', RECHAZADA: 'No es para nosotros',
+    SIN_XML: 'Sin XML', ERROR: 'No se pudo leer', DESCARTADA: 'Descartada',
+  };
+
   // Periodos
   periods: { month: string; status: string; closedBy: string | null; closedAt: string | null }[] = [];
   months: string[] = [];
@@ -77,6 +89,7 @@ export class ContabilidadComponent implements OnInit {
           this.loadAccounts();
           this.loadThirdParties();
           this.loadSummary();
+          this.api.inbox('PENDIENTE').subscribe({ next: (d) => (this.pendingCount = d.length), error: () => {} });
         }
       },
       error: (e) => {
@@ -91,6 +104,7 @@ export class ContabilidadComponent implements OnInit {
     if (t === 'comprobantes') this.loadVouchers();
     if (t === 'reportes' && !this.reportData) this.runReport();
     if (t === 'periodos') this.loadPeriods();
+    if (t === 'recibidas') this.loadInbox();
   }
 
   private fail(e: any, title = 'No se pudo completar'): void {
@@ -251,6 +265,131 @@ export class ContabilidadComponent implements OnInit {
 
   rowsWithMovement(rows: BalanceRow[]): BalanceRow[] {
     return (rows || []).filter((r) => r.opening || r.debit || r.credit || r.closing);
+  }
+
+  // ═══ Facturas recibidas
+  loadInbox(): void {
+    if (!this.inboxCfg) this.api.inboxConfig().subscribe({ next: (c) => (this.inboxCfg = c), error: () => {} });
+    const status = this.inboxFilter === 'PROBLEMAS' ? 'SIN_XML,ERROR,RECHAZADA,DUPLICADA' : this.inboxFilter;
+    this.api.inbox(status).subscribe({
+      next: (d) => {
+        this.inboxDocs = d;
+        if (this.inboxFilter === 'PENDIENTE') this.pendingCount = d.length;
+      },
+      error: (e) => this.fail(e, 'No se pudieron cargar las facturas recibidas'),
+    });
+  }
+
+  setInboxFilter(f: ContabilidadComponent['inboxFilter']): void {
+    this.inboxFilter = f;
+    this.inboxSel = null;
+    this.loadInbox();
+  }
+
+  openInbox(d: InboxDoc): void {
+    this.api.inboxDoc(d.id).subscribe((full) => {
+      this.inboxSel = full;
+      this.approveForm = { accountCode: full.accountCode || '', saveRule: true, date: full.issueDate || hoy() };
+    });
+  }
+
+  pollInbox(): void {
+    this.busy = true;
+    this.api.inboxPoll().subscribe({
+      next: (r) => {
+        this.busy = false;
+        Swal.fire({
+          icon: 'info',
+          title: r.configured ? (r.emails ? `${r.emails} correo(s) nuevo(s)` : 'No hay correos nuevos') : 'El buzón aún no está configurado',
+          text: r.configured ? `${r.documents} documento(s) recibido(s).` : 'Mientras tanto, carga los ZIP o XML de las facturas con el botón Cargar.',
+          timer: 2500, showConfirmButton: false,
+        });
+        this.loadInbox();
+      },
+      error: (e) => this.fail(e, 'No se pudo revisar el buzón'),
+    });
+  }
+
+  uploadInbox(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const files = Array.from(input.files || []);
+    input.value = '';
+    if (!files.length) return;
+    this.busy = true;
+    this.api.inboxUpload(files).subscribe({
+      next: (res) => {
+        this.busy = false;
+        const html = res.map((r) => `<li><b>${this.esc(r.number || 'Documento')}</b> ${this.esc(r.supplierName || '')}: ${this.esc(this.inboxStatus[r.status] || r.status)}${r.message ? `<br><small>${this.esc(r.message)}</small>` : ''}</li>`).join('');
+        Swal.fire({ icon: res.some((r) => r.status === 'PENDIENTE') ? 'success' : 'info', title: 'Facturas cargadas', html: `<ul style="text-align:left">${html}</ul>` });
+        this.inboxFilter = 'PENDIENTE';
+        this.loadInbox();
+      },
+      error: (e) => this.fail(e, 'No se pudieron cargar los archivos'),
+    });
+  }
+
+  viewInboxPdf(d: InboxDoc): void {
+    const win = window.open('', '_blank');
+    this.api.inboxPdf(d.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        if (win) win.location.href = url; else window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      },
+      error: (e) => { win?.close(); this.fail(e, 'No se pudo abrir el PDF'); },
+    });
+  }
+
+  /** Asiento que se creará al aprobar (mismo cálculo que el backend, inboxVoucherLines). */
+  get inboxPreview(): AccLine[] {
+    const d = this.inboxSel;
+    const acc = this.approveForm.accountCode;
+    if (!d || !acc) return [];
+    const map: Record<string, string> = { proveedores: '220505', ivaCompras: 'gasto', retencionRenta: '236525', retencionIva: '236705', retencionIca: '236805', ...(this.company?.accountMap || {}) };
+    const base = +d.base, iva = +d.iva, other = +d.otherTaxes;
+    const toExpense = !map['ivaCompras'] || map['ivaCompras'] === 'gasto';
+    const w: Record<string, number> = (d.data?.withholdings as any) || { renta: 0, iva: 0, ica: 0 };
+    const lines: AccLine[] = [];
+    const expense = r2(base + other + (toExpense ? iva : 0));
+    if (expense) lines.push({ accountCode: acc, debit: expense, credit: 0 });
+    if (!toExpense && iva) lines.push({ accountCode: map['ivaCompras'], debit: iva, credit: 0 });
+    const debit = r2(lines.reduce((x, l) => x + l.debit, 0));
+    let withheld = 0;
+    for (const [k, code] of [['renta', map['retencionRenta']], ['iva', map['retencionIva']], ['ica', map['retencionIca']]]) {
+      const v = r2(w[k]);
+      if (v > 0) { lines.push({ accountCode: code, debit: 0, credit: v }); withheld += v; }
+    }
+    lines.push({ accountCode: map['proveedores'], debit: 0, credit: r2(debit - withheld) });
+    return d.kind === 'CreditNote' ? lines.map((l) => ({ ...l, debit: l.credit, credit: l.debit })) : lines;
+  }
+
+  approveInbox(): void {
+    const d = this.inboxSel;
+    if (!d) return;
+    this.busy = true;
+    this.api.inboxApprove(d.id, this.approveForm).subscribe({
+      next: (r) => {
+        this.busy = false;
+        Swal.fire({ icon: 'success', title: 'Factura contabilizada', text: `${TIPOS[r.voucher.type]} ${r.voucher.number}`, timer: 1800, showConfirmButton: false });
+        this.inboxSel = null;
+        this.loadInbox();
+      },
+      error: (e) => this.fail(e, 'No se pudo contabilizar'),
+    });
+  }
+
+  async discardInbox(): Promise<void> {
+    const d = this.inboxSel;
+    if (!d) return;
+    const r = await Swal.fire({ icon: 'question', title: '¿Descartar este documento?', text: 'No se contabiliza. Puedes reabrirlo después.', input: 'text', inputPlaceholder: 'Motivo (opcional)', showCancelButton: true, confirmButtonText: 'Descartar', cancelButtonText: 'Cancelar' });
+    if (!r.isConfirmed) return;
+    this.api.inboxDiscard(d.id, r.value || '').subscribe({ next: () => { this.inboxSel = null; this.loadInbox(); }, error: (e) => this.fail(e) });
+  }
+
+  reopenInbox(): void {
+    const d = this.inboxSel;
+    if (!d) return;
+    this.api.inboxReopen(d.id).subscribe({ next: () => { this.inboxSel = null; this.setInboxFilter('PENDIENTE'); }, error: (e) => this.fail(e, 'No se pudo reabrir') });
   }
 
   // ═══ Periodos
