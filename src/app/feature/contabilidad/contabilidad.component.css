@@ -59,4 +59,14 @@
 .in-DUPLICADA, .in-DESCARTADA { background: #f1f5f9; color: #64748b; }
 .in-RECHAZADA, .in-ERROR, .in-SIN_XML { background: #fee2e2; color: #991b1b; }
 .in-AVISO { background: #e0f2fe; color: #075985; }
+.acc-setup { gap: 0.8rem; }
+.acc-setup .acc-check { font-weight: 400; }
+.acc-plan { border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.8rem 0.9rem; display: grid; gap: 0.55rem; background: #fff; }
+.acc-plan-head { display: flex; justify-content: space-between; align-items: baseline; }
+.acc-plan-head small { color: #64748b; }
+.acc-meter { display: grid; grid-template-columns: 140px 1fr auto; gap: 0.6rem; align-items: center; font-size: 0.84rem; }
+.acc-meter .bar { height: 8px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
+.acc-meter .bar i { display: block; height: 100%; background: #1a237e; border-radius: 999px; }
+.acc-meter .bar i.full { background: #dc2626; }
+.acc-meter b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 640px) { .acc { margin: 0.5rem; padding: 0.75rem; } }

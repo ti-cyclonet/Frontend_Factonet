@@ -203,9 +203,9 @@ export default class LayoutComponent implements OnInit {
   checkActivePeriod(): void {
     if (!this.isUserLoggedIn()) return;
     
-    // Si es usuario con rol adminInvoices, no verificar período activo
+    // Clientes, empresas y contadores no administran periodos: no verificar período activo
     const userRol = sessionStorage.getItem('user_rol');
-    if (userRol === 'adminInvoices') {
+    if (userRol !== 'adminFactonet') {
       return;
     }
     

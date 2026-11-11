@@ -1,6 +1,7 @@
+import { isClientRole } from '../../shared/utils/roles';
 import { Component, HostListener, Inject, NgZone, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartData, registerables } from 'chart.js';
 import { Subscription, switchMap } from 'rxjs';
@@ -160,17 +161,23 @@ export class HomeComponent implements OnInit, OnDestroy {
     private zone: NgZone,
     private accountingApi: AccountingService,
     private contractPdf: ContractPdfService,
+    private router: Router,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
   get isAdmin(): boolean { return this.userRol === 'adminFactonet'; }
-  get isClient(): boolean { return this.userRol === 'adminInvoices'; }
+  get isClient(): boolean { return isClientRole(this.userRol); }
 
   ngOnInit(): void {
     if (!this.isBrowser) return;
     this.userRol = sessionStorage.getItem('user_rol');
+    // El contador invitado solo tiene la contabilidad de la empresa
+    if (this.userRol === 'contadorFactonet') {
+      this.router.navigate(['/contabilidad']);
+      return;
+    }
     const name = sessionStorage.getItem('user_name') || '';
     this.userName = name.includes('@') ? '' : name.split(' ')[0];
     this.isAuthorizedSigner = sessionStorage.getItem('user_isAuthorizedSigner') === 'true';
