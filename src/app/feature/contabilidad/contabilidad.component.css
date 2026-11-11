@@ -42,4 +42,21 @@
 .st-BORRADOR { background: #fef3c7; color: #92400e; }
 .st-CONTABILIZADO { background: #dcfce7; color: #166534; }
 .st-ANULADO { background: #f1f5f9; color: #64748b; }
+.acc-badge { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 6px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 0.7rem; line-height: 18px; text-align: center; }
+.acc-inbox-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.acc-inbox-head p { margin: 0.2rem 0 0; }
+.acc-upload { margin: 0; cursor: pointer; }
+.acc-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.acc-chips button { border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: 0.25rem 0.75rem; font-size: 0.8rem; color: #334155; cursor: pointer; }
+.acc-chips button.on { background: #1a237e; border-color: #1a237e; color: #fff; }
+.acc-facts { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.85rem; }
+.acc-facts span { display: grid; }
+.acc-facts small { color: #64748b; font-size: 0.72rem; }
+.acc-note.warn { color: #92400e; background: #fffbeb; }
+.acc-list tr.sel td { background: #eef2ff; }
+.in-PENDIENTE { background: #fef3c7; color: #92400e; }
+.in-CONTABILIZADA { background: #dcfce7; color: #166534; }
+.in-DUPLICADA, .in-DESCARTADA { background: #f1f5f9; color: #64748b; }
+.in-RECHAZADA, .in-ERROR, .in-SIN_XML { background: #fee2e2; color: #991b1b; }
+.in-AVISO { background: #e0f2fe; color: #075985; }
 @media (max-width: 640px) { .acc { margin: 0.5rem; padding: 0.75rem; } }
