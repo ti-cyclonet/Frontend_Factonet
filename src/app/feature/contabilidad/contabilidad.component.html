@@ -195,12 +195,12 @@
       </div>
 
       <div class="acc-table-wrap">
-        <table class="acc-table acc-list">
+        <table class="acc-table acc-list acc-cards">
           <thead><tr><th>Comprobante</th><th>Fecha</th><th>Descripción</th><th class="num">Valor</th><th>Estado</th></tr></thead>
           <tbody>
             <tr *ngFor="let v of vouchers" (click)="openVoucher(v)" [class.anulado]="v.status === 'ANULADO'">
-              <td>{{ tipos[v.type] }} {{ v.number }}</td><td>{{ v.date }}</td><td>{{ v.description }}</td><td class="num">{{ money(v.total) }}</td>
-              <td><span class="acc-st" [ngClass]="'st-' + v.status">{{ v.status | titlecase }}</span></td>
+              <td data-label="Comprobante" class="c-title">{{ tipos[v.type] }} {{ v.number }}</td><td data-label="Fecha">{{ v.date }}</td><td data-label="Descripción" class="c-wide">{{ v.description }}</td><td data-label="Valor" class="num">{{ money(v.total) }}</td>
+              <td data-label="Estado"><span class="acc-st" [ngClass]="'st-' + v.status">{{ v.status | titlecase }}</span></td>
             </tr>
             <tr *ngIf="!vouchers.length"><td colspan="5" class="acc-muted">No hay comprobantes con esos filtros.</td></tr>
           </tbody>
@@ -296,16 +296,16 @@
       </div>
 
       <div class="acc-table-wrap">
-        <table class="acc-table acc-list">
-          <thead><tr><th>Recibida</th><th>Proveedor</th><th>Documento</th><th>Fecha</th><th class="num">A pagar</th><th>Estado</th></tr></thead>
+        <table class="acc-table acc-list acc-cards">
+          <thead><tr><th>Proveedor</th><th>Recibida</th><th>Documento</th><th>Fecha</th><th class="num">A pagar</th><th>Estado</th></tr></thead>
           <tbody>
             <tr *ngFor="let d of inboxDocs" (click)="openInbox(d)" [class.sel]="inboxSel?.id === d.id">
-              <td>{{ d.receivedAt | date: 'dd/MM HH:mm' }}<small>{{ d.source === 'CORREO' ? 'Correo' : 'Cargada' }}</small></td>
-              <td>{{ d.supplierName || d.fromAddress || '—' }}<small *ngIf="d.supplierNit">NIT {{ d.supplierNit }}</small></td>
-              <td>{{ d.kind === 'CreditNote' ? 'NC' : '' }} {{ d.number || '—' }}</td>
-              <td>{{ d.issueDate || '—' }}</td>
-              <td class="num">{{ d.number ? money(d.payable) : '' }}</td>
-              <td><span class="acc-st" [ngClass]="'in-' + d.status">{{ inboxStatus[d.status] }}</span></td>
+              <td data-label="Proveedor" class="c-title c-wide">{{ d.supplierName || d.fromAddress || '—' }}<small *ngIf="d.supplierNit">NIT {{ d.supplierNit }}</small></td>
+              <td data-label="Recibida">{{ d.receivedAt | date: 'dd/MM HH:mm' }}<small>{{ d.source === 'CORREO' ? 'Correo' : 'Cargada' }}</small></td>
+              <td data-label="Documento">{{ d.kind === 'CreditNote' ? 'NC' : '' }} {{ d.number || '—' }}</td>
+              <td data-label="Fecha">{{ d.issueDate || '—' }}</td>
+              <td data-label="A pagar" class="num">{{ d.number ? money(d.payable) : '—' }}</td>
+              <td data-label="Estado"><span class="acc-st" [ngClass]="'in-' + d.status">{{ inboxStatus[d.status] }}</span></td>
             </tr>
             <tr *ngIf="!inboxDocs.length"><td colspan="6" class="acc-muted">{{ inboxFilter === 'PENDIENTE' ? 'No hay facturas por aprobar.' : 'No hay documentos con este filtro.' }}</td></tr>
           </tbody>
@@ -422,9 +422,9 @@
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="loadThirdParties()">Buscar</button>
       </div>
       <div class="acc-table-wrap">
-        <table class="acc-table">
+        <table class="acc-table acc-cards">
           <thead><tr><th>Documento</th><th>Nombre</th><th>Correo</th></tr></thead>
-          <tr *ngFor="let t of thirdParties"><td>{{ t.idType === '31' ? 'NIT' : 'CC' }} {{ t.idNumber }}</td><td>{{ t.name }}</td><td>{{ t.email }}</td></tr>
+          <tr *ngFor="let t of thirdParties"><td data-label="Documento">{{ t.idType === '31' ? 'NIT' : 'CC' }} {{ t.idNumber }}</td><td data-label="Nombre" class="c-title c-wide">{{ t.name }}</td><td data-label="Correo" class="c-wide">{{ t.email || '—' }}</td></tr>
         </table>
       </div>
     </section>
