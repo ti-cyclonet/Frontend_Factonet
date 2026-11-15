@@ -12,6 +12,8 @@ export const AuthGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
   
   if (!token) {
+    // Llegó con un enlace (p. ej. "Pagar en línea" desde Kiri): al iniciar sesión vuelve ahí
+    if (state.url && state.url.startsWith('/') && state.url !== '/') sessionStorage.setItem('volver_a', state.url);
     return router.createUrlTree(['/login']);
   }
 

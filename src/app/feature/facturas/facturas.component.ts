@@ -170,6 +170,7 @@ export class FacturasComponent implements OnInit, OnDestroy {
         // Check for rejected invoices and notify the client
         if (isClientRole(this.userRol)) {
           this.checkRejectedPayments();
+          this.abrirPagoPedido();
         }
       },
       error: (error) => {
@@ -836,6 +837,18 @@ export class FacturasComponent implements OnInit, OnDestroy {
         Swal.fire({ icon: 'error', title: 'No se pudo iniciar el pago', text: mensajeError(error, 'Intenta de nuevo en un momento.'), confirmButtonColor: '#0d6efd' });
       },
     });
+  }
+
+  /**
+   * Enlace "Pagar en línea" desde Kiri: /invoices?pagar=<número de factura>.
+   * Abre directo la ventana de pago de esa factura (una sola vez) y limpia el enlace.
+   */
+  private abrirPagoPedido(): void {
+    const numero = this.route.snapshot.queryParamMap.get('pagar');
+    if (!numero) return;
+    this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    const factura = this.facturas.find(f => String(f.numero) === numero || String(f.id) === numero);
+    if (factura) setTimeout(() => this.pagarFactura(factura), 300);
   }
 
   /** Wompi devuelve al cliente a /invoices?pago=wompi&id=<transacción>: se confirma el resultado con el servidor. */

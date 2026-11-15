@@ -172,14 +172,20 @@ export class LoginComponent {
         }
 
         this.showToast('Sesión iniciada', 'success', 'A', 0);
-        setTimeout(() => {
-          this.router.navigate(['/home']);
-        }, 1000);
+        setTimeout(() => this.irDespuesDelLogin(), 1000);
       },
       error: (error) => {
         this.showToast('Credenciales incorrectas o error del servidor', 'danger', 'A', 0);
       }
     });
+  }
+
+  /** Al enlace con el que llegó (guardado por AuthGuard) o al inicio. Solo rutas internas. */
+  private irDespuesDelLogin() {
+    const volver = sessionStorage.getItem('volver_a');
+    sessionStorage.removeItem('volver_a');
+    if (volver && volver.startsWith('/') && !volver.startsWith('//')) this.router.navigateByUrl(volver);
+    else this.router.navigate(['/home']);
   }
 
   selectClient() {
@@ -206,9 +212,7 @@ export class LoginComponent {
       next: (response) => {
         this.showClientSelector = false;
         this.showToast('Sesión iniciada', 'success', 'A', 0);
-        setTimeout(() => {
-          this.router.navigate(['/home']);
-        }, 1000);
+        setTimeout(() => this.irDespuesDelLogin(), 1000);
       },
       error: (error) => {
         this.showToast('No se pudo seleccionar el cliente', 'danger', 'A', 0);
