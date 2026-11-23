@@ -1,5 +1,6 @@
-<div class="main-layout-container d-flex flex-column" 
-     [class.logged-in]="isUserLoggedIn()">
+<div class="main-layout-container d-flex flex-column"
+     [class.logged-in]="isUserLoggedIn()"
+     [class.calc-shift]="calculator.open()">
 
   <!-- Global Loading Spinner -->
   <div *ngIf="isLoading" class="global-spinner-overlay">
@@ -22,3 +23,6 @@
   </footer>
   
 </div>
+
+<!-- Calculadora financiera: panel lateral que corre el cuerpo a la izquierda -->
+<app-calculator></app-calculator>

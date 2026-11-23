@@ -1,0 +1,141 @@
+<aside class="calc" [class.open]="open()" role="complementary" aria-label="Calculadora financiera" [attr.aria-hidden]="!open()" [attr.inert]="open() ? null : ''">
+  <header class="calc-head">
+    <strong>Calculadora</strong>
+    <button type="button" class="calc-x" (click)="close()" aria-label="Cerrar calculadora">×</button>
+  </header>
+
+  <nav class="calc-tabs">
+    <button type="button" *ngFor="let t of tabs" [class.on]="tab === t[0]" (click)="tab = t[0]">{{ t[1] }}</button>
+  </nav>
+
+  <div class="calc-body">
+    <!-- ═══ Básica ═══ -->
+    <section *ngIf="tab === 'basica'">
+      <div class="calc-screen">
+        <div class="calc-expr">{{ expr || (result !== null ? '' : '0') }}</div>
+        <div class="calc-res" *ngIf="result !== null && !expr">{{ fmtNum(result) }}</div>
+        <div class="calc-err" *ngIf="error">{{ error }}</div>
+      </div>
+      <div class="calc-keys">
+        <button type="button" *ngFor="let k of keys" (click)="press(k)"
+                [class.op]="'÷×−+%'.includes(k)" [class.fn]="k === 'C' || k === '⌫'" [class.eq]="k === '='">{{ k }}</button>
+      </div>
+      <div class="calc-actions" *ngIf="result !== null">
+        <button type="button" class="calc-link" (click)="copy(result, 'basica')">{{ copied === 'basica' ? 'Copiado ✓' : 'Copiar resultado' }}</button>
+      </div>
+      <p class="calc-hint">Puedes usar el teclado. <b>200 + 19%</b> suma el 19 % de 200.</p>
+
+      <div class="calc-hist" *ngIf="history.length">
+        <small>Historial</small>
+        <button type="button" *ngFor="let h of history" (click)="reuse(h.value)" title="Usar este resultado">
+          <span>{{ h.expr }}</span><b>= {{ fmtNum(h.value) }}</b>
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══ IVA ═══ -->
+    <section *ngIf="tab === 'iva'" class="calc-form">
+      <label>Valor <input type="number" step="any" [(ngModel)]="ivaValor" placeholder="0"></label>
+      <div class="calc-seg">
+        <button type="button" [class.on]="!ivaIncluido" (click)="ivaIncluido = false">Antes de IVA</button>
+        <button type="button" [class.on]="ivaIncluido" (click)="ivaIncluido = true">IVA incluido</button>
+      </div>
+      <label>Tarifa
+        <div class="calc-seg">
+          <button type="button" *ngFor="let r of [19, 5, 0]" [class.on]="ivaTarifa === r" (click)="ivaTarifa = r">{{ r }} %</button>
+          <input type="number" step="any" [(ngModel)]="ivaTarifa" class="calc-mini" aria-label="Otra tarifa">
+        </div>
+      </label>
+      <dl class="calc-out" *ngIf="iva as r">
+        <dt>Base</dt><dd>{{ fmt(r.base) }}</dd>
+        <dt>IVA ({{ ivaTarifa }} %)</dt><dd>{{ fmt(r.iva) }}</dd>
+        <dt class="main">Total</dt><dd class="main">{{ fmt(r.total) }}
+          <button type="button" class="calc-link" (click)="copy(r.total, 'iva')">{{ copied === 'iva' ? '✓' : 'Copiar' }}</button></dd>
+      </dl>
+    </section>
+
+    <!-- ═══ Crédito ═══ -->
+    <section *ngIf="tab === 'credito'" class="calc-form">
+      <label>Monto del crédito <input type="number" step="any" [(ngModel)]="crMonto" placeholder="0"></label>
+      <div class="calc-2">
+        <label>Tasa (%) <input type="number" step="any" [(ngModel)]="crTasa" placeholder="0"></label>
+        <label>Tipo
+          <select [(ngModel)]="crTipo">
+            <option value="EA">Efectiva anual</option>
+            <option value="EM">Efectiva mensual</option>
+            <option value="NMV">Nominal mes vencido</option>
+          </select>
+        </label>
+      </div>
+      <label>Plazo (meses) <input type="number" min="1" max="600" step="1" [(ngModel)]="crMeses"></label>
+      <ng-container *ngIf="credito as c">
+        <dl class="calc-out">
+          <dt class="main">Cuota mensual</dt><dd class="main">{{ fmt(c.cuota) }}
+            <button type="button" class="calc-link" (click)="copy(c.cuota, 'cr')">{{ copied === 'cr' ? '✓' : 'Copiar' }}</button></dd>
+          <dt>Tasa mensual</dt><dd>{{ pct(c.im) }}</dd>
+          <dt>Total intereses</dt><dd>{{ fmt(c.intereses) }}</dd>
+          <dt>Total a pagar</dt><dd>{{ fmt(c.total) }}</dd>
+        </dl>
+        <button type="button" class="calc-link" (click)="crTabla = !crTabla">{{ crTabla ? 'Ocultar' : 'Ver' }} tabla de amortización</button>
+        <div class="calc-table" *ngIf="crTabla">
+          <table>
+            <thead><tr><th>#</th><th>Interés</th><th>Abono</th><th>Saldo</th></tr></thead>
+            <tbody><tr *ngFor="let r of c.rows"><td>{{ r.n }}</td><td>{{ fmt(r.interes) }}</td><td>{{ fmt(r.abono) }}</td><td>{{ fmt(r.saldo) }}</td></tr></tbody>
+          </table>
+        </div>
+      </ng-container>
+      <p class="calc-hint">Cuota fija (sistema francés), sin seguros ni otros cargos.</p>
+    </section>
+
+    <!-- ═══ Tasas ═══ -->
+    <section *ngIf="tab === 'tasas'" class="calc-form">
+      <div class="calc-2">
+        <label>Tasa (%) <input type="number" step="any" [(ngModel)]="tsValor" placeholder="0"></label>
+        <label>Es una tasa
+          <select [(ngModel)]="tsTipo">
+            <option value="EA">Efectiva anual</option>
+            <option value="EM">Efectiva mensual</option>
+            <option value="NMV">Nominal mes vencido</option>
+            <option value="ET">Efectiva trimestral</option>
+            <option value="ES">Efectiva semestral</option>
+          </select>
+        </label>
+      </div>
+      <dl class="calc-out" *ngIf="tasas as t">
+        <dt>Efectiva anual (EA)</dt><dd>{{ pct(t.ea) }}</dd>
+        <dt>Efectiva mensual</dt><dd>{{ pct(t.em) }}</dd>
+        <dt>Nominal mes vencido</dt><dd>{{ pct(t.nmv) }}</dd>
+        <dt>Efectiva trimestral</dt><dd>{{ pct(t.et) }}</dd>
+        <dt>Efectiva semestral</dt><dd>{{ pct(t.es) }}</dd>
+        <dt>Efectiva diaria (365)</dt><dd>{{ pct(t.ed, 6) }}</dd>
+      </dl>
+    </section>
+
+    <!-- ═══ Interés compuesto ═══ -->
+    <section *ngIf="tab === 'interes'" class="calc-form">
+      <div class="calc-seg">
+        <button type="button" [class.on]="inModo === 'VF'" (click)="inModo = 'VF'">Valor futuro</button>
+        <button type="button" [class.on]="inModo === 'VP'" (click)="inModo = 'VP'">Valor presente</button>
+      </div>
+      <label>{{ inModo === 'VF' ? 'Valor presente (hoy)' : 'Valor futuro (meta)' }}
+        <input type="number" step="any" [(ngModel)]="inValor" placeholder="0"></label>
+      <div class="calc-2">
+        <label>Tasa (%) <input type="number" step="any" [(ngModel)]="inTasa" placeholder="0"></label>
+        <label>Tipo
+          <select [(ngModel)]="inTipo">
+            <option value="EA">Efectiva anual</option>
+            <option value="EM">Efectiva mensual</option>
+            <option value="NMV">Nominal mes vencido</option>
+          </select>
+        </label>
+      </div>
+      <label>Plazo (meses) <input type="number" min="0" step="any" [(ngModel)]="inMeses"></label>
+      <dl class="calc-out" *ngIf="interes as r">
+        <dt class="main">{{ inModo === 'VF' ? 'Valor futuro' : 'Valor presente' }}</dt><dd class="main">{{ fmt(r.resultado) }}
+          <button type="button" class="calc-link" (click)="copy(r.resultado, 'in')">{{ copied === 'in' ? '✓' : 'Copiar' }}</button></dd>
+        <dt>Intereses</dt><dd>{{ fmt(r.diferencia) }}</dd>
+        <dt>Con interés simple</dt><dd>{{ fmt(r.simple) }}</dd>
+      </dl>
+    </section>
+  </div>
+</aside>

@@ -205,3 +205,5 @@
   margin-left: 4px;
   vertical-align: super;
 }
+
+.toolbox-btn.active { background-color: #e0e7ff; color: #1a237e; }
