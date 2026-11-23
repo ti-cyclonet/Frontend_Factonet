@@ -75,6 +75,10 @@ export class ContabilidadComponent implements OnInit {
 
   // Cuentas y terceros
   accFilter = '';
+  /** Códigos desplegados en el acordeón del PUC (por defecto solo se ven las clases). */
+  expanded = new Set<string>();
+  private accByCode = new Map<string, AccAccount>();
+  private childCount = new Map<string, number>();
   newAccount = { code: '', name: '', requiresThirdParty: false };
   tpFilter = '';
   newTp: Partial<AccThirdParty> = { idType: '13', idNumber: '', name: '', email: '' };
@@ -198,16 +202,59 @@ export class ContabilidadComponent implements OnInit {
   }
 
   // ═══ Cuentas y terceros
-  loadAccounts(): void {
+  loadAccounts(reveal?: string): void {
     this.api.accounts().subscribe((a) => {
       this.accounts = a;
       this.postable = a.filter((x) => x.acceptsEntries && x.active);
+      this.accByCode = new Map(a.map((x) => [x.code, x]));
+      this.childCount = new Map();
+      for (const x of a) if (x.parentCode) this.childCount.set(x.parentCode, (this.childCount.get(x.parentCode) || 0) + 1);
+      if (reveal) this.reveal(reveal);
     });
   }
 
-  get filteredAccounts(): AccAccount[] {
+  /**
+   * Filas visibles del PUC en acordeón: sin búsqueda, una cuenta se ve solo si
+   * todos sus ancestros están desplegados; con búsqueda, se ven las que coinciden
+   * más sus ancestros (todo abierto, para no esconder el resultado).
+   */
+  get visibleAccounts(): AccAccount[] {
     const f = this.accFilter.trim().toLowerCase();
-    return f ? this.accounts.filter((a) => a.code.startsWith(f) || a.name.toLowerCase().includes(f)) : this.accounts;
+    if (f) {
+      const keep = new Set<string>();
+      for (const a of this.accounts) {
+        if (!(a.code.startsWith(f) || a.name.toLowerCase().includes(f))) continue;
+        for (let c: string | null = a.code; c && !keep.has(c); c = this.accByCode.get(c)?.parentCode ?? null) keep.add(c);
+      }
+      return this.accounts.filter((a) => keep.has(a.code));
+    }
+    return this.accounts.filter((a) => {
+      for (let p = a.parentCode; p; p = this.accByCode.get(p)?.parentCode ?? null) if (!this.expanded.has(p)) return false;
+      return true;
+    });
+  }
+
+  hasChildren(code: string): boolean {
+    return (this.childCount.get(code) || 0) > 0;
+  }
+
+  isOpen(code: string): boolean {
+    return !!this.accFilter.trim() || this.expanded.has(code);
+  }
+
+  toggleAccount(a: AccAccount): void {
+    if (!this.hasChildren(a.code) || this.accFilter.trim()) return;
+    if (this.expanded.has(a.code)) this.expanded.delete(a.code);
+    else this.expanded.add(a.code);
+  }
+
+  expandAll(open: boolean): void {
+    this.expanded = open ? new Set(this.childCount.keys()) : new Set();
+  }
+
+  /** Despliega la cadena de ancestros para que una cuenta recién creada quede a la vista. */
+  private reveal(code: string): void {
+    for (let p = this.accByCode.get(code)?.parentCode ?? null; p; p = this.accByCode.get(p)?.parentCode ?? null) this.expanded.add(p);
   }
 
   accountName(code: string): string {
@@ -221,7 +268,7 @@ export class ContabilidadComponent implements OnInit {
   createAccount(): void {
     this.busy = true;
     this.api.createAccount(this.newAccount).subscribe({
-      next: () => { this.busy = false; this.newAccount = { code: '', name: '', requiresThirdParty: false }; this.loadAccounts(); },
+      next: () => { const code = this.newAccount.code.trim(); this.busy = false; this.newAccount = { code: '', name: '', requiresThirdParty: false }; this.loadAccounts(code); },
       error: (e) => this.fail(e, 'No se pudo crear la cuenta'),
     });
   }

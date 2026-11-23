@@ -139,3 +139,11 @@
   .acc-table { font-size: 0.8rem; }
   .acc-table th, .acc-table td { padding: 0.35rem 0.4rem; }
 }
+
+/* Plan de cuentas en acordeón */
+.acc-tree td:first-child { white-space: nowrap; }
+.acc-tree tr.branch { cursor: pointer; }
+.acc-tree tr.branch:hover td { background: #f1f5ff; }
+.acc-caret { border: 0; background: none; padding: 0; width: 1.2rem; color: #1a237e; font-size: 0.8rem; line-height: 1; cursor: pointer; transition: transform 0.15s; display: inline-block; }
+.acc-caret.open { transform: rotate(90deg); }
+.acc-caret-sp { display: inline-block; width: 1.2rem; }
