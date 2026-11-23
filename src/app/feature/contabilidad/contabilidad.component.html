@@ -383,6 +383,8 @@
     <section *ngIf="tab === 'cuentas'" class="acc-panel">
       <div class="acc-row acc-filters">
         <label class="grow">Buscar <input [(ngModel)]="accFilter" placeholder="Código o nombre"></label>
+        <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!!accFilter.trim()" (click)="expandAll(true)">Expandir todo</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!!accFilter.trim()" (click)="expandAll(false)">Contraer todo</button>
       </div>
       <div class="acc-form">
         <strong>Nueva subcuenta o auxiliar</strong>
@@ -395,9 +397,15 @@
         <small class="acc-muted">6 dígitos = subcuenta bajo una cuenta de 4; 8 o más = auxiliar bajo una subcuenta. El PUC base está pendiente de validar con el contador.</small>
       </div>
       <div class="acc-table-wrap">
-        <table class="acc-table">
-          <tr *ngFor="let a of filteredAccounts" [class.lvl1]="a.level === 1">
-            <td [style.padding-left.px]="8 + indent(a.level)">{{ a.code }}</td><td>{{ a.name }}</td>
+        <table class="acc-table acc-tree">
+          <tr *ngFor="let a of visibleAccounts" [class.lvl1]="a.level === 1" [class.branch]="hasChildren(a.code)" (click)="toggleAccount(a)">
+            <td [style.padding-left.px]="8 + indent(a.level)">
+              <button type="button" class="acc-caret" *ngIf="hasChildren(a.code); else leaf" [class.open]="isOpen(a.code)"
+                      [attr.aria-expanded]="isOpen(a.code)" [attr.aria-label]="(isOpen(a.code) ? 'Contraer ' : 'Desplegar ') + a.name"
+                      (click)="toggleAccount(a); $event.stopPropagation()">▸</button>
+              <ng-template #leaf><span class="acc-caret-sp"></span></ng-template>
+              {{ a.code }}
+            </td><td>{{ a.name }}</td>
             <td><small>{{ a.nature === 'DEBITO' ? 'Débito' : 'Crédito' }}</small></td>
             <td><small>{{ a.acceptsEntries ? 'Movimiento' : 'Mayor' }}{{ a.requiresThirdParty ? ' · tercero' : '' }}</small></td>
           </tr>
