@@ -71,6 +71,15 @@ export class CalculatorComponent {
 
   @HostListener('document:keydown', ['$event'])
   onKey(ev: KeyboardEvent): void {
+    // Atajo global: Alt+C abre/cierra. `code` y no `key`, porque en Mac
+    // Option+C produce "ç". La tecla Calculadora de algunos teclados casi
+    // siempre la captura el sistema operativo; si el navegador la recibe, sirve.
+    const calcKey = ev.key === 'LaunchCalculator' || ev.key === 'LaunchApplication2';
+    if (calcKey || (ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey && ev.code === 'KeyC')) {
+      ev.preventDefault();
+      this.panel.toggle();
+      return;
+    }
     if (!this.open()) return;
     if (ev.key === 'Escape') { this.close(); return; }
     if (this.tab !== 'basica' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
