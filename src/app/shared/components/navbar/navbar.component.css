@@ -54,9 +54,30 @@
   z-index: 1001;
 }
 
+/* Botón de herramientas: icono dentro de un círculo blanco */
+.nav-tool-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: #fff;
+  color: #1a237e;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  cursor: pointer;
+}
+
+.nav-tool-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
 .nav-tool-btn:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  color: #000;
+  background-color: #fff;
+  color: #1a237e;
+}
+
+.tool-dropdown:hover .nav-tool-btn svg {
+  transform: rotate(-20deg);
 }
 
 .tool-dropdown:hover .nav-tool-btn {
