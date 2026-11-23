@@ -3,6 +3,7 @@ import { EsLabelPipe } from '../../pipes/es-label.pipe';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { OptionMenu } from '../../model/option_menu';
+import { CalculatorPanelService } from '../../services/calculator-panel.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,6 +15,8 @@ import { OptionMenu } from '../../model/option_menu';
 export class NavbarComponent implements OnInit, OnChanges {
   @Input() optionsMenu: OptionMenu[] = [];
   showToolbox: boolean = false;
+
+  constructor(readonly calculator: CalculatorPanelService) {}
 
   ngOnInit() {
     // Inicialización del navbar
@@ -31,7 +34,8 @@ export class NavbarComponent implements OnInit, OnChanges {
   }
 
   openCalculator() {
-    // Funcionalidad de calculadora
+    this.showToolbox = false;
+    this.calculator.toggle();
   }
 
   trackByOptionId(index: number, option: OptionMenu): string {

@@ -15,6 +15,13 @@
 .main-layout-container {
   height: 100vh;
   height: 100dvh;
+  transition: margin-right 0.3s ease;
+}
+
+/* Con la calculadora abierta el cuerpo se corre a la izquierda (en móvil el
+   panel ocupa toda la pantalla y lo tapa, ver --calc-panel-w en styles.css). */
+.main-layout-container.calc-shift {
+  margin-right: var(--calc-panel-w);
 }
 
 .router-outlet-container {

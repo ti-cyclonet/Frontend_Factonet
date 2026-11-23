@@ -26,7 +26,8 @@
         </a>
         
         <div class="floating-toolbox" [class.show]="showToolbox" >
-            <button class="toolbox-btn" (click)="openCalculator()">
+            <button type="button" class="toolbox-btn" (click)="openCalculator()" [class.active]="calculator.open()"
+                    [attr.aria-pressed]="calculator.open()" title="Calculadora financiera" aria-label="Calculadora financiera">
                 <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                     <use xlink:href="./assets/icons/bootstrap-icons.svg#calculator-fill" />
                 </svg>

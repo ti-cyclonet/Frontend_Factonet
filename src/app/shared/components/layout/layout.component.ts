@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../header/header.component';
 import { RouterModule, Router } from '@angular/router'; 
 import { FooterComponent } from '../footer/footer.component';
+import { CalculatorComponent } from '../calculator/calculator.component';
+import { CalculatorPanelService } from '../../services/calculator-panel.service';
 import { Application } from '../../model/application.model';
 import { ApplicationsService } from '../../services/applications/applications.service';
 import { ParametrosGlobalesService } from '../../services/parametros-globales/parametros-globales.service';
@@ -22,6 +24,7 @@ import Swal from 'sweetalert2';
     CommonModule,
     HeaderComponent,
     FooterComponent,
+    CalculatorComponent,
     RouterModule 
   ],
   templateUrl: './layout.component.html',
@@ -39,7 +42,8 @@ export default class LayoutComponent implements OnInit {
     private factonetService: FactonetService,
     private invoiceRefreshService: InvoiceRefreshService,
     private loadingService: LoadingService,
-    private router: Router
+    private router: Router,
+    readonly calculator: CalculatorPanelService
   ) {
     if (typeof window !== 'undefined') {
       this.isLargeScreen = window.innerWidth >= 992;

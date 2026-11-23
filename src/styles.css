@@ -18,3 +18,11 @@ footer {
     font-size: 1.15rem !important;
   }
 }
+
+/* ─── Calculadora lateral (shared/components/calculator) ───
+   Ancho que el panel le quita al cuerpo; en móvil el panel cubre la pantalla. */
+:root { --calc-panel-w: 360px; }
+@media (max-width: 767.98px) { :root { --calc-panel-w: 0px; } }
+footer { transition: width 0.3s ease; }
+body.calc-open footer { width: calc(100% - var(--calc-panel-w)) !important; }
+@media (max-width: 767.98px) { body.calc-open .nav-tools { display: none !important; } }

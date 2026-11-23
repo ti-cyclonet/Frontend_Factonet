@@ -1,0 +1,69 @@
+/* Panel lateral: entra desde la derecha. El ancho debe coincidir con
+   --calc-panel-w de styles.css, que es lo que corre el cuerpo de la app. */
+.calc {
+  position: fixed; top: 0; right: 0; z-index: 1040;
+  width: 360px; height: 100vh; height: 100dvh;
+  display: flex; flex-direction: column;
+  background: #fff; color: #0f172a;
+  box-shadow: -6px 0 24px rgba(15, 23, 42, 0.18);
+  transform: translateX(100%); visibility: hidden;
+  transition: transform 0.3s ease, visibility 0s linear 0.3s;
+}
+.calc.open { transform: translateX(0); visibility: visible; transition: transform 0.3s ease; }
+
+.calc-head { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1rem; background: #1a237e; color: #fff; }
+.calc-head strong { font-size: 1.05rem; }
+.calc-x { border: 0; background: none; color: #fff; font-size: 1.6rem; line-height: 1; padding: 0 0.25rem; cursor: pointer; }
+
+.calc-tabs { display: flex; border-bottom: 2px solid #e2e8f0; padding: 0 0.5rem; overflow-x: auto; }
+.calc-tabs button { border: 0; background: none; padding: 0.55rem 0.6rem; font-size: 0.84rem; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; white-space: nowrap; }
+.calc-tabs button.on { color: #1a237e; border-color: #1a237e; }
+
+.calc-body { flex: 1; overflow-y: auto; padding: 0.9rem 1rem 1.5rem; }
+
+/* Básica */
+.calc-screen { background: #0f172a; color: #fff; border-radius: 12px; padding: 0.7rem 0.9rem; text-align: right; min-height: 84px; display: grid; align-content: end; gap: 2px; }
+.calc-expr { font-size: 1.15rem; color: #cbd5e1; word-break: break-all; font-variant-numeric: tabular-nums; }
+.calc-res { font-size: 1.8rem; font-weight: 700; word-break: break-all; font-variant-numeric: tabular-nums; }
+.calc-err { font-size: 0.8rem; color: #fca5a5; }
+.calc-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem; margin-top: 0.75rem; }
+.calc-keys button { border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 10px; padding: 0.7rem 0; font-size: 1.1rem; font-weight: 600; color: #0f172a; cursor: pointer; }
+.calc-keys button:hover { background: #eef2ff; }
+.calc-keys button.op { background: #e0e7ff; color: #1a237e; }
+.calc-keys button.fn { color: #b91c1c; }
+.calc-keys button.eq { grid-column: span 2; background: #1a237e; color: #fff; border-color: #1a237e; }
+.calc-actions { margin-top: 0.5rem; text-align: right; }
+.calc-hint { font-size: 0.75rem; color: #64748b; margin: 0.6rem 0 0; }
+.calc-hist { margin-top: 1rem; display: grid; gap: 4px; }
+.calc-hist small { color: #64748b; font-weight: 600; }
+.calc-hist button { display: flex; justify-content: space-between; gap: 0.5rem; border: 0; border-bottom: 1px solid #f1f5f9; background: none; padding: 0.3rem 0.2rem; font-size: 0.82rem; text-align: left; cursor: pointer; }
+.calc-hist button:hover { background: #f8fafc; }
+.calc-hist span { color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calc-hist b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Formularios financieros */
+.calc-form { display: grid; gap: 0.7rem; }
+.calc-form label { display: grid; gap: 3px; font-size: 0.78rem; font-weight: 600; color: #334155; }
+.calc-form input, .calc-form select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.4rem 0.55rem; font-size: 0.9rem; font-weight: 400; min-width: 0; width: 100%; }
+.calc-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.calc-seg { display: flex; gap: 0.35rem; flex-wrap: wrap; align-items: center; }
+.calc-seg button { flex: 1; border: 1px solid #c7d2fe; background: #fff; color: #1a237e; border-radius: 8px; padding: 0.35rem 0.5rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.calc-seg button.on { background: #1a237e; color: #fff; border-color: #1a237e; }
+.calc-seg .calc-mini { flex: 0 0 70px; width: 70px; }
+
+.calc-out { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 0.75rem; margin: 0.2rem 0 0; padding: 0.75rem 0.85rem; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-size: 0.86rem; }
+.calc-out dt { font-weight: 500; color: #475569; }
+.calc-out dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.calc-out .main { font-weight: 800; color: #1a237e; font-size: 1rem; }
+.calc-link { border: 0; background: none; padding: 0 0 0 0.35rem; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.calc-form > .calc-link { justify-self: start; padding: 0; }
+
+.calc-table { max-height: 280px; overflow: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+.calc-table table { width: 100%; border-collapse: collapse; font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.calc-table th { position: sticky; top: 0; background: #f1f5f9; text-align: right; padding: 0.3rem 0.4rem; color: #475569; }
+.calc-table td { text-align: right; padding: 0.25rem 0.4rem; border-top: 1px solid #f1f5f9; white-space: nowrap; }
+.calc-table th:first-child, .calc-table td:first-child { text-align: center; }
+
+@media (max-width: 767.98px) {
+  .calc { width: 100%; }
+}
